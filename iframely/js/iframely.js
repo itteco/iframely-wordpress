@@ -3,8 +3,11 @@
     /*
 
      Iframely consumer client lib - for resizing iframes only.
+     Get the full library at https://github.com/itteco/iframely
 
-     Versrion 0.5.2
+
+     Version 0.5.2
+     (c) Itteco Software Corp.
 
      */
 
