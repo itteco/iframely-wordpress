@@ -1,32 +1,28 @@
-=== Iframely ===
-Contributors: @ivanp
+=== Iframely Responsive Embeds ===
+Contributors: @ivanp, @psergeev
 Tags: iframely, oembed, embed, responsive, video, youtube, vimeo, instagram, gist, fitvids, mu
 Requires at least: 2.9
 Tested up to: 3.6.1
-Stable tag: trunk
+Stable tag: 0.1.0
 License: MIT
 
 
 Iframely converts URLs in your posts into responsive embed widgets for 900+ domains. 
 
+
+
 == Description ==
 
-Iframely brings you the responsive embeds. It means the embeds will resize if you are on responsive theme. 
+[Iframely](http://iframely.com?from=wp) brings you the responsive embeds. It means the embeds will resize if you are on responsive theme. 
 
 Iframely will detect URLs in your posts and replace it with responsive embed codes for over 900 domains. Supports YouTube, Vimeo, Instagram, GitHub Gists, Google +, Facebook Posts, Storify, SlideShare, well, you know, over 900 of them and keeps growing.
 
-Iframely replaces the default WordPress embed method and does not any API keys or signups on our main site. 
-Was tested and works well with multi-site installations.
+Iframely replaces the default WordPress embed method and does not require any API keys or signups on our main site. 
+Was tested and works well with multi-site installations. 
 
+The plugin works the same way the standard oEmbed is supported by WordPress: either an URL on a separate line, or [embed] shortcode.
 
-To trigger Iframely, just put URL is on its own line, like you used to. And make sure it is not hyperlinked (clickable when viewing the post):
-
-	Check out this cool video:
-
-	http://www.youtube.com/watch?v=dQw4w9WgXcQ
-
-	That was a cool video.
-
+Powered by [Iframely Open-Source API](http://iframely.com/gateway). Download plugin and change the API address if you'd like to host API yourself.
 
 
 
@@ -48,7 +44,7 @@ No other configuration of the plugin is required. You are good to go.
 
 = How do I resize my widgets? = 
 
-Well, that's the point of responsive widgets. You don't have to. 
+Well, that's the point of responsive embeds. You don't have to. 
 
 Iframely widgets will take 100% available width. If you need to limit it, just define your CSS styles for `iframely-widget-container`.
 
@@ -74,10 +70,10 @@ Iframely does not change behavior of the shortcode plugins. Everything should wo
 
 == Changelog ==
 
-= 0.1 =
+= 0.1.0 =
 This is our initial release. Please, rate if you like the plugin. 
 
-And please, help us test it on variety of installations/configurations you guys have. Submit issues if you see any.
+And please, help do submit issues if you see any.
 
 
 
