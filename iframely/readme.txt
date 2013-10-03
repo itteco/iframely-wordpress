@@ -40,6 +40,19 @@ No other configuration of the plugin is required. You are good to go.
 
 
 
+== Screenshots ==
+
+Here's some samples of what Iframely supports. 
+
+1. Instagram sample
+2. Vimeo sample
+3. GitHub Gists
+4. Google+ Posts
+5. Imgur & Galleries
+6. Facebook Statues
+7. And many-many others
+
+
 == Frequently Asked Questions ==
 
 = How do I resize my widgets? = 
@@ -74,6 +87,12 @@ Iframely does not change behavior of the shortcode plugins. Everything should wo
 This is our initial release. Please, rate if you like the plugin. 
 
 And please, help do submit issues if you see any.
+
+
+
+== Upgrade Notice ==
+
+It's our first release. But WP asks us to put an upgrade notice here :)
 
 
 
