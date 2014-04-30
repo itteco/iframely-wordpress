@@ -48,7 +48,8 @@ function embed_iframely( $atts, $content = '' ) {
 
     # Read url from 'url' attribute if not empty
     if ( !empty( $atts['url'] ) ) $content = $atts['url'];
-    $content = trim($content);
+    $content = str_replace( '&#038;', '&amp;', trim( $content ) );
+    $content = str_replace( '&amp;', '&', $content );
 
     # Read iframely API key from options
     $api_key = trim(get_option('iframely_api_key'));
