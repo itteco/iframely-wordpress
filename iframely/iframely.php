@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
 Version: 0.2.0
-Author URI: http://iframely.com/?from=wp
+Author URI: http://iframe.ly/?from=wp
 */
 
 # Define iframely plugin path
@@ -132,6 +132,7 @@ function iframely_settings_page() {
 
 
 <p><em>Note</em>: Some people expect Iframely to wrap URLs with <code>&lt;iframe src=...&gt;</code> code. That's not what Iframely is for. It converts original URLs into native embed codes itself.</p>
+<p></br></p>
 
 <h1>Configure Your Options</h1>
 
@@ -143,8 +144,8 @@ function iframely_settings_page() {
         <li>
             <p>Your Iframely API Key: </p>
             <p><input type="text" name="iframely_api_key" value="<?php echo get_option('iframely_api_key'); ?>" /></p>
-            <p> It activates all URLs both in shortcode and when used on a separate line. When left empty, <a href="http://iframe.ly?from=wp">Shorten URL</a> manually first.</p>
-            <p> Get your <a href="http://iframe.ly/api" target="_blank">FREE API key</a></p>
+            <p> It activates all URLs both in shortcode and when used on a separate line. When left empty, <a href="http://iframe.ly?from=wp">Shorten URL</a> manually first.</br>
+            Get your <a href="http://iframe.ly/api" target="_blank">FREE API key here</a>.</p>
         </li>
 
         <li>
@@ -154,8 +155,8 @@ function iframely_settings_page() {
         
         <li>
             <p><input type="checkbox" name="iframely_host_widgets" value="1" <?php if (get_option('iframely_host_widgets')) { ?> checked="checked" <?php } ?> /> Host and Proxy Embed Widgets</p>
-            <p>This <em>isn't implemented yet</em>. But put a check to let us know you would be interested in this feature.</p>
-            <p>For performance/load times, SSL or even autoplay videos, we could wrap native embed codes and proxy widget views through our servers.</p>
+            <p>This <em>isn't implemented yet</em>. But put a check to let us know you would be interested in this feature.</br>
+            For performance/load times, SSL or even autoplay videos, we could wrap native embed codes and proxy widget views through our servers.</p>
         </li>
         
     </ul>
