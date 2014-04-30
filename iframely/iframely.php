@@ -55,7 +55,7 @@ function embed_iframely( $atts, $content = '' ) {
 
     # Print error message if API key is empty and not an iframe.ly shorten url inside shortcode
     if ( empty( $api_key ) && strpos( $content, 'http://iframe.ly' ) !== 0 ) {
-        return '[Please, enter your <a href="http://iframe.ly/api">API key</a> in Iframely options or manually shorten URL at <a href="http://iframe.ly">iframe.ly</a>]';
+        return '[Please, configure your <a href="http://iframe.ly/api">API key</a> in Iframely options or manually shorten URL at <a href="http://iframe.ly">iframe.ly</a>]';
     }
 
     # Create internal wp oembed class to get list of oembed providers
@@ -97,7 +97,7 @@ add_action('admin_menu', 'iframely_create_menu');
 function iframely_create_menu() {
 
 	# Create new top-level menu
-	add_menu_page('Iframely Options', 'Iframely Options', 'administrator', __FILE__, 'iframely_settings_page');
+	add_menu_page('Iframely', 'Iframely Options', 'administrator', __FILE__, 'iframely_settings_page');
 
 	# Call register settings function
 	add_action( 'admin_init', 'register_iframely_settings' );
@@ -112,8 +112,20 @@ function iframely_settings_page() {
 ?>
 <div class="wrap">
 
-<h1>Iframely Options</h1>
-<p>Iframely will take URLs you place in editor on a separate line and will try to detect responsive embed codes for it. If successful, Iframely will put embed HTML code in your post. You can also use Iframely with <code>[iframely]http://url.com[/iframely]</code> shortcode.</p>
+<h1>How to use Iframely</h1>
+
+<p>Iframely will take URL in your post and replace it with (responsive, if possible) embed code. We cover well over 1000 domains. <a href="http://iframe.ly/domains" target="_blank">See examples</a>.</p>
+
+<ul>
+<li><p><strong>URL on a separate line</strong>: Shorten your URL first at <a href="http://iframe.ly?from=wp" target="_blank">iframe.ly</a> <br>and paste short URL on a separate line in your post</p></li>
+<li><p><strong>With shortcode</strong>: <code>[iframely]http://iframe.ly/bFkV[/iframely]</code> <br>or <code>[iframely url=http://iframe.ly/bFkV/]</code></p></li>
+<li><p><strong>With API Key - any URL</strong>: URL on a separate line and also with shortcode, but with any URL <br>and with no need to shorten URLs manually at iframe.ly first. <br>This option requires (FREE) <a href="http://iframe.ly/api" target="_blank"</a><strong>API KEY</strong></a> </p></li>
+</ul>
+
+
+<p><em>Note</em>: Some people expect Iframely to wrap URLs with <code>&lt;iframe src=...&gt;</code> code. That's not what Iframely is for. It converts original URLs into native embed codes itself.</p>
+
+<h1>Configure Your Options</h1>
 
 <form method="post" action="options.php">
     <?php settings_fields( 'iframely-settings-group' ); ?>
@@ -121,23 +133,27 @@ function iframely_settings_page() {
 
     <ul>
         <li>
-            <p>Enter Iframely API Key: <input type="text" name="iframely_api_key" value="<?php echo get_option('iframely_api_key'); ?>" /></p>
-
-            <ul>
-                <li>If absent, Iframely will only work with URLs of iframe.ly domain. It mains you will have to manually <a href="http://iframe.ly" data-hasqtip="9" aria-describedby="qtip-9">shorten URL</a> first</li>
-                <li><a href="http://iframe.ly/api">Get a FREE API key here</a></li>
-            </ul>
+            <p>Your Iframely API Key: </p>
+            <p><input type="text" name="iframely_api_key" value="<?php echo get_option('iframely_api_key'); ?>" /></p>
+            <p> It activates all URLs both in shortcode and when used on a separate line. When left empty, <a href="http://iframe.ly?from=wp">Shorten URL</a> manually first.</p>
+            <p> Get your <a href="http://iframe.ly/api" target="_blank">FREE API key</a></p>
         </li>
 
         <li>
-            <p><input type="checkbox" name="iframely_only_shortcode" value="1" <?php if (get_option('iframely_only_shortcode')) { ?> checked="checked" <?php } ?> /> Only use Iframely with [iframely] shortcode</p>
-
-            <ul>
-                <li>It will block Iframely from intercepting all URLs in your editor that may be covered by embeds plugins you have installed, e.g. a Jetpack.</li>
-            </ul>
-            <?php submit_button(); ?>
+            <p><input type="checkbox" name="iframely_only_shortcode" value="1" <?php if (get_option('iframely_only_shortcode')) { ?> checked="checked" <?php } ?> /> Only use Iframely with <code>[iframely]</code> shortcode</p>
+            <p>It will block Iframely from intercepting all URLs in your editor that may be covered by other embeds plugins you have installed, e.g. a Jetpack.</p>
         </li>
+        
+        <li>
+            <p><input type="checkbox" name="iframely_host_widgets" value="1" <?php if (get_option('iframely_host_widgets')) { ?> checked="checked" <?php } ?> /> Host and Proxy Embed Widgets</p>
+            <p>This <em>isn't implemented yet</em>. But put a check to let us know you would be interested in this feature.</p>
+            <p>For performance/load times, SSL or even autoplay videos, we could wrap native embed codes and proxy widget views through our servers.</p>
+        </li>
+        
     </ul>
+    
+    <?php submit_button(); ?>
+    
 </form>
 </div>
 <?php } ?>
