@@ -30,7 +30,7 @@ if ( !get_option( 'iframely_only_shortcode' ) && get_option('iframely_api_key') 
 }
 
 # Add iframely as oembed provider for any iframe.ly shorten link
-wp_oembed_add_provider( 'http://iframe.ly/*', 'http://iframe.ly/api/oembed', false );
+wp_oembed_add_provider( 'http://iframe.ly/*', 'http://iframe.ly/api/oembed' . iframely_get_iframe_param(true), false );
 
 # Enqueue iframely and jquery js for front-end
 function registering_iframely_js() {
@@ -70,7 +70,7 @@ function embed_iframely( $atts, $content = '' ) {
     }
     # Without API key we can use iframely as provider only for iframe.ly shorten link
     else {
-        $wp_oembed->providers = array( 'http://iframe.ly/*' => array( 'http://iframe.ly/api/oembed', false ) );
+        $wp_oembed->providers = array( 'http://iframe.ly/*' => array( 'http://iframe.ly/api/oembed' . iframely_get_iframe_param(true), false ) );
     }
 
     # Get global WP_Embed class, to use 'shortcode' method from it
@@ -88,11 +88,29 @@ function embed_iframely( $atts, $content = '' ) {
 
 function iframely_create_api_link ( $api_key ) {
     $blog_name = get_bloginfo('url');
-    return "http://iframe.ly/api/oembed?api_key={$api_key}&origin={$blog_name}";
+
+    $iframe = '';
+    if ( get_option( 'iframely_host_widgets' ) ) {
+        $iframe = '&iframe=1';
+    }
+    return "http://iframe.ly/api/oembed?api_key={$api_key}&origin={$blog_name}" . iframely_get_iframe_param();
 }
 
-# Create iframely settings menu
-add_action('admin_menu', 'iframely_create_menu');
+function iframely_get_iframe_param ( $is_first = false ) {
+
+    $res = '';
+    if ( get_option( 'iframely_host_widgets' ) ) {
+        $res = ($is_first ? '?' : '&' ) . 'iframe=1';
+    }
+
+    return $res;
+}
+
+# Create iframely settings menu for admin
+require_once( ABSPATH . WPINC . '/pluggable.php' );
+if ( current_user_can( 'manage_options' ) ) {
+    add_action( 'admin_menu', 'iframely_create_menu' );
+}
 
 function iframely_create_menu() {
 
@@ -106,6 +124,7 @@ function iframely_create_menu() {
 function register_iframely_settings() {
 	register_setting( 'iframely-settings-group', 'iframely_api_key' );
     register_setting( 'iframely-settings-group', 'iframely_only_shortcode' );
+    register_setting( 'iframely-settings-group', 'iframely_host_widgets' );
 }
 
 function iframely_settings_page() {
@@ -143,7 +162,7 @@ function iframely_settings_page() {
     <ul>
         <li>
             <p>Your Iframely API Key: </p>
-            <p><input type="text" name="iframely_api_key" value="<?php echo get_option('iframely_api_key'); ?>" /></p>
+            <p><input type="text" style="width: 250px;" name="iframely_api_key" value="<?php echo get_option('iframely_api_key'); ?>" /></p>
             <p> It activates all URLs both in shortcode and when used on a separate line. When left empty, <a href="http://iframe.ly?from=wp">Shorten URL</a> manually first.</br>
             Get your <a href="http://iframe.ly/api" target="_blank">FREE API key here</a>.</p>
         </li>
