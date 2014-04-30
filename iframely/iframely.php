@@ -30,7 +30,7 @@ if ( !get_option( 'iframely_only_shortcode' ) && get_option('iframely_api_key') 
 }
 
 # Add iframely as oembed provider for any iframe.ly shorten link
-wp_oembed_add_provider( 'http://iframe.ly/*', 'http://iframely.com/oembed' . iframely_get_iframe_param( true ), false );
+wp_oembed_add_provider( 'http://iframe.ly/*', 'http://iframe.ly/api/oembed' . iframely_get_iframe_param( true ), false );
 
 # Enqueue iframely and jquery js for front-end
 function registering_iframely_js() {
@@ -70,7 +70,7 @@ function embed_iframely( $atts, $content = '' ) {
     }
     # Without API key we can use iframely as provider only for iframe.ly shorten link
     else {
-        $wp_oembed->providers = array( 'http://iframe.ly/*' => array( 'http://iframely.com/oembed' . iframely_get_iframe_param( true ), false ) );
+        $wp_oembed->providers = array( 'http://iframe.ly/*' => array( 'http://iframe.ly/api/oembed' . iframely_get_iframe_param( true ), false ) );
         //iframely.com/oembed
     }
 
@@ -94,13 +94,7 @@ function iframely_create_api_link ( $api_key ) {
 }
 
 function iframely_get_iframe_param ( $is_first = false ) {
-
-    $res = '';
-    if ( get_option( 'iframely_host_widgets' ) ) {
-        $res = ($is_first ? '?' : '&' ) . 'iframe=1';
-    }
-
-    return $res;
+    return ($is_first ? '?' : '&' ) . 'iframe=' . ( get_option( 'iframely_host_widgets' ) ? 1 : 0);
 }
 
 # Create iframely settings menu for admin
