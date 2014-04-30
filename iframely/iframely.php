@@ -30,7 +30,7 @@ if ( !get_option( 'iframely_only_shortcode' ) && get_option('iframely_api_key') 
 }
 
 # Add iframely as oembed provider for any iframe.ly shorten link
-wp_oembed_add_provider( 'http://iframe.ly/*', 'http://iframe.ly/api/oembed' . iframely_get_iframe_param(true), false );
+wp_oembed_add_provider( 'http://iframe.ly/*', 'http://iframely.com/oembed' . iframely_get_iframe_param( true ), false );
 
 # Enqueue iframely and jquery js for front-end
 function registering_iframely_js() {
@@ -51,7 +51,7 @@ function embed_iframely( $atts, $content = '' ) {
     $content = trim($content);
 
     # Read iframely API key from options
-    $api_key = get_option('iframely_api_key');
+    $api_key = trim(get_option('iframely_api_key'));
 
     # Print error message if API key is empty and not an iframe.ly shorten url inside shortcode
     if ( empty( $api_key ) && strpos( $content, 'http://iframe.ly' ) !== 0 ) {
@@ -70,7 +70,8 @@ function embed_iframely( $atts, $content = '' ) {
     }
     # Without API key we can use iframely as provider only for iframe.ly shorten link
     else {
-        $wp_oembed->providers = array( 'http://iframe.ly/*' => array( 'http://iframe.ly/api/oembed' . iframely_get_iframe_param(true), false ) );
+        $wp_oembed->providers = array( 'http://iframe.ly/*' => array( 'http://iframely.com/oembed' . iframely_get_iframe_param( true ), false ) );
+        //iframely.com/oembed
     }
 
     # Get global WP_Embed class, to use 'shortcode' method from it
@@ -89,10 +90,6 @@ function embed_iframely( $atts, $content = '' ) {
 function iframely_create_api_link ( $api_key ) {
     $blog_name = get_bloginfo('url');
 
-    $iframe = '';
-    if ( get_option( 'iframely_host_widgets' ) ) {
-        $iframe = '&iframe=1';
-    }
     return "http://iframe.ly/api/oembed?api_key={$api_key}&origin={$blog_name}" . iframely_get_iframe_param();
 }
 
@@ -111,6 +108,15 @@ require_once( ABSPATH . WPINC . '/pluggable.php' );
 if ( current_user_can( 'manage_options' ) ) {
     add_action( 'admin_menu', 'iframely_create_menu' );
 }
+
+function plugin_add_settings_link( $links ) {
+    $settings_link = '<a href="admin.php?page=iframely/iframely.php">Settings</a>';
+  	array_push( $links, $settings_link );
+  	return $links;
+}
+
+$plugin = plugin_basename( __FILE__ );
+add_filter( "plugin_action_links_$plugin", 'plugin_add_settings_link' );
 
 function iframely_create_menu() {
 
