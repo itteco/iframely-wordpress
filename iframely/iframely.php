@@ -97,7 +97,7 @@ add_action('admin_menu', 'iframely_create_menu');
 function iframely_create_menu() {
 
 	# Create new top-level menu
-	add_menu_page('Iframely', 'Iframely Options', 'administrator', __FILE__, 'iframely_settings_page');
+	add_menu_page('Iframely Options', 'Iframely', 'administrator', __FILE__, 'iframely_settings_page');
 
 	# Call register settings function
 	add_action( 'admin_init', 'register_iframely_settings' );
@@ -110,7 +110,15 @@ function register_iframely_settings() {
 
 function iframely_settings_page() {
 ?>
-<div class="wrap">
+
+    <style type="text/css">
+        .iframely_options_page ul {
+            list-style: disc;
+            padding-left: 40px;
+        }
+    </style>
+
+<div class="wrap iframely_options_page">
 
 <h1>How to use Iframely</h1>
 
