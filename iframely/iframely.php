@@ -64,11 +64,11 @@ function embed_iframely( $atts, $content = '' ) {
     # Save current providers
     $old_providers = $wp_oembed->providers;
 
-    # With API key we can use iframely.com as provider for any url inside our shortcode
+    # With API key we can use iframely as provider for any url inside our shortcode
     if ( !empty( $api_key ) ) {
         $wp_oembed->providers = array( '#https?://[^\s]+#i' => array( iframely_create_api_link( $api_key ), true ) );
     }
-    # Without API key we can use iframely.com as provider only for iframe.ly shorten link
+    # Without API key we can use iframely as provider only for iframe.ly shorten link
     else {
         $wp_oembed->providers = array( 'http://iframe.ly/*' => array( 'http://iframe.ly/api/oembed', false ) );
     }
@@ -113,7 +113,7 @@ function iframely_settings_page() {
 <div class="wrap">
 
 <h1>Iframely Options</h1>
-<p>Iframely will take URLs you place in editor on a separate line and will try to detect responsive embed codes for it. If successful, Iframely will put embed HTML code in your post. You can also use Iframely with <code>[iframely http://url.com]</code> shortcode.</p>
+<p>Iframely will take URLs you place in editor on a separate line and will try to detect responsive embed codes for it. If successful, Iframely will put embed HTML code in your post. You can also use Iframely with <code>[iframely]http://url.com[/iframely]</code> shortcode.</p>
 
 <form method="post" action="options.php">
     <?php settings_fields( 'iframely-settings-group' ); ?>
