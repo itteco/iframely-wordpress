@@ -20,6 +20,7 @@ if ( !get_option( 'iframely_only_shortcode' ) && get_option('iframely_api_key') 
     add_filter( 'oembed_providers', create_function('', 'return array();'));
 
     # Also disable default providers list
+    require_once( ABSPATH . WPINC . '/class-oembed.php' );
     $wp_oembed = _wp_oembed_get_object();
     $wp_oembed->providers = array();
 
@@ -44,6 +45,8 @@ add_shortcode( 'iframely', 'embed_iframely' );
 
 # Function to process content in iframely shortcode, ex: [iframely]http://anything[/iframely]
 function embed_iframely( $atts, $content = '' ) {
+
+    $content = trim($content);
 
     # Read iframely API key from options
     $api_key = get_option('iframely_api_key');
