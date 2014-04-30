@@ -30,7 +30,7 @@ if ( !get_option( 'iframely_only_shortcode' ) && get_option('iframely_api_key') 
 }
 
 # Add iframely as oembed provider for any iframe.ly shorten link
-wp_oembed_add_provider( 'http://iframe.ly/*', 'http://iframely.com/oembed', false );
+wp_oembed_add_provider( 'http://iframe.ly/*', 'http://iframe.ly/api/oembed', false );
 
 # Enqueue iframely and jquery js for front-end
 function registering_iframely_js() {
@@ -46,6 +46,8 @@ add_shortcode( 'iframely', 'embed_iframely' );
 # Function to process content in iframely shortcode, ex: [iframely]http://anything[/iframely]
 function embed_iframely( $atts, $content = '' ) {
 
+    # Read url from 'url' attribute if not empty
+    if ( !empty( $atts['url'] ) ) $content = $atts['url'];
     $content = trim($content);
 
     # Read iframely API key from options
@@ -68,7 +70,7 @@ function embed_iframely( $atts, $content = '' ) {
     }
     # Without API key we can use iframely.com as provider only for iframe.ly shorten link
     else {
-        $wp_oembed->providers = array( 'http://iframe.ly/*' => array( 'http://iframely.com/oembed', false ) );
+        $wp_oembed->providers = array( 'http://iframe.ly/*' => array( 'http://iframe.ly/api/oembed', false ) );
     }
 
     # Get global WP_Embed class, to use 'shortcode' method from it
