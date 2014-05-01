@@ -25,12 +25,11 @@ if ( !get_option( 'iframely_only_shortcode' ) && get_option('iframely_api_key') 
     $wp_oembed->providers = array();
 
     # Add iframely as oembed provider for ANY url, yes it will process any url on separate line with wp oembed functions
-    $api_key = get_option('iframely_api_key');
-    wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link( $api_key ), true );
+    wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link(), true );
 }
 
 # Add iframely as oembed provider for any iframe.ly shorten link
-wp_oembed_add_provider( 'http://iframe.ly/*', 'http://iframe.ly/api/oembed' . iframely_get_iframe_param( true ), false );
+wp_oembed_add_provider( '#https?://iframe\.ly/.+#i', iframely_create_api_link(), true );
 
 # Enqueue iframely and jquery js for front-end
 function registering_iframely_js() {
@@ -52,7 +51,7 @@ function embed_iframely( $atts, $content = '' ) {
     $content = str_replace( '&amp;', '&', $content );
 
     # Read iframely API key from options
-    $api_key = trim(get_option('iframely_api_key'));
+    $api_key = trim( get_option( 'iframely_api_key' ) );
 
     # Print error message if API key is empty and not an iframe.ly shorten url inside shortcode
     if ( empty( $api_key ) && strpos( $content, 'http://iframe.ly' ) !== 0 ) {
@@ -67,12 +66,11 @@ function embed_iframely( $atts, $content = '' ) {
 
     # With API key we can use iframely as provider for any url inside our shortcode
     if ( !empty( $api_key ) ) {
-        $wp_oembed->providers = array( '#https?://[^\s]+#i' => array( iframely_create_api_link( $api_key ), true ) );
+        $wp_oembed->providers = array( '#https?://[^\s]+#i' => array( iframely_create_api_link(), true ) );
     }
     # Without API key we can use iframely as provider only for iframe.ly shorten link
     else {
-        $wp_oembed->providers = array( 'http://iframe.ly/*' => array( 'http://iframe.ly/api/oembed' . iframely_get_iframe_param( true ), false ) );
-        //iframely.com/oembed
+        $wp_oembed->providers = array( '#https?://iframe\.ly/.+#i' => array( iframely_create_api_link(), true ) );
     }
 
     # Get global WP_Embed class, to use 'shortcode' method from it
@@ -88,14 +86,29 @@ function embed_iframely( $atts, $content = '' ) {
     return $code;
 }
 
-function iframely_create_api_link ( $api_key ) {
-    $blog_name = get_bloginfo('url');
+# Create link to iframely API backend
+function iframely_create_api_link () {
 
-    return "http://iframe.ly/api/oembed?api_key={$api_key}&origin={$blog_name}" . iframely_get_iframe_param();
-}
+    # Read url of the current blog
+    $blog_name = get_bloginfo( 'url' );
+    # Read Host Widgets from plugin options
+    $host_widgets = get_option( 'iframely_host_widgets' );
+    # Read API key from plugin options
+    $api_key = trim( get_option( 'iframely_api_key' ) );
 
-function iframely_get_iframe_param ( $is_first = false ) {
-    return ($is_first ? '?' : '&' ) . 'iframe=' . ( get_option( 'iframely_host_widgets' ) ? 1 : 0);
+    $link = 'http://iframe.ly/api/oembed?&origin=' . $blog_name;
+
+    # Append API key
+    if ( $api_key ) {
+        $link .= '&api_key=' . $api_key;
+    }
+
+    # Append Host Widgets
+    if ( $host_widgets ) {
+        $link .= '&iframe=' . 1;
+    }
+
+    return $link;
 }
 
 # Create iframely settings menu for admin
@@ -104,14 +117,15 @@ if ( current_user_can( 'manage_options' ) ) {
     add_action( 'admin_menu', 'iframely_create_menu' );
 }
 
-function plugin_add_settings_link( $links ) {
+# Create link to plugin options page from plugins list
+function iframely_plugin_add_settings_link( $links ) {
     $settings_link = '<a href="admin.php?page=iframely/iframely.php">Settings</a>';
   	array_push( $links, $settings_link );
   	return $links;
 }
 
-$plugin = plugin_basename( __FILE__ );
-add_filter( "plugin_action_links_$plugin", 'plugin_add_settings_link' );
+$iframely_plugin_basename = plugin_basename( __FILE__ );
+add_filter( 'plugin_action_links_' . $iframely_plugin_basename, 'iframely_plugin_add_settings_link' );
 
 function iframely_create_menu() {
 
