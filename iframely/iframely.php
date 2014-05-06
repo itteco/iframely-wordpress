@@ -201,6 +201,9 @@ function iframely_settings_page() {
 <script type="text/javascript">
     jQuery( '.iframely_options_page form' ).submit( function() {
         var $api_key_input = jQuery(this).find('[name="iframely_api_key"]');
+
+        if (!$api_key_input.val().length) return true;
+
         var origin = "<?php print( preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ) )?>";
 
         // CHECK HTTPS
