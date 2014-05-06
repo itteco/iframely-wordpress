@@ -90,7 +90,7 @@ function embed_iframely( $atts, $content = '' ) {
 function iframely_create_api_link () {
 
     # Read url of the current blog
-    $blog_name = get_bloginfo( 'url' );
+    $blog_name = preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) );
     # Read Host Widgets from plugin options
     $host_widgets = get_option( 'iframely_host_widgets' );
     # Read API key from plugin options
@@ -198,5 +198,27 @@ function iframely_settings_page() {
     <?php submit_button(); ?>
     
 </form>
+<script type="text/javascript">
+    jQuery( '.iframely_options_page form' ).submit( function() {
+        var $api_key_input = jQuery(this).find('[name="iframely_api_key"]');
+        var origin = "<?php print( preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ) )?>";
+
+        // CHECK HTTPS
+        var url = location.protocol + "//iframe.ly/api/oembed?api_key=" + $api_key_input.val() + "&url=https://chrome.google.com/webstore/detail/oajehffbidgccdedglcogjoolbdmpjmm&origin=" + origin;
+        var api_key_check = true;
+        jQuery.ajax({
+            url: url,
+            error: function() {
+                $api_key_input_container = $api_key_input.parent();
+                $api_key_input_container.find('.iframely_options_page_error').remove();
+                $api_key_input_container.prepend(jQuery('<div style="color: red" class="iframely_options_page_error">Oops, invalid API Key provided.</div>').fadeIn());
+                api_key_check = false;
+            },
+            async: false
+        });
+
+        if (!api_key_check) return false;
+    });
+</script>
 </div>
 <?php } ?>
