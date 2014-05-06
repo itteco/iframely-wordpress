@@ -54,7 +54,7 @@ function embed_iframely( $atts, $content = '' ) {
     $api_key = trim( get_option( 'iframely_api_key' ) );
 
     # Print error message if API key is empty and not an iframe.ly shorten url inside shortcode
-    if ( empty( $api_key ) && strpos( $content, 'http://iframe.ly' ) !== 0 ) {
+    if ( empty( $api_key ) && !preg_match( '#https?://iframe\.ly/.+#i', $content ) ) {
         return '[Please, configure your <a href="http://iframe.ly/api">API key</a> in Iframely options or manually shorten URL at <a href="http://iframe.ly">iframe.ly</a>]';
     }
 
