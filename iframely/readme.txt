@@ -25,11 +25,11 @@ For example,
 
 
 `
-	Check out this cool video:
+Check out this cool video:
 
-	http://iframe.ly/fquGGl
+http://iframe.ly/fquGGl
 
-	That was a cool video.
+That was a cool video.
 `
 
 
@@ -86,6 +86,14 @@ Here's some samples of what Iframely supports.
 
 == Frequently Asked Questions ==
 
+= Oh, the Facebook! = 
+
+Yes, Iframely knows the embed codes for Facebook posts, photos and videos. However, some of the posts can be private and not accesssible to our parsers. For those, we can not convert the URL into embed code. Also, Facebook pages and events don't have native embed codes and so Iframely doesn't support these too. 
+
+= I thought Iframely will wrap my URL into iframe? =
+
+That's not a purpose of the plugin. Iframely works with original URLs and will detect the frame's `src` itself. If you just want to use `<iframe>`, switch your editor to HTML format and past iframe code in there.
+
 = How do I resize my widgets? = 
 
 Well, that's the point of responsive embeds. You don't have to. 
@@ -127,6 +135,7 @@ There are 3 main changes: API Key, Shortcode, and Options page.
 
 
 = 0.1.0 =
+
 This is our initial release. Please, rate if you like the plugin. 
 
 And please, help do submit issues if you see any.
