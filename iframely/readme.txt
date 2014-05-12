@@ -1,43 +1,74 @@
 === Iframely Responsive Embeds ===
-Contributors: @ivanp, @psergeev
+Contributors: psergeev, ivanp
 Tags: iframely, oembed, embed, responsive, video, youtube, vimeo, instagram, gist, fitvids, mu
 Requires at least: 2.9
-Tested up to: 3.6.1
-Stable tag: 0.1.0
+Tested up to: 3.9.1
+Stable tag: trunk
 License: MIT
 
 
-Iframely converts URLs in your posts into responsive embed widgets for 900+ domains. 
-
-
+Iframely converts URLs in your posts into responsive embed widgets for 1500+ domains. 
 
 == Description ==
 
-[Iframely](http://iframely.com?from=wp) brings you the responsive embeds. It means the embeds will resize if you are on responsive theme. 
+[Iframely](http://iframe.ly?from=wp) brings you the responsive embeds and support of over 1500 domains. It means the embeds will resize, if possible, if you are on responsive theme. 
 
-Iframely will detect URLs in your posts and replace it with responsive embed codes for over 900 domains. Supports YouTube, Vimeo, Instagram, GitHub Gists, Google +, Facebook Posts, Storify, SlideShare, well, you know, over 900 of them and keeps growing.
 
-Iframely replaces the default WordPress embed method and does not require any API keys or signups on our main site. 
-Was tested and works well with multi-site installations. 
+Iframely will detect URLs in your posts and replace it with embed codes for *over 1500 domains*. Supports all usual suspects such as YouTube, Vimeo, Instagram, GitHub Gists, Google +, Facebook Posts, Storify, SlideShare, well, you know, over 1.5 thousand of them and keeps growing.
 
-The plugin works the same way the standard oEmbed is supported by WordPress: either an URL on a separate line, or [embed] shortcode.
 
-Powered by [Iframely Open-Source API](http://iframely.com/gateway). Download plugin and change the API address if you'd like to host API yourself.
+_How to use_: 
+
+The plugin works the same way the standard oEmbed is supported by WordPress: URL on a separate line. 
+
+For example, 
+
+
+`
+	Check out this cool video:
+
+	http://iframe.ly/fquGGl
+
+	That was a cool video.
+`
+
+
+Iframely also has its own shortcode `[iframely]http://your.url/here[/iframely]`.
+
+
+_Note of caution_: 
+
+Some people expect Iframely to wrap URLs with <code>&lt;iframe src=...&gt;</code> code. That's not what Iframely is for. The plugin converts original URLs into native embed codes itself.
+
+
+_Options of use_: 
+
+Depending on your settings, Iframely can be configured in one of the following three ways:
+
+ - Detect only links that you manually shorten through [http://iframe.ly](http://iframe.ly) web shortener first (The short URL will come with the embed codes attached to it);
+ - Process all links that you publish, on a separate line or in `[iframely]` shortcode (this will disable default WordPress oEmbeds on a separate line such as YouTube, Twitter)
+ - Use Iframely in `[iframely]` shortcode only, leaving the default WordPress "URL on a separate line" processors in place. 
+
+
+_API Key_: 
+
+To enable non- `iframe.ly/*` web links parsers, you need to get & configure your API Key. Get a free key at [http://iframe.ly](http://iframe.ly?from=wp). If API Key isn't configured, the plugin will only process links of iframe.ly domain (so you'll need to manually shorten your media URLs first).
+
+
+
+The source code of the plugin is published [on GitHub](https://github.com/itteco/iframely-wordpress), if you'd like to tweak it yourself.
+
 
 
 
 == Installation ==
 
-Iframely only adds couple lines of code and a jQuery file for formatting of some embeds on the client side. 
+The installation is pretty standard:
 
-As such, the installation is pretty standard:
-
-1. Upload `iframely.php` to the `/wp-content/plugins/` directory
-2. Upload `/js/iframely.js` jQuery plugin to javascript directory
-3. Activate the plugin through the 'Plugins' menu in WordPress
-
-No other configuration of the plugin is required. You are good to go.
-
+1. Upload the package contents to to the `/wp-content/plugins/` directory
+2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Go to plugin settings to configure Iframely the way you want to use it.
+4. If you'd like Iframely to process _all_ URLs, [get your FREE API Key here](http://iframe.ly).
 
 
 == Screenshots ==
@@ -66,12 +97,12 @@ Please, note that not all the embeds codes will be responsive. Some of hosting d
 = Is it compatible with other embeds plugins I have? =
 
 * Iframely works in the same WordPress embeds framework as other plugins would. 
-* Since default WordPress embeds are not responsive, Iframely disables the standard code and replaces it with the responsive embeds. Otherwise, you might be wondering why is some widgets are not responsive 
-* This said, Iframely asks that it is a single oEmbed endpoint for any URL. It will un-register other parsers upon install. 
+* Since default WordPress embeds are not responsive, Iframely can disable the standard code and replaces it with the responsive embeds. Otherwise, you might be wondering why is some widgets are not responsive 
+* You can conifugure Iframely to only work in its own shortcode, thus leaving other plugins intact.
 
 = What about embeds in my previous posts? =
 
-Iframely works in native WordPress embeds framework. All your new posts should start seeing responsive widgets. The older posts will be re-cached via WordPress logic itself, and should granually get the new embeds code too. However, we do not interfere into this default process and do not re-cache older posts upon install. 
+Iframely works in native WordPress embeds framework. All your new posts should start seeing responsive widgets. The older posts will be re-cached via WordPress logic itself (usually when you edit and save the post), and should granually get the new embeds code too. However, we do not interfere into this default process and do not re-cache older posts upon install. 
 
 If there's a specific post you'd like to update, just go to Edit and Save it again. It should re-cache it and trigger Iframely.
 
@@ -83,6 +114,18 @@ Iframely does not change behavior of the shortcode plugins. Everything should wo
 
 == Changelog ==
 
+= 0.2.0 =
+
+There are 3 main changes: API Key, Shortcode, and Options page.
+
+ - In order to keep our servers up and running, we need to secure the API with the API Key. Get your [FREE API Key here](http://iframe.ly?from=wp). 
+ - If you don't want the hastle of configuring API Key, just shorten your links manually at [http://iframe.ly](http://iframe.ly?from=wp) first, before pasting it into your post. The short URL will come with the embed codes attached to it.
+ - Also, Iframely now has the options page where you can configure the way you'd like to use it.
+ - For example, you can opt to use Iframely in `[iframely]` shortcode only, leaving all the other default oEmbed providers intact.
+ - `[iframely]http://your.url/here[/iframely]` shortcode itself was introduced in this version.
+
+
+
 = 0.1.0 =
 This is our initial release. Please, rate if you like the plugin. 
 
@@ -92,14 +135,6 @@ And please, help do submit issues if you see any.
 
 == Upgrade Notice ==
 
-It's our first release. But WP asks us to put an upgrade notice here :)
+= 0.2.0 =
 
-
-
-== Underlying tech ==
-
-The server-side API is open-source. Check it out here: [http://iframely.com/gateway](http://iframely.com/gateway).
-
-If you choose to host API on your own, just change the endpoint address in the plugin code. 
-
-Responsive embeds concept is part of [Iframely Protocol For Responsive Embeds (oEmbed/2)](http://iframely.com/oembed2).
+In order to keep our API servers up and running, we need to secure the API with the API Key. Get your FREE API Key at iframe.ly. The previous (open) API will be available until August 1st, 2014 only. 
