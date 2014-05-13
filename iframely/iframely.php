@@ -112,10 +112,7 @@ function iframely_create_api_link () {
 }
 
 # Create iframely settings menu for admin
-require_once( ABSPATH . WPINC . '/pluggable.php' );
-if ( current_user_can( 'manage_options' ) ) {
-    add_action( 'admin_menu', 'iframely_create_menu' );
-}
+add_action( 'admin_menu', 'iframely_create_menu' );
 
 # Create link to plugin options page from plugins list
 function iframely_plugin_add_settings_link( $links ) {
@@ -130,7 +127,7 @@ add_filter( 'plugin_action_links_' . $iframely_plugin_basename, 'iframely_plugin
 function iframely_create_menu() {
 
 	# Create new top-level menu
-	add_menu_page('Iframely Options', 'Iframely', 'administrator', __FILE__, 'iframely_settings_page');
+	add_menu_page('Iframely Options', 'Iframely', 'activate_plugins', __FILE__, 'iframely_settings_page');
 
 	# Call register settings function
 	add_action( 'admin_init', 'register_iframely_settings' );
