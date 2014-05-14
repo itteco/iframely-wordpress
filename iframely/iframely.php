@@ -113,6 +113,7 @@ function iframely_create_api_link () {
 
 # Create iframely settings menu for admin
 add_action( 'admin_menu', 'iframely_create_menu' );
+add_action( 'network_admin_menu', 'iframely_network_admin_create_menu' );
 
 # Create link to plugin options page from plugins list
 function iframely_plugin_add_settings_link( $links ) {
@@ -124,11 +125,16 @@ function iframely_plugin_add_settings_link( $links ) {
 $iframely_plugin_basename = plugin_basename( __FILE__ );
 add_filter( 'plugin_action_links_' . $iframely_plugin_basename, 'iframely_plugin_add_settings_link' );
 
+# Create new top level menu for sites
 function iframely_create_menu() {
-
-	# Create new top-level menu
-    add_options_page('Iframely Options', 'Iframely', 'install_plugins', __FILE__, 'iframely_settings_page');
+    add_menu_page('Iframely Options', 'Iframely', 'install_plugins', 'iframely_settings_page', 'iframely_settings_page');
 }
+
+# Create new top level menu for network admin
+function iframely_network_admin_create_menu() {
+    add_menu_page('Iframely Options', 'Iframely', 'manage_options', 'iframely_settings_page', 'iframely_settings_page');
+}
+
 
 function iframely_update_option($name, $value) {
     return is_multisite() ? update_site_option($name, $value) : update_option($name, $value);
