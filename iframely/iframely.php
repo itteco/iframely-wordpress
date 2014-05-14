@@ -126,8 +126,8 @@ add_filter( 'plugin_action_links_' . $iframely_plugin_basename, 'iframely_plugin
 
 function iframely_create_menu() {
 
-	# Create new settings submenu
-    add_options_page('Iframely Options', 'Iframely', 'activate_plugins', __FILE__, 'iframely_settings_page');
+	# Create new top-level menu
+    add_options_page('Iframely Options', 'Iframely', 'install_plugins', __FILE__, 'iframely_settings_page');
 }
 
 function iframely_update_option($name, $value) {
