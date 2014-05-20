@@ -1,7 +1,7 @@
 === Iframely Responsive Embeds ===
 Contributors: psergeev, ivanp
 Tags: iframely, oembed, embed, responsive, video, youtube, vimeo, instagram, gist, fitvids, mu
-Requires at least: 2.9
+Requires at least: 3.5.1
 Tested up to: 3.9.1
 Stable tag: trunk
 License: MIT
@@ -114,13 +114,23 @@ Iframely works in native WordPress embeds framework. All your new posts should s
 
 If there's a specific post you'd like to update, just go to Edit and Save it again. It should re-cache it and trigger Iframely.
 
-= Will my shortcodes work? =
+= Will my other shortcodes work? =
 
-Iframely does not change behavior of the shortcode plugins. Everything should work the old way, except for `[embed]` shortcode, which will now start producing responsive widgets unless limited in size.
+Iframely does not change behavior of other shortcode plugins. Everything should work the old way, except for `[embed]` shortcode, which will now start producing responsive widgets unless limited in size.
 
+= Does it support WordPress MU? =
+
+Iframely will work well with multisite installations. Iframely options page is available for super admins only, and the settings will be the same for all blogs on your WPMU setup. 
 
 
 == Changelog ==
+
+= 0.2.2 =
+
+This version includes fixes for WordPress Multisite. Iframely plugin options page will be available only for the super admins. 
+
+The regular WP installations should remain intact and do not require an instant upgrade. 
+
 
 = 0.2.0 =
 
@@ -143,6 +153,10 @@ And please, help do submit issues if you see any.
 
 
 == Upgrade Notice ==
+
+= 0.2.2 =
+
+This is a patch for WordPress MU. If you are on a single site installations, you can safely skip this version.
 
 = 0.2.0 =
 
