@@ -117,7 +117,7 @@ add_action( 'network_admin_menu', 'iframely_network_admin_create_menu' );
 
 # Create link to plugin options page from plugins list
 function iframely_plugin_add_settings_link( $links ) {
-    $settings_link = '<a href="admin.php?page=iframely/iframely.php">Settings</a>';
+    $settings_link = '<a href="admin.php?page=iframely_settings_page">Settings</a>';
   	array_push( $links, $settings_link );
   	return $links;
 }
