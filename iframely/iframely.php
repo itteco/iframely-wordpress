@@ -197,8 +197,8 @@ function iframely_settings_page() {
         
         <li>
             <p><input type="checkbox" name="iframely_host_widgets" value="1" <?php if (get_site_option('iframely_host_widgets')) { ?> checked="checked" <?php } ?> /> Host and Proxy Embed Widgets</p>
-            <p>This <em>isn't implemented yet</em>. But put a check to let us know you would be interested in this feature.</br>
-            For performance/load times, SSL or even autoplay videos, we could wrap native embed codes and proxy widget views through our servers.</p>
+            <p>This will make all embeds be wrapped and served from Iframely hosts. </br>
+            It resolves autoplay videos issues, "Flash players on iOS", as well as improves performance/load times and facilitates SSL.</p>
         </li>
         
     </ul>
