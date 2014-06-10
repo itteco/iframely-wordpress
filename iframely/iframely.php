@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.2.2
+Version: 0.2.3
 Author URI: http://iframe.ly/?from=wp
 */
 
@@ -155,7 +155,7 @@ function iframely_settings_page() {
 
 <h1>How to use Iframely</h1>
 
-<p>Iframely will take URL in your post and replace it with (responsive, if possible) embed code. We cover well over 1000 domains. <a href="http://iframe.ly/domains" target="_blank">See examples</a>.</p>
+<p>Iframely will take URL in your post and replace it with (responsive, if possible) embed code. We cover well over 1000 domains. <a href="http://iframely.com/domains" target="_blank">See examples</a>.</p>
 
 <ul>
 <li><p><strong>URL on a separate line</strong>: Shorten your URL first at <a href="http://iframe.ly?from=wp" target="_blank">iframe.ly</a> <br>and paste short URL on a separate line in your post</p></li>
