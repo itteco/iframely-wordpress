@@ -2,7 +2,7 @@
 Contributors: psergeev, ivanp
 Tags: iframely, oembed, embed, responsive, video, youtube, vimeo, instagram, gist, fitvids, mu
 Requires at least: 3.5.1
-Tested up to: 3.9.1
+Tested up to: 4.0
 Stable tag: trunk
 License: MIT
 
@@ -11,10 +11,10 @@ Iframely converts URLs in your posts into responsive embed widgets for 1500+ dom
 
 == Description ==
 
-[Iframely](http://iframe.ly?from=wp) brings you the responsive embeds and support of over 1500 domains. It means the embeds will resize, if possible, if you are on responsive theme. 
+[Iframely](https://iframely.com?from=wp) brings you the responsive embeds and support of over 1500 domains. It means the embeds will resize, if possible, if you are on responsive theme. 
 
 
-Iframely will detect URLs in your posts and replace it with embed codes for *over 1500 domains*. Supports all usual suspects such as YouTube, Vimeo, Instagram, GitHub Gists, Google +, Facebook Posts, Storify, SlideShare, well, you know, over 1.5 thousand of them and keeps growing. [Here's some samples](http://iframely.com/domains).
+Iframely will detect URLs in your posts and replace it with embed codes for *over 1500 domains*. Supports all usual suspects such as YouTube, Vimeo, Instagram, GitHub Gists, Google +, Facebook Posts, Storify, SlideShare, well, you know, over 1.5 thousand of them and keeps growing. [Here's some samples](https://iframely.com/try).
 
 
 _How to use_: 
@@ -52,7 +52,7 @@ Depending on your settings, Iframely can be configured in one of the following t
 
 _API Key_: 
 
-To enable non- `iframe.ly/*` web links parsers, you need to get & configure your API Key. Get a free key at [http://iframe.ly](http://iframe.ly?from=wp). If API Key isn't configured, the plugin will only process links of iframe.ly domain (so you'll need to manually shorten your media URLs first).
+To enable non- `iframe.ly/*` web links parsers, you need to get & configure your API Key. Get a free key at [https://iframely.com](https://iframely.com?from=wp). If API Key isn't configured, the plugin will only process links of iframe.ly domain (so you'll need to manually shorten your media URLs first).
 
 
 
@@ -83,7 +83,7 @@ Here's some samples of what Iframely supports.
 6. Facebook Statues
 7. And many-many others
 
-[Here's some more samples](http://iframely.com/domains).
+[Here's some more samples](https://iframely.com/try).
 
 == Frequently Asked Questions ==
 
@@ -126,6 +126,11 @@ Iframely will work well with multisite installations. Iframely options page is a
 
 == Changelog ==
 
+= 0.2.4 =
+
+ - Makes Iframely work with WordPress 4.0 real-time previews
+
+
 = 0.2.3 =
 
  - We enabled the hosted widgets. With it, we now can give you embed codes for videos that autoplay. We also handle SSL well, and provide graceful fallbacks for Flash videos for your iOS/mobile visitors. To enable this option, turn it on in Iframely settings.
@@ -161,6 +166,10 @@ And please, help do submit issues if you see any.
 
 
 == Upgrade Notice ==
+
+= 0.2.4 =
+
+Makes Iframely work with WordPress 4.0 (sigh)
 
 = 0.2.3 =
 
