@@ -7,14 +7,16 @@ Stable tag: trunk
 License: MIT
 
 
-Iframely converts URLs in your posts into responsive embed widgets for 1500+ domains. 
+Iframely converts URLs in your posts into responsive embed widgets for 1600+ domains and providers summary cards for others. No API Key is required.
 
 == Description ==
 
-[Iframely](https://iframely.com?from=wp) brings you the responsive embeds and support of over 1500 domains. It means the embeds will resize, if possible, if you are on responsive theme. 
+[Iframely](https://iframely.com?from=wp) brings you the responsive embeds and support of over 1600 domains. It means the embeds will resize, if possible, if you are on responsive theme. 
 
 
-Iframely will detect URLs in your posts and replace it with embed codes for *over 1500 domains*. Supports all usual suspects such as YouTube, Vimeo, Instagram, GitHub Gists, Google +, Facebook Posts, Storify, SlideShare, well, you know, over 1.5 thousand of them and keeps growing. [Here's some samples](https://iframely.com/try).
+Iframely will detect URLs in your posts and replace it with embed codes for *over 1600 domains*. Supports all usual suspects such as YouTube, Vimeo, Instagram, GitHub Gists, Google +, Facebook Posts, Storify, SlideShare, well, you know, over 1.6 thousand of them and keeps growing. [Here's some samples](https://iframely.com/try).
+
+Iframely will also generate and host summary cards for general links, such as articles. API Key is not required, though you can optionally connect your Iframely account, if you need.
 
 
 _How to use_: 
@@ -41,22 +43,24 @@ _Note of caution_:
 Some people expect Iframely to wrap URLs with <code>&lt;iframe src=...&gt;</code> code. That's not what Iframely is for. The plugin converts original URLs into native embed codes itself.
 
 
-_Options of use_: 
+_Tell Iframely not to override default embed providers._: 
 
-Depending on your settings, Iframely can be configured in one of the following three ways:
+By default, Iframely will inject itself to be the first embeds provider in the list, thus intercepting all URLs. It means that the default providers that are later in the list won't get called and will thus be disabled. 
 
- - Detect only links that you manually shorten through [http://iframe.ly](http://iframe.ly) web shortener first (The short URL will come with the embed codes attached to it);
- - Process all links that you publish, on a separate line or in `[iframely]` shortcode (this will disable default WordPress oEmbeds on a separate line such as YouTube, Twitter)
- - Use Iframely in `[iframely]` shortcode only, leaving the default WordPress "URL on a separate line" processors in place. 
+For example, default YouTube, Vimeo, Twitter, other oEmbed plugins that you have (like JetPack), etc. 
+
+Although, we should support the same providers and output the same code, just make it responsive, you can still disable such behavior and tell Iframely to only process links that otherwise don't have embed provider. 
+
+Just configure this option in your settings. It will essentially put Iframely to be the last in the list, be "a catcher", rather then "an interceptor".
 
 
 _API Key_: 
 
-To enable non- `iframe.ly/*` web links parsers, you need to get & configure your API Key. Get a free key at [https://iframely.com](https://iframely.com?from=wp). If API Key isn't configured, the plugin will only process links of iframe.ly domain (so you'll need to manually shorten your media URLs first).
+API key is not required. You can leave this field empty in your settings. If you'd like to connect your Iframely account though - configure your API key. [https://iframely.com](https://iframely.com?from=wp). 
 
 
 
-The source code of the plugin is published [on GitHub](https://github.com/itteco/iframely-wordpress), if you'd like to tweak it yourself.
+The source code of the plugin is published [on GitHub](https://github.com/itteco/iframely-wordpress), if you'd like to tweak it yourself. With no API Key, it will use our [open oEmbed API](http://oembedapi.com). Make sure to tell about this free API to your developer friends.
 
 
 
@@ -126,6 +130,12 @@ Iframely will work well with multisite installations. Iframely options page is a
 
 == Changelog ==
 
+= 0.2.5 =
+
+ - We know you'll be happy about it. Our "No API Key is required" stance is back. API Key is now optional for Iframely WordPress plugin.
+
+
+
 = 0.2.4 =
 
  - Makes Iframely work with WordPress 4.0 real-time previews
@@ -166,6 +176,11 @@ And please, help do submit issues if you see any.
 
 
 == Upgrade Notice ==
+
+= 0.2.5 =
+
+Hey, we know you'll be happy about it. Our "No API Key is required" stance is back. API Key is now optional for Iframely WordPress plugin.
+
 
 = 0.2.4 =
 
