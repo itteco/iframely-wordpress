@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.2.5
+Version: 0.2.6
 Author URI: https://iframely.com/?from=wp
 */
 
@@ -16,7 +16,7 @@ if ( !defined( 'IFRAMELY_URL' ) ) {
 # Always add Iframely as provider. Last to the list. If not 'only_shortcode', then this provider will disable all default ones
 
 # Add iframely as oembed provider for ANY url, yes it will process any url on separate line with wp oembed functions
- wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link(), true );
+wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link(), true );
 
 # Make the Iframely endpoint to be the first in queue, otherwise default regexp are precedent
 add_filter( 'oembed_providers', 'maybe_reverse_oembed_providers');
@@ -77,7 +77,7 @@ function iframely_create_api_link () {
     # Read API key from plugin options
     $api_key = trim( get_site_option( 'iframely_api_key' ) );
 
-    $link = $api_key ? 'http://iframe.ly/api/oembed?&origin=' . $blog_name : 'http://open.iframe.ly/api/oembed?&origin=' . $blog_name;
+    $link = $api_key ? 'http://iframe.ly/api/oembed?origin=' . $blog_name : 'http://open.iframe.ly/api/oembed?origin=' . $blog_name;
 
     # Append API key
     if ( $api_key ) {
@@ -86,6 +86,32 @@ function iframely_create_api_link () {
 
     return $link;
 }
+
+# Create oembed link, to be included into page's head of individual posts
+function iframely_publish_oembed_links () {
+
+    if ( is_single() ) {
+
+        $publish = get_site_option( 'iframely_publish' );
+
+        if ($publish) {
+
+            $promo = get_site_option( 'iframely_promo' );
+
+            $oembed_link = iframely_create_api_link ();
+            $page_url = urlencode( get_permalink () );
+
+            if ($promo) $oembed_link .= "&promo=true";
+            $oembed_link .= "&url=";
+
+            echo '<link rel="alternate" type="application/json+oembed" href="' . $oembed_link . $page_url . '" />' . "\n";
+            echo '<link rel="alternate" type="application/json+xml" href="' . $oembed_link . $page_url . "&format=xml". '" />' . "\n";
+        }
+    }
+}
+# Add oembed publishing hook
+add_action( 'wp_head', 'iframely_publish_oembed_links' );
+
 
 # Create iframely settings menu for admin
 add_action( 'admin_menu', 'iframely_create_menu' );
@@ -131,7 +157,7 @@ function iframely_settings_page() {
 
 <h1>How to use Iframely</h1>
 
-<p>Iframely will take URL in your post and replace it with (responsive, if possible) embed code. We cover well over 1600 domains. Plus summary cards for other URLs. <a href="https://iframely.com/try" target="_blank">See examples</a>.</p>
+<p>Iframely will take URL in your post and replace it with (responsive, if possible) embed code. We cover well over 1600 domains. Plus summary cards for other URLs. <a href="https://iframely.com/domains" target="_blank">See examples</a>.</p>
 
 <ul>
 <li><p><strong>URL on a separate line</strong></p></li>
@@ -142,15 +168,18 @@ function iframely_settings_page() {
 <p><em>Note</em>: Some people expect Iframely to wrap URLs with <code>&lt;iframe src=...&gt;</code> code. That's not what Iframely is for. It converts original URLs into native embed codes itself.</p>
 <p></br></p>
 
+<form method="post" action="">
+
 <h1>Configure Your Options</h1>
 
-<form method="post" action="">
     <?php
 
         if (isset($_POST['_wpnonce']) && isset($_POST['submit'])) {
 
             iframely_update_option('iframely_api_key', trim($_POST['iframely_api_key']));
             iframely_update_option('iframely_only_shortcode', (isset($_POST['iframely_only_shortcode'])) ? (int)$_POST['iframely_only_shortcode'] : null);
+            iframely_update_option('iframely_publish', (isset($_POST['iframely_publish'])) ? (int)$_POST['iframely_publish'] : null);
+            iframely_update_option('iframely_promo', (isset($_POST['iframely_promo'])) ? (int)$_POST['iframely_promo'] : null);
 
         }
 
@@ -167,8 +196,30 @@ function iframely_settings_page() {
 
         <li>
             <p><input type="checkbox" name="iframely_only_shortcode" value="1" <?php if (get_site_option('iframely_only_shortcode')) { ?> checked="checked" <?php } ?> /> Do not override default embed providers</p>
-            <p>It will block Iframely from intercepting all URLs in your editor that may be covered by other embeds plugins you have installed, e.g. a Jetpack. or default embeds supported by WordPress.</p>
-            <p>Although, we should support the same providers and output the same code, just make it responsive.</p>
+            <p>It will block Iframely from intercepting all URLs in your editor that may be covered by other embeds plugins you have installed, e.g. a Jetpack. or default embeds supported by WordPress.<br>
+            Although, we should support the same providers and output the same code, just make it responsive.</p>
+        </li>
+                
+    </ul>
+
+<p></br></p>
+<h1>Publish Embeds</h1>
+
+<p>You can become embeds publisher with Iframely's <a href="https://iframely.com/embed" target="_blank">summary cards</a> or promo cards.
+It will let other sites, for example any other WordPress blog have a card link to your page.
+<br>The settings below adds proper embed discovery link into your page's meta. To present give embeds to your visitor for manual copy-paste, use <a href="https://iframely.com/docs/embed-dialog" target="_blank">Embed Dialog</a>.</p>
+<p><em>Note</em>: <a href="https://iframely.com/docs/promo-cards" target="_blank">Promo cards</a> let you modify call-to-action any time and require a <a href="https://iframely.com/plans" target="_blank">paid Iframely</a> account and an API key. 
+<br>Check how cards would look like for your website here: <a href="https://iframely.com/publish" target="_blank">iframely.com/publish</a></p>
+<p></br></p>
+
+    <ul>
+        <li>
+            <p><input type="checkbox" name="iframely_publish" value="1" <?php if (get_site_option('iframely_publish')) { ?> checked="checked" <?php } ?> /> Yes, let's publish embeds discovery link</p>
+        </li>
+
+        <li>
+            <p><input type="checkbox" name="iframely_promo" value="1" <?php if (get_site_option('iframely_promo')) { ?> checked="checked" <?php } ?> /> Upgrade it to <a href="https://iframely.com/publish" target="_blank">promo cards</a></p>
+            <p>To add media from your post to promo card, configure it on iframely.com/settings.
         </li>
                 
     </ul>
@@ -179,8 +230,21 @@ function iframely_settings_page() {
 <script type="text/javascript">
     jQuery( '.iframely_options_page form' ).submit( function() {
         var $api_key_input = jQuery(this).find('[name="iframely_api_key"]');
+        var $promo = jQuery(this).find('[name="iframely_promo"]');
 
-        if (!$api_key_input.val().length) return true;
+        function showError () {
+
+            $api_key_input_container = $api_key_input.parent();
+            $api_key_input_container.find('.iframely_options_page_error').remove();
+            $api_key_input_container.prepend(jQuery('<div style="color: red" class="iframely_options_page_error">Oops, invalid API Key provided.</div>').fadeIn());
+        }
+
+        if (!$api_key_input.val().length && !$promo.is(':checked')) {
+            return true;
+        } else if (!$api_key_input.val().length && $promo.is(':checked')) {
+            showError();
+            return false;
+        }
 
         var origin = "<?php print( preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ) )?>";
 
@@ -190,9 +254,7 @@ function iframely_settings_page() {
         jQuery.ajax({
             url: url,
             error: function() {
-                $api_key_input_container = $api_key_input.parent();
-                $api_key_input_container.find('.iframely_options_page_error').remove();
-                $api_key_input_container.prepend(jQuery('<div style="color: red" class="iframely_options_page_error">Oops, invalid API Key provided.</div>').fadeIn());
+                showError();
                 api_key_check = false;
             },
             async: false
