@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.2.6
+Version: 0.2.7
 Author URI: https://iframely.com/?from=wp
 */
 
@@ -33,6 +33,25 @@ function maybe_reverse_oembed_providers ($providers) {
     else {
         return $providers;
     }
+}
+
+# Add post ID to the API call if cache invalidation webhooks are used
+add_filter( 'oembed_fetch_url', 'maybe_add_post_id');
+
+function maybe_add_post_id ($provider) {
+
+    global $post;
+    $post_id = $post->ID;
+
+    $api_key = trim( get_site_option( 'iframely_api_key' ) );
+    $hook_enabled = get_site_option( 'iframely_hook_enabled' );
+
+    if ( $hook_enabled && $post_id && $api_key ) {
+        // only add post id if API key is configured
+        $provider = add_query_arg( 'ref', (int)$post_id, $provider );
+    }
+
+    return $provider;
 }
 
 # Register [iframely] shortcode
@@ -142,6 +161,86 @@ function iframely_update_option($name, $value) {
     return is_multisite() ? update_site_option($name, $value) : update_option($name, $value);
 }
 
+class Iframely_Cache_Hook {
+    
+    public function __construct() {
+        add_filter('query_vars', array($this, 'add_query_vars'), 0);
+        add_action('parse_request', array($this, 'sniff_requests'), 0);
+    }   
+    
+    public function add_query_vars( $vars ) {
+        $vars[] = '__iframely';
+        return $vars;
+    }
+    
+    public function sniff_requests() {
+
+        if ( get_site_option( 'iframely_hook_enabled' ) ) {
+
+            global $wp;
+
+            if(isset($wp->query_vars['__iframely'])) {
+                $this->handle_request();
+                exit;
+            }
+        }
+    }
+    
+    protected function handle_request() {
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->send_response( 'Request is not as expected' );
+        }
+
+        $data = json_decode(file_get_contents('php://input'));
+
+        if (!$data) {
+            $this->send_response( 'Payload is missing' );
+        }
+
+        $request_key = $data->{'api_key'};
+        $post_id = $data->{'ref'};
+        $api_key = trim( get_site_option( 'iframely_api_key' ) );        
+
+        if (!$request_key || !$post_id || !$api_key) {
+            $this->send_response( 'API key and ref are required' );
+        }
+
+        if (!$request_key || !$post_id || !$api_key) {
+            $this->send_response( 'Some information is missing' );
+
+        } else if ($request_key != $api_key) {
+            $this->send_response( 'Invalid API key' );
+
+        } else {
+            global $wp_embed;
+
+            if (is_numeric($post_id)) {
+                $wp_embed->delete_oembed_caches( $post_id );
+            } else {
+                $post_id = url_to_postid( $post_id );
+
+                if ($post_id > 0 ) {
+                    $wp_embed->delete_oembed_caches( $post_id );
+                }
+            }
+
+            $this->send_response( '200 OK' );
+        }
+
+    }
+    
+    protected function send_response ($msg) {
+        $response['message'] = $msg;
+        header('content-type: application/json; charset=utf-8');
+        echo json_encode($response)."\n";
+        exit;
+    }
+}
+
+new Iframely_Cache_Hook( );
+
+
 function iframely_settings_page() {
 
 ?>
@@ -180,6 +279,7 @@ function iframely_settings_page() {
             iframely_update_option('iframely_only_shortcode', (isset($_POST['iframely_only_shortcode'])) ? (int)$_POST['iframely_only_shortcode'] : null);
             iframely_update_option('iframely_publish', (isset($_POST['iframely_publish'])) ? (int)$_POST['iframely_publish'] : null);
             iframely_update_option('iframely_promo', (isset($_POST['iframely_promo'])) ? (int)$_POST['iframely_promo'] : null);
+            iframely_update_option('iframely_hook_enabled', (isset($_POST['iframely_hook_enabled'])) ? (int)$_POST['iframely_hook_enabled'] : null);
 
         }
 
@@ -190,7 +290,7 @@ function iframely_settings_page() {
         <li>
             <p>Your <strong>optional</strong> Iframely API Key: </p>
             <p><input type="text" style="width: 250px;" name="iframely_api_key" value="<?php echo get_site_option('iframely_api_key'); ?>" /></p>
-            <p> Again: it is <strong>optional</strong>. If you have an account with us though, you'll be able to use our hosted iFrames beyond summary cards. Also, you'd get to configure your APIs. </br>
+            <p> Again: it is <strong>optional</strong> for non-commercial use. If you have an account with us though, you'll be able to use our hosted iFrames beyond summary cards. Also, you'd get to configure your APIs. </br>
             You can get your <a href="https://iframely.com/signup" target="_blank">API key here</a>. Or just leave it empty.</p>
         </li>
 
@@ -201,6 +301,25 @@ function iframely_settings_page() {
         </li>
                 
     </ul>
+
+
+<p></br></p>
+<h1>Embeds cache control</h1>
+
+    <ul>
+        <li>
+            <p><input type="checkbox" name="iframely_hook_enabled" value="1" <?php if (get_site_option('iframely_hook_enabled')) { ?> checked="checked" <?php } ?> /> Enable Iframely's smart cache invalidation web hook</p>
+            <p>When embeds are proxied through our <a href="https://iframely.com/docs/iframes" target="_blank">smart iFrames</a>, we can ping your WordPress when it's time to update. </p>
+            <p>Configure <strong><?php echo get_bloginfo( 'url' ) ?>/index.php?__iframely</strong> as your webhook in your <a href="https://iframely.com/settings" target=_blank>Iframely API settings</a>.</p>
+        </li>
+
+        <li>
+            <p>To purge oEmbed caches from your WordPress database <strong>manually</strong>, delete <strong>_oembed_*</strong> keys from <strong>wp_postmeta</strong> table at any time.</p>
+        </li>
+
+    </ul>
+
+
 
 <p></br></p>
 <h1>Publish Embeds</h1>
@@ -231,17 +350,18 @@ It will let other sites, for example any other WordPress blog have a card link t
     jQuery( '.iframely_options_page form' ).submit( function() {
         var $api_key_input = jQuery(this).find('[name="iframely_api_key"]');
         var $promo = jQuery(this).find('[name="iframely_promo"]');
+        var $webhook = jQuery(this).find('[name="iframely_hook_enabled"]');
 
         function showError () {
 
             $api_key_input_container = $api_key_input.parent();
             $api_key_input_container.find('.iframely_options_page_error').remove();
-            $api_key_input_container.prepend(jQuery('<div style="color: red" class="iframely_options_page_error">Oops, invalid API Key provided.</div>').fadeIn());
+            $api_key_input_container.prepend(jQuery('<div style="color: red" class="iframely_options_page_error">Oops, invalid API Key provided for this config.</div>').fadeIn());
         }
 
-        if (!$api_key_input.val().length && !$promo.is(':checked')) {
+        if (!$api_key_input.val().length && !$promo.is(':checked') && !$webhook.is(':checked')) {
             return true;
-        } else if (!$api_key_input.val().length && $promo.is(':checked')) {
+        } else if (!$api_key_input.val().length && ($promo.is(':checked') || $webhook.is(':checked'))) {
             showError();
             return false;
         }

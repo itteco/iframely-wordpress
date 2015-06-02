@@ -7,21 +7,19 @@ Stable tag: trunk
 License: MIT
 
 
-Iframely converts URLs in your posts into responsive embed widgets for 1600+ domains and summary cards for others. No API Key is required. Plus publish your own embeds with Iframely cards.
+Iframely converts URLs in your posts into responsive embed widgets for 1700+ domains and summary cards for others.
 
 == Description ==
 
 
-[Iframely](https://iframely.com?from=wp) brings you the responsive embeds and support of over 1600 domains. It means the embeds will resize, if possible, if you are on responsive theme. 
+[Iframely](https://iframely.com?from=wp) brings you the responsive embeds and support of over 1700 domains. It means the embeds will resize, if possible, if you are on responsive theme. 
 
 
 Iframely will detect URLs in your posts and replace it with embed codes for *over 1600 domains*. Supports all usual suspects such as YouTube, Vimeo, Instagram, GitHub Gists, Google +, Facebook Posts, Storify, SlideShare, well, you know, over 1.6 thousand of them and keeps growing. [Here's some samples](https://iframely.com/domains).
 
-Iframely will also generate and host summary cards for general links, such as articles. API Key is not required, though you can optionally connect your Iframely account, if you need.
+Iframely will also generate and host summary cards for general links, such as articles. Or you can publish your own embeds as summary or [promo cards](https://iframely.com/docs/promo-cards) with Iframely. 
 
-= New = 
-
-You can now publish summary or [promo cards](https://iframely.com/docs/promo-cards) with Iframely. Let your links be embedded on other blogs! Let other WordPress blogs re-post from your post just by pasting your link like you do for YouTube. WordPress revolution, here we come!
+API Key is not required for non-commercial use.
 
 
 
@@ -62,7 +60,7 @@ Just configure this option in your settings. It will essentially put Iframely to
 
 = API Key: =  
 
-API key is optional. You can leave this field empty in your settings. However, if you'd like to connect your Iframely account and adjust how API works - configure your API key. [https://iframely.com](https://iframely.com?from=wp). 
+API key is optional for non-commercial use. You can leave this field empty in your settings. However, if you'd like to connect your Iframely account and adjust how API works - configure your API key. [https://iframely.com](https://iframely.com?from=wp). 
 
 API key is also required if you wish to publish your own embeds through [promo cards](https://iframely.com/publish). See below.
 
@@ -144,6 +142,11 @@ Iframely will work well with multisite installations. Iframely options page is a
 
 == Changelog ==
 
+= 0.2.7 =
+
+ This update implements cache invalidation autopilot option to match our cloud API. It requires our smart iFrames.
+
+
 = 0.2.6 =
 
  Iframely now lets you publish embed codes from your own site through summary cards or promo cards. Let other WordPress blogs and sites re-post your content!
@@ -195,6 +198,10 @@ And please, help do submit issues if you see any.
 
 
 == Upgrade Notice ==
+
+= 0.2.7 =
+
+This update adds support of the new feature of Iframely cloud: [caching autopilot](https://iframely.com/docs/caching). It requires smart iFrames as embed codes and an API key.
 
 = 0.2.6 =
 
