@@ -1,8 +1,8 @@
 === Iframely Responsive Embeds ===
 Contributors: psergeev, ivanp
-Tags: iframely, oembed, embed, responsive, video, youtube, vimeo, instagram, gist, vine, publish, mu
+Tags: iframely, oembed, embed, responsive, video, youtube, vimeo, instagram, gist, vine, gif, giphy, google maps, facebook mu
 Requires at least: 3.5.1
-Tested up to: 4.1
+Tested up to: 4.3
 Stable tag: trunk
 License: MIT
 
@@ -15,11 +15,11 @@ Iframely converts URLs in your posts into responsive embed widgets for 1700+ dom
 [Iframely](https://iframely.com?from=wp) brings you the responsive embeds and support of over 1700 domains. It means the embeds will resize, if possible, if you are on responsive theme. 
 
 
-Iframely will detect URLs in your posts and replace it with embed codes for *over 1600 domains*. Supports all usual suspects such as YouTube, Vimeo, Instagram, GitHub Gists, Google +, Facebook Posts, Storify, SlideShare, well, you know, over 1.6 thousand of them and keeps growing. [Here's some samples](https://iframely.com/domains).
+Iframely will detect URLs in your posts and replace it with embed codes for *over 1700 domains*. Supports all usual suspects such as YouTube, Vimeo, Instagram, Facebook, Giphy, GfyCat, Imgur, Google +, GitHub Gists, Storify, SlideShare, well, you know, over 1.6 thousand of them and keeps growing. [Test some URLs here](https://iframely.com/embed).
 
-Iframely will also generate and host summary cards for general links, such as articles. Or you can publish your own embeds as summary or [promo cards](https://iframely.com/docs/promo-cards) with Iframely. 
+Iframely will also generate and host summary cards for general links, such as articles. 
 
-API Key is not required for non-commercial use.
+Iframely is powered by server API. For personal use, API Key is optional.
 
 
 
@@ -33,7 +33,7 @@ For example,
 `
 Check out this cool video:
 
-http://iframe.ly/fquGGl
+https://www.youtube.com/watch?v=A3PDXmYoF5U
 
 That was a cool video.
 `
@@ -58,23 +58,6 @@ Although, we should support the same providers and output the same code, just ma
 Just configure this option in your settings. It will essentially put Iframely to be the last in the list, be "a catcher", rather then "an interceptor".
 
 
-= API Key: =  
-
-API key is optional for non-commercial use. You can leave this field empty in your settings. However, if you'd like to connect your Iframely account and adjust how API works - configure your API key. [https://iframely.com](https://iframely.com?from=wp). 
-
-API key is also required if you wish to publish your own embeds through [promo cards](https://iframely.com/publish). See below.
-
-
-= Publish your own embeds: = 
-
-You can become embeds publisher by making summary cards of [promo cards](https://iframely.com/docs/promo-cards) available through oEmbed discovery link. Let other blogs re-post from your post. That's the feature WordPress was missing.
-
-
-= Tech = 
-
-The source code of the plugin is published [on GitHub](https://github.com/itteco/iframely-wordpress), if you'd like to tweak it yourself. With no API Key, it will use our [open oEmbed API](http://oembedapi.com). Make sure to tell about this free API to your developer friends.
-
-
 
 
 == Installation ==
@@ -84,7 +67,6 @@ The installation is pretty standard:
 1. Upload the package contents to to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Go to plugin settings to configure Iframely the way you want to use it.
-4. If you'd like Iframely to process _all_ URLs, [get your FREE API Key here](http://iframe.ly).
 
 
 == Screenshots ==
@@ -99,7 +81,7 @@ Here's some samples of what Iframely supports.
 6. Facebook Statuses
 7. And many-many others
 
-[Here's some more samples](https://iframely.com/try).
+[Here's some more samples](https://iframely.com/domains).
 
 == Frequently Asked Questions ==
 
@@ -142,20 +124,11 @@ Iframely will work well with multisite installations. Iframely options page is a
 
 == Changelog ==
 
-= 0.2.7 =
+= 0.2.8 =
 
- This update implements cache invalidation autopilot option to match our cloud API. It requires our smart iFrames.
-
-
-= 0.2.6 =
-
- Iframely now lets you publish embed codes from your own site through summary cards or promo cards. Let other WordPress blogs and sites re-post your content!
-
-
-= 0.2.5 =
-
- - We know you'll be happy about it. Our "No API Key is required" stance is back. API Key is now optional for Iframely WordPress plugin.
-
+ - Support of direct links to GIF files (mobile-friendly!)
+ - Features that were rarely used are now retired (embeds publishing, cache auto-pilot)
+ - Keep up to WordPress 4.3
 
 
 = 0.2.4 =
@@ -198,6 +171,10 @@ And please, help do submit issues if you see any.
 
 
 == Upgrade Notice ==
+
+= 0.2.8 =
+
+This update adds support of direct links to GIF files (mobile-friendly!). It also retires features that were rarely used are now retired (embeds publishing, cache auto-pilot).
 
 = 0.2.7 =
 
