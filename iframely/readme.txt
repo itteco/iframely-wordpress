@@ -2,7 +2,7 @@
 Contributors: psergeev, ivanp
 Tags: iframely, oembed, embed, responsive, video, youtube, vimeo, instagram, gist, vine, gif, giphy, google maps, facebook mu
 Requires at least: 3.5.1
-Tested up to: 4.3
+Tested up to: 4.4
 Stable tag: trunk
 License: MIT
 
@@ -33,7 +33,7 @@ For example,
 `
 Check out this cool video:
 
-https://www.youtube.com/watch?v=A3PDXmYoF5U
+http://your.url/here
 
 That was a cool video.
 `
@@ -87,7 +87,7 @@ Here's some samples of what Iframely supports.
 
 = Oh, the Facebook! = 
 
-Yes, Iframely knows the embed codes for Facebook posts, photos and videos. However, some of the posts can be private and not accesssible to our parsers. For those, we can not convert the URL into embed code. Also, Facebook pages and events don't have native embed codes and so Iframely doesn't support these too. 
+Yes, Iframely knows the embed codes for Facebook posts, photos and videos. However, some of the posts can be private and not accesssible to our parsers. For those, we can not convert the URL into embed code. Also, Facebook events don't have native embed codes and so Iframely doesn't support these too. 
 
 = I thought Iframely would wrap my URL into iframe? =
 
@@ -123,6 +123,12 @@ Iframely will work well with multisite installations. Iframely options page is a
 
 
 == Changelog ==
+
+= 0.2.9 =
+
+Since WP 4.4, your site [publishes embeds](https://make.wordpress.org/core/2015/10/28/new-embeds-feature-in-wordpress-4-4/) by default so that other WP sites can embed summaries of your posts.
+
+Iframely v 0.2.9 gives you an option to override the default widgets and use Iframely hosted [summary cards](https://iframely.com/docs/cards) instead. Change design in your Iframely account settings.
 
 = 0.2.8 =
 
@@ -171,6 +177,12 @@ And please, help do submit issues if you see any.
 
 
 == Upgrade Notice ==
+
+= 0.2.9 =
+
+Since WP 4.4, your site [publishes embeds](https://make.wordpress.org/core/2015/10/28/new-embeds-feature-in-wordpress-4-4/) by default so that other WP sites can embed summaries of your posts.
+
+Iframely v0.2.9 gives you an option to override the default widgets and use Iframely hosted [summary cards](https://iframely.com/docs/cards) instead. Change design in your Iframely account settings.
 
 = 0.2.8 =
 

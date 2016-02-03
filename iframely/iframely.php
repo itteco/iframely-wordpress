@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.2.8
+Version: 0.2.9
 Author URI: https://iframely.com/?from=wp
 */
 
@@ -38,6 +38,29 @@ function maybe_reverse_oembed_providers ($providers) {
 # Register [iframely] shortcode
 add_shortcode( 'iframely', 'embed_iframely' );
 
+# rewrite oembed discovery
+add_filter( 'oembed_endpoint_url', 'publish_embeds_via_iframely', 10, 2) ;
+
+function publish_embeds_via_iframely($url, $permalink, $format = 'json') {
+
+    if ('' !== $permalink  && get_site_option( 'publish_iframely_cards')) {
+
+        $endpoint = iframely_create_api_link ('discovery');        
+
+        $endpoint = add_query_arg( array(
+            'url'    => urlencode( $permalink ),
+            'format' => strpos($url, 'format=xml') ? 'xml': 'json',
+            // $format isn't passed inside the filter for some reason, hence the workaround
+        ), $endpoint );
+
+        return $endpoint;
+
+    } else {
+        return $url;
+    }
+    
+}
+
 # Function to process content in iframely shortcode, ex: [iframely]http://anything[/iframely]
 function embed_iframely( $atts, $content = '' ) {
 
@@ -70,19 +93,17 @@ function embed_iframely( $atts, $content = '' ) {
 }
 
 # Create link to iframely API backend
-function iframely_create_api_link () {
+function iframely_create_api_link ($origin = '') {
 
-    # Read url of the current blog
-    $blog_name = preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) );
     # Read API key from plugin options
     $api_key = trim( get_site_option( 'iframely_api_key' ) );
+    $link = $api_key ? 'http://iframe.ly/api/oembed': 'http://open.iframe.ly/api/oembed';
+    //$link = 'http://localhost:8061/oembed';
 
-    $link = $api_key ? 'http://iframe.ly/api/oembed?origin=' . $blog_name : 'http://open.iframe.ly/api/oembed?origin=' . $blog_name;
-
-    # Append API key
-    if ( $api_key ) {
-        $link .= '&api_key=' . $api_key;
-    }
+    $link = add_query_arg( array(
+        'origin'    => '' !== $origin ? $origin : preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ),
+        'api_key' => $api_key ? $api_key : false,            
+    ), $link );
 
     return $link;
 }
@@ -154,6 +175,7 @@ function iframely_settings_page() {
 
             iframely_update_option('iframely_api_key', trim($_POST['iframely_api_key']));
             iframely_update_option('iframely_only_shortcode', (isset($_POST['iframely_only_shortcode'])) ? (int)$_POST['iframely_only_shortcode'] : null);
+            iframely_update_option('publish_iframely_cards', (isset($_POST['publish_iframely_cards'])) ? (int)$_POST['publish_iframely_cards'] : null);
         }
 
         wp_nonce_field('form-settings');
@@ -172,7 +194,16 @@ function iframely_settings_page() {
             Iframely shortcode will still process such URLs regardless of this setting.
         </p>
         </li>
-                
+
+        <li>
+            <p><input type="checkbox" name="publish_iframely_cards" value="1" <?php if (get_site_option('publish_iframely_cards')) { ?> checked="checked" <?php } ?> /> Use Iframely <a href="https://iframely.com/docs/cards" target="_blanak">summary cards</a> as embeds your publish</p>
+            <p>Since WP 4.4 your site <a href="https://make.wordpress.org/core/2015/10/28/new-embeds-feature-in-wordpress-4-4/" target="_blank">publishes embeds</a> by default so that other WP sites can embed summaries of your posts.                 
+            <br>Use this option to override the default widgets and use Iframely cards instead. 
+            <br>You can customize design of your cards in your <a href="https://iframely.com/customize" target="_blank">Iframely profile</a>.
+            <br>Preview your Iframely cards with default design at <a href="https://iframely.com/embed" target="_blank">iframely.com/embed</a>
+        </p>
+        </li>
+
     </ul>
 
     
@@ -182,17 +213,23 @@ function iframely_settings_page() {
 <script type="text/javascript">
     jQuery( '.iframely_options_page form' ).submit( function() {
         var $api_key_input = jQuery(this).find('[name="iframely_api_key"]');
-        
-        function showError () {
+        var $enable_cards = jQuery(this).find('[name="publish_iframely_cards"]');
+                  
+        function showError (msg) {
 
             $api_key_input_container = $api_key_input.parent();
             $api_key_input_container.find('.iframely_options_page_error').remove();
-            $api_key_input_container.prepend(jQuery('<div style="color: red" class="iframely_options_page_error">Oops, API Key can not be verified. Test URL/API call didn\'t pass. <br>Make sure your <a href="https://iframely.com/settings" target="_blank">API settings</a> do not "Respond with error 417 when API call results in no embed codes".</div>').fadeIn());
+            $api_key_input_container.prepend(
+                jQuery('<div style="color: red" class="iframely_options_page_error">' + msg + '</div>').fadeIn());
         }
 
-        if (!$api_key_input.val().length) {
+        if (!$api_key_input.val().length && !$enable_cards.is(':checked')) {
             return true;
+        } else if (!$api_key_input.val().length && $enable_cards.is(':checked')) {
+             showError('Sorry, you need API key to enable Iframely cards');
+             return false;
         }
+
 
         var origin = "<?php print( preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ) )?>";
 
@@ -202,13 +239,13 @@ function iframely_settings_page() {
         jQuery.ajax({
             url: url,
             error: function() {
-                showError();
+                showError('Oops, API Key can not be verified. Test URL/API call didn\'t pass. <br>Make sure your <a href="https://iframely.com/settings" target="_blank">API settings</a> do not "Respond with error 417 when API call results in no embed codes"');
                 api_key_check = false;
             },
             async: false
         });
 
-        if (!api_key_check) return false;
+        if (!api_key_check) {return false};
     });
 </script>
 </div>
