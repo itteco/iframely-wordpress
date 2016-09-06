@@ -26,6 +26,12 @@ wp_oembed_add_provider( '#https?://iframe\.ly/.+#i', iframely_create_api_link(),
 
 function maybe_reverse_oembed_providers ($providers) {
 
+    # Do not handle oEmbeds without post ID as there will be no caching in WP
+    if ( !get_the_ID()) {
+        unset($providers['#https?://[^\s]+#i']);
+        return $providers;
+    }   
+
     # iframely_only_shortcode option is unset in shortcode, so that the filter can work. Then returned back.
     if ( !get_site_option( 'iframely_only_shortcode' ) ) {
         return array_reverse($providers);
