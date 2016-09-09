@@ -1,25 +1,25 @@
 === Iframely Responsive Embeds ===
 Contributors: psergeev, ivanp
-Tags: iframely, oembed, embed, responsive, video, youtube, vimeo, instagram, gist, vine, gif, giphy, google maps, facebook mu
+Tags: iframely, oembed, embed, responsive, video, youtube, vimeo, instagram, gist, vine, gif, giphy, google maps, facebook, mu, streamable, gfycat, vidme, Reddit, Tableau, spotify, prezi
 Requires at least: 3.5.1
-Tested up to: 4.4
+Tested up to: 4.6.1
 Stable tag: trunk
 License: MIT
 
 
-Iframely converts URLs in your posts into responsive embed widgets for 1700+ domains and summary cards for others.
+Iframely converts URLs in your posts into responsive embed widgets for over 2000 domains and summary cards for others.
 
 == Description ==
 
 
-[Iframely](https://iframely.com?from=wp) brings you the responsive embeds and support of over 1700 domains. It means the embeds will resize, if possible, if you are on responsive theme. 
+[Iframely](https://iframely.com?from=wp) brings you the responsive embeds and support of over 2000 domains. It means the embeds will resize, if possible, if you are on responsive theme. 
 
 
-Iframely will detect URLs in your posts and replace it with embed codes for *over 1700 domains*. Supports all usual suspects such as YouTube, Vimeo, Instagram, Facebook, Giphy, GfyCat, Imgur, Google +, GitHub Gists, Storify, SlideShare, well, you know, over 1.6 thousand of them and keeps growing. [Test some URLs here](https://iframely.com/embed).
+Iframely will detect URLs in your posts and replace it with responsive embed codes. Supports all usual suspects such as YouTube, Vimeo, Instagram, Facebook, Giphy, GfyCat, Imgur, Google +, GitHub Gists, Storify, SlideShare, Streamable, Vidme, Reddit, Dailymotion, Spotify, Tableau, Prezi, well, you know, over two thousand of them and keeps growing. [Test some URLs here](https://iframely.com/embed).
 
-Iframely will also generate and host summary cards for general links, such as articles. 
+Iframely will also generate and host summary cards for general articles. It includes your own site, and Iframely can replace the default embed cards that your publish via WordPress for other sites to use.
 
-Iframely is powered by server API. For personal use, API Key is optional.
+Iframely is powered by server API. API Key is required. Get one at [iframely.com](https://iframely.com)
 
 
 
@@ -55,7 +55,7 @@ For example, default YouTube, Vimeo, Twitter, other oEmbed plugins that you have
 
 Although, we should support the same providers and output the same code, just make it responsive, you can still disable such behavior and tell Iframely to only process links that otherwise don't have embed provider. 
 
-Just configure this option in your settings. It will essentially put Iframely to be the last in the list, be "a catcher", rather then "an interceptor".
+Just choose this option in your settings. It will essentially put Iframely to be the last in the list, be "a catcher", rather then "an interceptor".
 
 
 
@@ -81,7 +81,7 @@ Here's some samples of what Iframely supports.
 6. Facebook Statuses
 7. And many-many others
 
-[Here's some more samples](https://iframely.com/domains).
+[Here's some more examples](https://iframely.com/domains).
 
 == Frequently Asked Questions ==
 
@@ -123,6 +123,12 @@ Iframely will work well with multisite installations. Iframely options page is a
 
 
 == Changelog ==
+
+= 0.3.0 =
+
+WordPress 4.5+ forces you to use built-in default cards when you want to embed a link to your own site. Iframely v0.3.0 returns the option for you to use Iframely cards instead. To remind: you can change design of cards at [iframely.com](https://iframely.com)
+
+Iframely v0.3.0 also disables the plugin outside of single post/page scope, as WordPress has caching issues and otherwise creates tremendous load to our servers.
 
 = 0.2.9 =
 
@@ -177,6 +183,10 @@ And please, help do submit issues if you see any.
 
 
 == Upgrade Notice ==
+
+= 0.3.0 =
+
+WordPress 4.5+ forces you to use built-in default cards when you want to embed a link to your own site. Iframely v0.3.0 returns the option for you to use Iframely cards instead. To remind: you can change design of cards at [iframely.com](https://iframely.com)
 
 = 0.2.9 =
 

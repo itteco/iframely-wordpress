@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.2.9
+Version: 0.3.0
 Author URI: https://iframely.com/?from=wp
 */
 
@@ -21,17 +21,27 @@ wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link(), true )
 # Make the Iframely endpoint to be the first in queue, otherwise default regexp are precedent
 add_filter( 'oembed_providers', 'maybe_reverse_oembed_providers');
 
+# Remove short-circuit for self-embeds, that forces it for all the sites and disables our summary cards for own domain
+add_filter( 'pre_oembed_result', 'maybe_remove_wp_self_embeds', PHP_INT_MAX, 3 );
+# alternatively: remove_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10 );
+
+
 # Always add iframely as oembed provider for any iframe.ly short link
 wp_oembed_add_provider( '#https?://iframe\.ly/.+#i', iframely_create_api_link(), true );
+
+function maybe_remove_wp_self_embeds( $result, $url, $args ) { 
+        
+    return get_site_option( 'publish_iframely_cards') ? null : $result;
+}
 
 function maybe_reverse_oembed_providers ($providers) {
 
     # Do not handle oEmbeds without post ID as there will be no caching in WP
-    if ( !get_the_ID()) {
+    if ( !get_the_ID() ) {
         unset($providers['#https?://[^\s]+#i']);
         return $providers;
-    }   
-
+    }
+    
     # iframely_only_shortcode option is unset in shortcode, so that the filter can work. Then returned back.
     if ( !get_site_option( 'iframely_only_shortcode' ) ) {
         return array_reverse($providers);
@@ -104,16 +114,14 @@ function iframely_create_api_link ($origin = '') {
     # Read API key from plugin options
     $api_key = trim( get_site_option( 'iframely_api_key' ) );
     $link = $api_key ? 'http://iframe.ly/api/oembed': 'http://open.iframe.ly/api/oembed';
-    //$link = 'http://localhost:8061/oembed';
 
     $link = add_query_arg( array(
         'origin'    => '' !== $origin ? $origin : preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ),
-        'api_key' => $api_key ? $api_key : false,            
+        'api_key' => $api_key ? $api_key : false,
     ), $link );
-
+    
     return $link;
 }
-
 
 # Create iframely settings menu for admin
 add_action( 'admin_menu', 'iframely_create_menu' );
@@ -202,11 +210,11 @@ function iframely_settings_page() {
         </li>
 
         <li>
-            <p><input type="checkbox" name="publish_iframely_cards" value="1" <?php if (get_site_option('publish_iframely_cards')) { ?> checked="checked" <?php } ?> /> Use Iframely <a href="https://iframely.com/docs/cards" target="_blanak">summary cards</a> as embeds your publish</p>
-            <p>Since WP 4.4 your site <a href="https://make.wordpress.org/core/2015/10/28/new-embeds-feature-in-wordpress-4-4/" target="_blank">publishes embeds</a> by default so that other WP sites can embed summaries of your posts.                 
-            <br>Use this option to override the default widgets and use Iframely cards instead. 
-            <br>You can customize design of your cards in your <a href="https://iframely.com/customize" target="_blank">Iframely profile</a>.
-            <br>Preview your Iframely cards with default design at <a href="https://iframely.com/embed" target="_blank">iframely.com/embed</a>
+            <p><input type="checkbox" name="publish_iframely_cards" value="1" <?php if (get_site_option('publish_iframely_cards')) { ?> checked="checked" <?php } ?> /> Use Iframely <a href="https://iframely.com/docs/cards" target="_blanak">summary cards</a> as embeds for your site</p>
+            <p>Since WP 4.4 your site <a href="https://make.wordpress.org/core/2015/10/28/new-embeds-feature-in-wordpress-4-4/" target="_blank">publishes embeds</a> by default so that <strong>your own</strong> and other WP sites can embed summaries of your posts.                 
+            <br>Use this option to override the default widgets and use nice Iframely cards instead. 
+            <br>Customize design of your cards <a href="https://iframely.com/customize" target="_blank">here</a>.
+            <br>Preview your Iframely cards <a href="https://iframely.com/embed" target="_blank">here</a>.
         </p>
         </li>
 
