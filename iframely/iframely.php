@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.3.0
+Version: 0.3.1
 Author URI: https://iframely.com/?from=wp
 */
 
@@ -35,12 +35,6 @@ function maybe_remove_wp_self_embeds( $result, $url, $args ) {
 }
 
 function maybe_reverse_oembed_providers ($providers) {
-
-    # Do not handle oEmbeds without post ID as there will be no caching in WP
-    if ( !get_the_ID() ) {
-        unset($providers['#https?://[^\s]+#i']);
-        return $providers;
-    }
     
     # iframely_only_shortcode option is unset in shortcode, so that the filter can work. Then returned back.
     if ( !get_site_option( 'iframely_only_shortcode' ) ) {
@@ -122,6 +116,7 @@ function iframely_create_api_link ($origin = '') {
     
     return $link;
 }
+
 
 # Create iframely settings menu for admin
 add_action( 'admin_menu', 'iframely_create_menu' );

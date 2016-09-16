@@ -124,6 +124,10 @@ Iframely will work well with multisite installations. Iframely options page is a
 
 == Changelog ==
 
+= 0.3.1 =
+
+We are reverting one of the changes in version 0.3.0 - linking Iframely to single post/page scope. Our apologies: we casted the net too wide and Iframely wasn't working properly with some installations.
+
 = 0.3.0 =
 
 WordPress 4.5+ forces you to use built-in default cards when you want to embed a link to your own site. Iframely v0.3.0 returns the option for you to use Iframely cards instead. To remind: you can change design of cards at [iframely.com](https://iframely.com)
@@ -183,6 +187,10 @@ And please, help do submit issues if you see any.
 
 
 == Upgrade Notice ==
+
+= 0.3.1 =
+
+We are reverting one of the changes in version 0.3.0 - linking Iframely to single post/page scope. Our apologies: we casted the net too wide and Iframely wasn't working properly with some installations.
 
 = 0.3.0 =
 
