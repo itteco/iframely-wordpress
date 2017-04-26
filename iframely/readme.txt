@@ -2,7 +2,7 @@
 Contributors: psergeev, ivanp
 Tags: iframely, oembed, embed, responsive, video, youtube, vimeo, instagram, gist, vine, gif, giphy, google maps, facebook, mu, streamable, gfycat, vidme, Reddit, Tableau, spotify, prezi
 Requires at least: 3.5.1
-Tested up to: 4.6.1
+Tested up to: 4.7.4
 Stable tag: trunk
 License: MIT
 
@@ -124,6 +124,10 @@ Iframely will work well with multisite installations. Iframely options page is a
 
 == Changelog ==
 
+= 0.4.0 =
+
+Turns out, WordPress does not follow cache_age response from API after all. It only refreshes embed codes when you edit and save post. [This](https://core.trac.wordpress.org/ticket/37597) isn't right. This update enables you to refresh embed codes periodically. It also gives and option to add any [query-string parameters](https://iframely.com/docs/parameters) to the use with API.
+
 = 0.3.1 =
 
 We are reverting one of the changes in version 0.3.0 - linking Iframely to single post/page scope. Our apologies: we casted the net too wide and Iframely wasn't working properly with some installations.
@@ -187,6 +191,11 @@ And please, help do submit issues if you see any.
 
 
 == Upgrade Notice ==
+
+= 0.4.0 =
+
+Turns out, WordPress does not follow cache_age response from API after all. It only refreshes embed codes when you edit and save post. [This](https://core.trac.wordpress.org/ticket/37597) isn't right. This update enables you to refresh embed codes periodically. It also gives and option to add any [query-string parameters](https://iframely.com/docs/parameters) to the use with API.
+
 
 = 0.3.1 =
 

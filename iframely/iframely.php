@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.3.1
+Version: 0.4.0
 Author URI: https://iframely.com/?from=wp
 */
 
@@ -44,6 +44,39 @@ function maybe_reverse_oembed_providers ($providers) {
         return $providers;
     }
 }
+
+# fix cache ttl
+add_filter('oembed_ttl', 'maybe_disable_cache', 99, 4);
+function maybe_disable_cache($ttl, $url, $attr, $post_ID) {
+        
+        $iframely_ttl = DAY_IN_SECONDS * (int)get_site_option('iframely_cache_ttl');
+
+        if ($iframely_ttl > 0) { 
+
+            global $wp_embed;
+
+            # Copy keys from wp-embed        
+            $key_suffix = md5( $url . serialize( $attr ) );
+            $cachekey = '_oembed_' . $key_suffix;
+            $cachekey_time = '_oembed_time_' . $key_suffix;
+
+            $cache_time = get_post_meta( $post_ID, $cachekey_time, true );
+
+            # Disable cache only once - for first page view
+            # After that, the $cache_time is cleared so that Iframely plugin can tell it already worked for that URL
+            # But other parallel pageviews will still use cache
+            if ($cache_time && (time() - $cache_time  > $iframely_ttl) ) {
+                $wp_embed->usecache = false;
+                delete_post_meta( $post_ID, $cachekey_time);
+                return $iframely_ttl;
+            } else {
+                return $ttl;
+            }
+        } else {
+            return $ttl;
+        } 
+        
+    }
 
 # Register [iframely] shortcode
 add_shortcode( 'iframely', 'embed_iframely' );
@@ -90,7 +123,7 @@ function embed_iframely( $atts, $content = '' ) {
         iframely_update_option('iframely_only_shortcode', null);
     }
 
-    # Get embed code for the url using internal wp embed object (it cache results for the post automatically)
+    # Get embed code for the url using internal wp embed object (it caches results for the post automatically)
     $code = $wp_embed->shortcode( $atts, $content );
 
     # return only_shortcode option to what it was before
@@ -111,8 +144,15 @@ function iframely_create_api_link ($origin = '') {
 
     $link = add_query_arg( array(
         'origin'    => '' !== $origin ? $origin : preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ),
-        'api_key' => $api_key ? $api_key : false,
+        'api_key' => $api_key ? $api_key : false
     ), $link );
+
+    $api_params = trim( get_site_option( 'iframely_api_params' ) );
+
+    if ( !empty( $api_params )) {
+        parse_str( $api_params, $params );
+        $link = add_query_arg( $params, $link );
+    }
     
     return $link;
 }
@@ -172,11 +212,10 @@ function iframely_settings_page() {
 
 
 <p><em>Note</em>: Some people expect Iframely to wrap URLs with <code>&lt;iframe src=...&gt;</code> code. That's not what Iframely is for. It converts original URLs into native embed codes itself.</p>
-<p></br></p>
 
 <form method="post" action="">
 
-<h1>Configure Your Options</h1>
+<h1>Configure your options</h1>
 
     <?php
 
@@ -185,6 +224,8 @@ function iframely_settings_page() {
             iframely_update_option('iframely_api_key', trim($_POST['iframely_api_key']));
             iframely_update_option('iframely_only_shortcode', (isset($_POST['iframely_only_shortcode'])) ? (int)$_POST['iframely_only_shortcode'] : null);
             iframely_update_option('publish_iframely_cards', (isset($_POST['publish_iframely_cards'])) ? (int)$_POST['publish_iframely_cards'] : null);
+            iframely_update_option('iframely_api_params', trim($_POST['iframely_api_params']));
+            iframely_update_option('iframely_cache_ttl', (isset($_POST['iframely_cache_ttl'])) ? (int)trim($_POST['iframely_cache_ttl']) : 0);
         }
 
         wp_nonce_field('form-settings');
@@ -193,8 +234,24 @@ function iframely_settings_page() {
     <ul>
         <li>
             <p>Your Iframely API Key (get one at <a href="https://iframely.com/?from=wp" target="_blank">iframely.com</a>): </p>
-            <p><input type="text" style="width: 250px;" name="iframely_api_key" value="<?php echo get_site_option('iframely_api_key'); ?>" /></p>
+            <p><input type="text" style="width: 250px;" name="iframely_api_key" value="<?php echo get_site_option('iframely_api_key'); ?>" placeholder="required"/></p>
         </li>
+
+        <li>
+            <p>Optional API query-string params (<a href="https://iframely.com/docs/parameters" target="_blank">see this doc</a>): </p>
+            <p><input type="text" style="width: 250px;" name="iframely_api_params" value="<?php echo get_site_option('iframely_api_params'); ?>" placeholder="Format as &align=left&omit_css=1" /></p>
+        </li>
+
+        <li>
+            <p>Cache the embed codes for this number of days: </p>
+            <p><input type="text" style="width: 250px;" name="iframely_cache_ttl" 
+                value="<?php echo ((null !== get_site_option('iframely_cache_ttl')) ? get_site_option('iframely_cache_ttl') : ''); ?>" placeholder="Number of days, 1 - recommended" /></p>
+            <p>By default, WordPress will refresh embed codes <a href="https://core.trac.wordpress.org/ticket/37597" target="_blank">only</a> when you edit and save a post.<br>
+            This isn't right. Embed codes should be refreshed periodically.<br>
+            Configure how often it will be done. As in "Once every XX days for each post".<br>
+            Enter 0 to skip Iframely's cache handler and use WP defaults.
+            </p>                
+        </li>        
 
         <li>
             <p><input type="checkbox" name="iframely_only_shortcode" value="1" <?php if (get_site_option('iframely_only_shortcode')) { ?> checked="checked" <?php } ?> /> Do not override default embed providers</p>
@@ -232,10 +289,8 @@ function iframely_settings_page() {
                 jQuery('<div style="color: red" class="iframely_options_page_error">' + msg + '</div>').fadeIn());
         }
 
-        if (!$api_key_input.val().length && !$enable_cards.is(':checked')) {
-            return true;
-        } else if (!$api_key_input.val().length && $enable_cards.is(':checked')) {
-             showError('Sorry, you need API key to enable Iframely cards');
+        if (!$api_key_input.val().length) {
+             showError('Sorry, API key is required. Get yours at https://iframely.com');
              return false;
         }
 
