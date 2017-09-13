@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.4.0
+Version: 0.5.0
 Author URI: https://iframely.com/?from=wp
 */
 
@@ -29,8 +29,8 @@ add_filter( 'pre_oembed_result', 'maybe_remove_wp_self_embeds', PHP_INT_MAX, 3 )
 # Always add iframely as oembed provider for any iframe.ly short link
 wp_oembed_add_provider( '#https?://iframe\.ly/.+#i', iframely_create_api_link(), true );
 
-function maybe_remove_wp_self_embeds( $result, $url, $args ) { 
-        
+function maybe_remove_wp_self_embeds( $result, $url, $args ) {
+
     return get_site_option( 'publish_iframely_cards') ? null : $result;
 }
 
@@ -44,6 +44,104 @@ function maybe_reverse_oembed_providers ($providers) {
         return $providers;
     }
 }
+
+# Make compatible with Automatic AMP-WP plugin: https://github.com/Automattic/amp-wp
+function is_iframely_amp ( $args ) {
+    return 
+        (is_array($args) && array_key_exists('iframely', $args) && $args['iframely'] == 'amp') 
+        || (is_string($args) && strpos($args, 'iframely=amp') !== false)
+        || (function_exists('is_amp_endpoint') && is_amp_endpoint());
+}
+
+# Make WP cache &iframe=amp oEmbed requests separately
+add_filter( 'embed_defaults', 'iframely_amp_embed_defaults' );
+function iframely_amp_embed_defaults( $args ) {
+    if (is_iframely_amp($args)) {
+        // args are included in cache key. Bust it for amp
+        $args['iframely'] = 'amp';
+    }
+    return $args;
+}
+
+add_filter( 'oembed_fetch_url', 'maybe_add_iframe_amp', 10, 3 );
+function maybe_add_iframe_amp( $provider, $args, $url ) {
+    
+    if (is_iframely_amp( $args ) && strpos($provider, '//iframe.ly') !== false) {
+        $provider = add_query_arg( 'iframe', 'amp', $provider );
+    }
+    return $provider;
+}
+
+
+add_filter( 'embed_oembed_html', 'iframely_filter_oembed_result', 10, 3 ); 
+function iframely_filter_oembed_result( $html, $url, $args ) {
+
+    if (strpos($html, '<amp-iframe') !== false || strpos($html, '<amp-facebook') !== false ) {        
+        add_action( 'amp_post_template_head', strpos($html, '<amp-iframe') !== false ? 'iframely_add_amp_iframe_js' : 'iframely_add_amp_facebook_js');
+        // Avoid corrupted amp-iframe overflow div as a result of wpautop
+        remove_filter( 'the_content', 'wpautop' );
+        // Restore wpautop if it was disabled
+        add_filter( 'the_content', 'iframely_autop_on_amp', 1000);
+    }
+    return $html;
+};
+
+add_filter( 'amp_content_embed_handlers', 'maybe_unregister_default_embed_handlers', 10, 2 );
+function maybe_unregister_default_embed_handlers($embed_handler_classes, $post ) {
+
+    if ( get_site_option( 'iframely_disable_default_amp_embeds' ) ) {
+        unset ($embed_handler_classes ['AMP_Twitter_Embed_Handler']);
+        unset ($embed_handler_classes ['AMP_Dailymotion_Embed_Handler']);
+        unset ($embed_handler_classes ['AMP_Facebook_Embed_Handler']);
+        unset ($embed_handler_classes ['AMP_Instagram_Embed_Handler']);
+        unset ($embed_handler_classes ['AMP_Vimeo_Embed_Handler']);
+        unset ($embed_handler_classes ['AMP_YouTube_Embed_Handler']);
+        unset ($embed_handler_classes ['AMP_Pinterest_Embed_Handler']);
+    }
+    return $embed_handler_classes;
+};
+
+
+function iframely_autop_on_amp( $content ) {
+
+    // Logic is taken from wpautop itself re <pre>
+    if ( strpos($content, '<amp-iframe') !== false ) {
+        $chunks = explode( '</amp-iframe>', $content );
+        $content = '';
+ 
+        foreach ( $chunks as $chunk ) {
+            $start = strpos($chunk, '<amp-iframe'); 
+            // Malformed html?
+            if ( $start === false ) {
+                $content .= $chunk;
+                continue;
+            }
+ 
+            $iframe = substr($chunk, $start) . '</amp-iframe>';
+            $p = wpautop(substr( $chunk, 0, $start));
+
+            $content .= $p . $iframe;
+        }
+    } else {
+        $content = wpautop($content);
+    }
+
+    return $content;
+}
+
+function iframely_add_amp_iframe_js( $amp_template ) {
+    ?>
+    <script custom-element="amp-iframe" src="https://cdn.ampproject.org/v0/amp-iframe-0.1.js" async></script>
+    <?php
+}
+
+function iframely_add_amp_facebook_js( $amp_template ) {
+    ?>
+    <script custom-element="amp-facebook" src="https://cdn.ampproject.org/v0/amp-facebook-0.1.js" async></script>
+    <?php
+}
+
+
 
 # fix cache ttl
 add_filter('oembed_ttl', 'maybe_disable_cache', 99, 4);
@@ -68,6 +166,7 @@ function maybe_disable_cache($ttl, $url, $attr, $post_ID) {
             if ($cache_time && (time() - $cache_time  > $iframely_ttl) ) {
                 $wp_embed->usecache = false;
                 delete_post_meta( $post_ID, $cachekey_time);
+                // delete_post_meta( $post_ID, $cachekey);
                 return $iframely_ttl;
             } else {
                 return $ttl;
@@ -83,7 +182,6 @@ add_shortcode( 'iframely', 'embed_iframely' );
 
 # rewrite oembed discovery
 add_filter( 'oembed_endpoint_url', 'publish_embeds_via_iframely', 10, 2) ;
-
 function publish_embeds_via_iframely($url, $permalink, $format = 'json') {
 
     if ('' !== $permalink  && get_site_option( 'publish_iframely_cards')) {
@@ -226,6 +324,7 @@ function iframely_settings_page() {
             iframely_update_option('publish_iframely_cards', (isset($_POST['publish_iframely_cards'])) ? (int)$_POST['publish_iframely_cards'] : null);
             iframely_update_option('iframely_api_params', trim($_POST['iframely_api_params']));
             iframely_update_option('iframely_cache_ttl', (isset($_POST['iframely_cache_ttl'])) ? (int)trim($_POST['iframely_cache_ttl']) : 0);
+            iframely_update_option('iframely_disable_default_amp_embeds', (isset($_POST['iframely_disable_default_amp_embeds'])) ? (int)trim($_POST['iframely_disable_default_amp_embeds']) : 0);
         }
 
         wp_nonce_field('form-settings');
@@ -258,6 +357,15 @@ function iframely_settings_page() {
             <p>It will block Iframely from intercepting all URLs in your editor that may be covered by other embeds plugins you have installed, e.g. a Jetpack or default embeds supported by WordPress.<br>
             Although, we should support the same providers and output the same code, just make it responsive.<br>
             Iframely shortcode will still process such URLs regardless of this setting.
+        </p>
+        </li>        
+
+        <li>
+            <p><input type="checkbox" name="iframely_disable_default_amp_embeds" value="1" <?php if (get_site_option('iframely_disable_default_amp_embeds')) { ?> checked="checked" <?php } ?> /> For AMP pages, replace default embeds with Iframely.</p>
+            <p>Iframely works nicely with <a href="https://wordpress.org/plugins/amp/" target="_blank_">AMP WordPress</a> plugin for Google AMP support. 
+            It catches all missing embeds and follow your Iframely settings.<br>
+            But you can also choose Iframely for all embeds, including default AMP embeds too.<br>
+            For example, Facebook video will be indeed a nice video without user's text message.
         </p>
         </li>
 
