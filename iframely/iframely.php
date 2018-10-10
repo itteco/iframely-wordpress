@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.5.0
+Version: 0.6.0
 Author URI: https://iframely.com/?from=wp
 */
 
@@ -37,7 +37,9 @@ function maybe_remove_wp_self_embeds( $result, $url, $args ) {
 function maybe_reverse_oembed_providers ($providers) {
     
     # iframely_only_shortcode option is unset in shortcode, so that the filter can work. Then returned back.
-    if ( !get_site_option( 'iframely_only_shortcode' ) ) {
+    if ( !get_site_option( 'iframely_only_shortcode' ) 
+        || (function_exists('is_amp_endpoint') && is_amp_endpoint() 
+            && get_site_option( 'iframely_disable_default_amp_embeds' ) ) ) {
         return array_reverse($providers);
     }
     else {
@@ -53,13 +55,33 @@ function is_iframely_amp ( $args ) {
         || (function_exists('is_amp_endpoint') && is_amp_endpoint());
 }
 
-# Make WP cache &iframe=amp oEmbed requests separately
-add_filter( 'embed_defaults', 'iframely_amp_embed_defaults' );
-function iframely_amp_embed_defaults( $args ) {
-    if (is_iframely_amp($args)) {
-        // args are included in cache key. Bust it for amp
-        $args['iframely'] = 'amp';
+# Make WP cache work
+add_filter( 'embed_defaults', 'iframely_embed_defaults' );
+function iframely_embed_defaults( $args) {
+
+    // args are included in cache key. Bust it if needed and configured by user
+    if ((int)get_site_option('iframely_cache_ttl') > 0) {
+
+        if (get_site_option( 'iframely_only_shortcode' )) {
+            $args['iframely_only_shortcode'] = get_site_option( 'iframely_only_shortcode' );
+        }
+
+        $api_params = trim( get_site_option( 'iframely_api_params' ) );
+        if ( !empty( $api_params )) {
+            $args['api_params'] = $api_params;
+        }
+
+        $api_key = trim( get_site_option( 'iframely_api_key' ) );
+        if (!empty( $api_key )) {
+            $args['api_key'] = $api_key;
+        }
     }
+
+    if (is_iframely_amp( $args )) {
+        $args['iframely'] = 'amp';
+        $args['iframely_disable_default_amp_embeds'] = get_site_option( 'iframely_disable_default_amp_embeds' );
+    }
+
     return $args;
 }
 
@@ -76,29 +98,20 @@ function maybe_add_iframe_amp( $provider, $args, $url ) {
 add_filter( 'embed_oembed_html', 'iframely_filter_oembed_result', 10, 3 ); 
 function iframely_filter_oembed_result( $html, $url, $args ) {
 
-    if (strpos($html, '<amp-iframe') !== false || strpos($html, '<amp-facebook') !== false ) {        
-        add_action( 'amp_post_template_head', strpos($html, '<amp-iframe') !== false ? 'iframely_add_amp_iframe_js' : 'iframely_add_amp_facebook_js');
+    if (strpos($html, '<amp-iframe') !== false) {
         // Avoid corrupted amp-iframe overflow div as a result of wpautop
         remove_filter( 'the_content', 'wpautop' );
         // Restore wpautop if it was disabled
         add_filter( 'the_content', 'iframely_autop_on_amp', 1000);
     }
+    
     return $html;
 };
 
-add_filter( 'amp_content_embed_handlers', 'maybe_unregister_default_embed_handlers', 10, 2 );
-function maybe_unregister_default_embed_handlers($embed_handler_classes, $post ) {
+add_filter( 'amp_content_embed_handlers', 'maybe_disable_default_embed_handlers', 10, 2 );
+function maybe_disable_default_embed_handlers($embed_handler_classes) {
 
-    if ( get_site_option( 'iframely_disable_default_amp_embeds' ) ) {
-        unset ($embed_handler_classes ['AMP_Twitter_Embed_Handler']);
-        unset ($embed_handler_classes ['AMP_Dailymotion_Embed_Handler']);
-        unset ($embed_handler_classes ['AMP_Facebook_Embed_Handler']);
-        unset ($embed_handler_classes ['AMP_Instagram_Embed_Handler']);
-        unset ($embed_handler_classes ['AMP_Vimeo_Embed_Handler']);
-        unset ($embed_handler_classes ['AMP_YouTube_Embed_Handler']);
-        unset ($embed_handler_classes ['AMP_Pinterest_Embed_Handler']);
-    }
-    return $embed_handler_classes;
+    return get_site_option( 'iframely_disable_default_amp_embeds' ) ? array() : $embed_handler_classes;
 };
 
 
@@ -129,19 +142,6 @@ function iframely_autop_on_amp( $content ) {
     return $content;
 }
 
-function iframely_add_amp_iframe_js( $amp_template ) {
-    ?>
-    <script custom-element="amp-iframe" src="https://cdn.ampproject.org/v0/amp-iframe-0.1.js" async></script>
-    <?php
-}
-
-function iframely_add_amp_facebook_js( $amp_template ) {
-    ?>
-    <script custom-element="amp-facebook" src="https://cdn.ampproject.org/v0/amp-facebook-0.1.js" async></script>
-    <?php
-}
-
-
 
 # fix cache ttl
 add_filter('oembed_ttl', 'maybe_disable_cache', 99, 4);
@@ -160,13 +160,10 @@ function maybe_disable_cache($ttl, $url, $attr, $post_ID) {
 
             $cache_time = get_post_meta( $post_ID, $cachekey_time, true );
 
-            # Disable cache only once - for first page view
-            # After that, the $cache_time is cleared so that Iframely plugin can tell it already worked for that URL
-            # But other parallel pageviews will still use cache
-            if ($cache_time && (time() - $cache_time  > $iframely_ttl) ) {
+            if ( ! $cache_time || (time() - $cache_time  > $iframely_ttl) ) {
                 $wp_embed->usecache = false;
                 delete_post_meta( $post_ID, $cachekey_time);
-                // delete_post_meta( $post_ID, $cachekey);
+                delete_post_meta( $post_ID, $cachekey);
                 return $iframely_ttl;
             } else {
                 return $ttl;
@@ -190,7 +187,7 @@ function publish_embeds_via_iframely($url, $permalink, $format = 'json') {
 
         $endpoint = add_query_arg( array(
             'url'    => urlencode( $permalink ),
-            'format' => strpos($url, 'format=xml') ? 'xml': 'json',
+            'format' => strpos($url, 'format=xml') ? 'xml': 'json'
             // $format isn't passed inside the filter for some reason, hence the workaround
         ), $endpoint );
 
