@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.6.0
+Version: 0.6.1
 Author URI: https://iframely.com/?from=wp
 */
 
@@ -13,13 +13,18 @@ if ( !defined( 'IFRAMELY_URL' ) ) {
   define( 'IFRAMELY_URL', WP_PLUGIN_URL.'/iframely' );
 }
 
-# Always add Iframely as provider. Last to the list. If not 'only_shortcode', then this provider will disable all default ones
+# Always add Iframely as provider. Last to the list. If not 'only_shortcode', then this provider will disable all default ones.
+# Except feeds as per Google guidelines https://support.google.com/news/producer/answer/6170026?hl=en&ref_topic=9010301#media
 
-# Add iframely as oembed provider for ANY url, yes it will process any url on separate line with wp oembed functions
-wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link(), true );
+if (!is_feed()) {
 
-# Make the Iframely endpoint to be the first in queue, otherwise default regexp are precedent
-add_filter( 'oembed_providers', 'maybe_reverse_oembed_providers');
+    # Add iframely as oembed provider for ANY url, yes it will process any url on separate line with wp oembed functions
+    wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link(), true );
+
+    # Make the Iframely endpoint to be the first in queue, otherwise default regexp are precedent
+    add_filter( 'oembed_providers', 'maybe_reverse_oembed_providers');
+
+}
 
 # Remove short-circuit for self-embeds, that forces it for all the sites and disables our summary cards for own domain
 add_filter( 'pre_oembed_result', 'maybe_remove_wp_self_embeds', PHP_INT_MAX, 3 );
@@ -80,6 +85,10 @@ function iframely_embed_defaults( $args) {
     if (is_iframely_amp( $args )) {
         $args['iframely'] = 'amp';
         $args['iframely_disable_default_amp_embeds'] = get_site_option( 'iframely_disable_default_amp_embeds' );
+    }
+
+    if (is_feed()) {
+        $args['feed'] = 1;
     }
 
     return $args;
