@@ -13,18 +13,14 @@ if ( !defined( 'IFRAMELY_URL' ) ) {
   define( 'IFRAMELY_URL', WP_PLUGIN_URL.'/iframely' );
 }
 
-# Always add Iframely as provider. Last to the list. If not 'only_shortcode', then this provider will disable all default ones.
-# Except feeds as per Google guidelines https://support.google.com/news/producer/answer/6170026?hl=en&ref_topic=9010301#media
+# Always add Iframely as provider. Last to the list. If not 'only_shortcode', then this provider will disable all default ones
 
-if (!is_feed()) {
 
-    # Add iframely as oembed provider for ANY url, yes it will process any url on separate line with wp oembed functions
-    wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link(), true );
+# Add iframely as oembed provider for ANY url, yes it will process any url on separate line with wp oembed functions
+wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link(), true );
 
-    # Make the Iframely endpoint to be the first in queue, otherwise default regexp are precedent
-    add_filter( 'oembed_providers', 'maybe_reverse_oembed_providers');
-
-}
+# Make the Iframely endpoint to be the first in queue, otherwise default regexp are precedent
+add_filter( 'oembed_providers', 'maybe_reverse_oembed_providers');
 
 # Remove short-circuit for self-embeds, that forces it for all the sites and disables our summary cards for own domain
 add_filter( 'pre_oembed_result', 'maybe_remove_wp_self_embeds', PHP_INT_MAX, 3 );
@@ -87,10 +83,20 @@ function iframely_embed_defaults( $args) {
         $args['iframely_disable_default_amp_embeds'] = get_site_option( 'iframely_disable_default_amp_embeds' );
     }
 
-    if (is_feed()) {
-        $args['feed'] = 1;
-    }
+    return $args;
+}
 
+add_filter( 'the_content_feed', 'iframely_disable_on_feed', 1, 99 );
+function iframely_disable_on_feed ( $content ) {
+
+    add_filter( 'embed_defaults', 'iframely_add_feed_arg' );
+    wp_oembed_remove_provider( '#https?://[^\s]+#i' );
+
+    return $content;
+}
+
+function iframely_add_feed_arg ( $args) {
+    $args['feed'] = 1;
     return $args;
 }
 
