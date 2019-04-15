@@ -4,7 +4,7 @@ Plugin Name: Iframely
 Plugin URI: http://wordpress.org/plugins/iframely/
 Description: Iframely for WordPress. Embed anything, with responsive widgets.
 Author: Itteco Corp.
-Version: 0.6.1
+Version: 0.7.0
 Author URI: https://iframely.com/?from=wp
 */
 
@@ -14,7 +14,6 @@ if ( !defined( 'IFRAMELY_URL' ) ) {
 }
 
 # Always add Iframely as provider. Last to the list. If not 'only_shortcode', then this provider will disable all default ones
-
 
 # Add iframely as oembed provider for ANY url, yes it will process any url on separate line with wp oembed functions
 wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link(), true );
@@ -86,20 +85,6 @@ function iframely_embed_defaults( $args) {
     return $args;
 }
 
-add_filter( 'the_content_feed', 'iframely_disable_on_feed', 1, 99 );
-function iframely_disable_on_feed ( $content ) {
-
-    add_filter( 'embed_defaults', 'iframely_add_feed_arg' );
-    wp_oembed_remove_provider( '#https?://[^\s]+#i' );
-
-    return $content;
-}
-
-function iframely_add_feed_arg ( $args) {
-    $args['feed'] = 1;
-    return $args;
-}
-
 add_filter( 'oembed_fetch_url', 'maybe_add_iframe_amp', 10, 3 );
 function maybe_add_iframe_amp( $provider, $args, $url ) {
     
@@ -108,7 +93,6 @@ function maybe_add_iframe_amp( $provider, $args, $url ) {
     }
     return $provider;
 }
-
 
 add_filter( 'embed_oembed_html', 'iframely_filter_oembed_result', 10, 3 ); 
 function iframely_filter_oembed_result( $html, $url, $args ) {
@@ -128,6 +112,24 @@ function maybe_disable_default_embed_handlers($embed_handler_classes) {
 
     return get_site_option( 'iframely_disable_default_amp_embeds' ) ? array() : $embed_handler_classes;
 };
+
+# Yuri Garmash
+function iframely_scripts_loader()
+{
+    $blockPath = "assets/iframely.js";
+    wp_register_script(
+        'iframely',
+        plugins_url($blockPath, __FILE__),
+        array( 'wp-i18n', 'wp-element', 'wp-blocks', 'wp-components', 'wp-api', 'wp-editor' ),
+        filemtime(plugin_dir_path(__FILE__) . $blockPath),
+        true
+    );
+    wp_enqueue_script('iframely');
+//    register_block_type( 'iframely', array(
+//        'editor_script' => 'iframely',
+//    ) );
+}
+add_action( 'admin_enqueue_scripts', 'iframely_scripts_loader' );
 
 
 function iframely_autop_on_amp( $content ) {

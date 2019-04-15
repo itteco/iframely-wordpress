@@ -1,0 +1,36 @@
+{
+  "name": "iframely-wp",
+  "version": "0.7.0",
+  "author": "Yuri Harmash",
+  "engines": {
+    "node": ">=8.0.0",
+    "npm": ">=5.0.0"
+  },
+  "dependencies": {
+    "classnames": "^2.2.5",
+    "lodash": "^4.17.4",
+    "tinycolor2": "^1.4.1"
+  },
+  "homepage": "http://iframely.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/itteco/iframely-wordpress.git"
+  },
+  "bugs": {
+    "url": "https://github.com/itteco/iframely-wordpress/issues"
+  },
+  "main": "assets/iramely.js",
+  "devDependencies": {
+    "babel-core": "^6.25.0",
+    "babel-loader": "^7.1.1",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-preset-env": "^1.6.0",
+    "cross-env": "^5.0.1",
+    "webpack": "^3.1.0"
+  },
+  "scripts": {
+    "build": "cross-env BABEL_ENV=default NODE_ENV=production webpack",
+    "dev": "cross-env BABEL_ENV=default webpack --watch"
+  },
+  "license": "MIT"
+}
