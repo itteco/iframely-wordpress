@@ -117,6 +117,14 @@ function maybe_disable_default_embed_handlers($embed_handler_classes) {
 function iframely_scripts_loader()
 {
     $blockPath = "assets/iframely.js";
+    $ifcdn = 'https://cdn.iframe.ly/';
+    $api_key = get_site_option('iframely_api_key');
+
+    // Load iframly CDN scripts
+    wp_enqueue_script( 'iframely-embed', $ifcdn.'embed.js?api_key='.$api_key, array( 'jquery' ) );
+    wp_enqueue_script( 'iframely-options', $ifcdn.'options.js', array( 'jquery' ) );
+
+    // Register plugin Admin functionality
     wp_register_script(
         'iframely',
         plugins_url($blockPath, __FILE__),
@@ -125,9 +133,6 @@ function iframely_scripts_loader()
         true
     );
     wp_enqueue_script('iframely');
-//    register_block_type( 'iframely', array(
-//        'editor_script' => 'iframely',
-//    ) );
 }
 add_action( 'admin_enqueue_scripts', 'iframely_scripts_loader' );
 
