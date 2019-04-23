@@ -8,22 +8,24 @@ const { InspectorControls } = wp.editor;
 const { PanelBody } = wp.components;
 
 const withInspectorControls =  createHigherOrderComponent( ( BlockEdit ) => {
-        return ( props ) => {
-                if (props.name === "core/embed") {
-                        return (
-                            <Fragment>
-                                    <BlockEdit { ...props } />
-                                    <InspectorControls>
-                                            <PanelBody >
-                                                    <div id="ifopts">My custom control</div>
-                                            </PanelBody>
-                                    </InspectorControls>
-                            </Fragment>
-                        );
-                } else {
-                        return (<Fragment><BlockEdit { ...props } /></Fragment>);
-                }
-        };
+
+    return ( props ) => {
+        if (props.name === "core/embed" || props.name.startsWith("core-embed")) {
+            return (
+                <Fragment>
+                        <BlockEdit { ...props } />
+                        <InspectorControls>
+                                <PanelBody >
+                                        <div id="ifopts">My custom control</div>
+                                </PanelBody>
+                        </InspectorControls>
+                </Fragment>
+            );
+        } else {
+            return (<Fragment><BlockEdit { ...props } /></Fragment>);
+        }
+    };
+
 }, "withInspectorControl" );
 
 wp.hooks.addFilter( 'editor.BlockEdit', 'iframely/with-inspector-controls', withInspectorControls );
