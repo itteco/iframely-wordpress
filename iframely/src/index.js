@@ -6,6 +6,7 @@ const { createHigherOrderComponent } = wp.compose;
 const { Fragment } = wp.element;
 const { InspectorControls } = wp.editor;
 const { PanelBody } = wp.components;
+import parseUrl from 'url-parse'; // https://www.npmjs.com/package/url-parse
 
 function findIframeByContentWindow(iframes, contentWindow) {
     let foundIframe;
@@ -17,6 +18,36 @@ function findIframeByContentWindow(iframes, contentWindow) {
     }
     return foundIframe;
 }
+
+function parseOptions(src, opts) {
+    // Apply options to the API call url
+    let parsedApiCall = parseUrl(src, true);
+    parsedApiCall.query = Object.assign(parsedApiCall.query, opts);
+    return parsedApiCall.toString();
+}
+
+function retrieveDataUrl(selectedIframe) {
+    // Manages original URL stored without options applied
+    let oldUrl = '';
+    if (selectedIframe.dataUrl) {
+        // getting from a dta parameter
+        oldUrl = selectedIframe.dataUrl;
+    } else {
+        // Retrieving url from child iframe
+        let contents = $(selectedIframe).contents().get(0);
+        oldUrl = $(contents).find('iframe').get(0).src;
+        selectedIframe.dataUrl = oldUrl;
+    }
+    return oldUrl;
+}
+
+iframely.on('options-changed', function(id, formContainer, query) {
+    // block options interaction
+    let selectedIframe = $(id).find('iframe').get(0);
+    let newUrl = parseOptions(retrieveDataUrl(selectedIframe), query);
+    selectedIframe.contentWindow.postMessage('gutenbergSetOptions:' + newUrl);
+
+});
 
 window.addEventListener("message",function(e){
     let frames = document.getElementsByTagName("iframe");
@@ -42,11 +73,13 @@ class IframelyOptions extends React.Component {
     }
 
     render() {
-        return <div id="ifopts" data-id={ this.props.data }></div>;
+        return <div id="ifopts" data-id={ this.props.data }>{ this.body }</div>;
     }
 
 }
+
 IframelyOptions.defaultProps = {
+    body: '',
     data: '',
 };
 
