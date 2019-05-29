@@ -8,6 +8,15 @@ const { InspectorControls } = wp.editor;
 const { PanelBody } = wp.components;
 import parseUrl from 'url-parse'; // https://www.npmjs.com/package/url-parse
 
+const script_text = "window.addEventListener(\"message\",function(e){\n" +
+    "    if(e.data.indexOf('setIframelyEmbedOptions') >= 0) {\n" +
+    "        window.parent.postMessage(e.data,'*');\n" +
+    "    }\n" +
+    "    if(e.data.lastIndexOf('gutenbergSetOptions:', 0) === 0){\n" +
+    "        var fr=document.getElementsByTagName('iframe')[0];\n" +
+    "        fr.src=e.data.replace('gutenbergSetOptions:','');}\n" +
+    "},false);";
+
 function findIframeByContentWindow(iframes, contentWindow) {
     let foundIframe;
     for(let i = 0; i < iframes.length && !foundIframe; i++) {
@@ -56,6 +65,38 @@ window.addEventListener("message",function(e){
         $(iframe).data(JSON.parse(e.data));
     }
 },false);
+
+$(document).ready(function () {
+    let target = document.querySelector("#editor");
+    let config = {
+        childList: true,
+        characterData: true,
+        subtree: true,
+    };
+    iframelyObserver.observe(target, config);
+});
+
+function injectProxy(mutation) {
+    /* One or more children have been added to and/or removed
+    from the tree; see mutation.addedNodes and
+    mutation.removedNodes */
+    let scriptProxy   = document.createElement("script");
+    scriptProxy.type  = "text/javascript";
+    scriptProxy.text  = script_text;
+    let iframe = mutation.target.getElementsByTagName("iframe");
+    let innerDoc = iframe[0].contentDocument || iframe[0].contentWindow.document;
+    innerDoc.body.appendChild(scriptProxy);
+}
+
+let iframelyObserver = new MutationObserver(function (mutationRecords, iframelyObserver) {
+    mutationRecords.forEach((mutation) => {
+        if (
+            mutation.type === 'childList' &&
+            mutation.target.getElementsByClassName('wp-block-embed').length > 0 &&
+            mutation.removedNodes.length === 0
+        ) {injectProxy(mutation);}
+    });
+});
 
 class IframelyOptions extends React.Component {
 
