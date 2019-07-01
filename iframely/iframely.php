@@ -58,7 +58,6 @@ function is_iframely_amp ( $args ) {
 # Make WP cache work
 add_filter( 'embed_defaults', 'iframely_embed_defaults' );
 function iframely_embed_defaults( $args) {
-
     // args are included in cache key. Bust it if needed and configured by user
     if ((int)get_site_option('iframely_cache_ttl') > 0) {
 
@@ -273,6 +272,79 @@ function iframely_create_api_link ($origin = '') {
     
     return $link;
 }
+
+# YURI HARMASH
+/**
+ * Helper to un-parse array back to url
+ *
+ * @param  array $elements  Array of parsed URL data. E.g. `urlparse('http://...')`
+ * @return string           constructed url string
+ */
+function build_url($elements) {
+    $e = $elements;
+    return
+        (isset($e['host']) ? (
+            (isset($e['scheme']) ? "$e[scheme]://" : '//') .
+            (isset($e['user']) ? $e['user'] . (isset($e['pass']) ? ":$e[pass]" : '') . '@' : '') .
+            $e['host'] .
+            (isset($e['port']) ? ":$e[port]" : '')
+        ) : '') .
+        (isset($e['path']) ? $e['path'] : '/') .
+        (isset($e['query']) ? '?' . (is_array($e['query']) ? http_build_query($e['query'], '', '&') : $e['query']) : '') .
+        (isset($e['fragment']) ? "#$e[fragment]" : '')
+        ;
+}
+
+
+/**
+ * Move iframely options from iframe $url to main $provider query
+ *
+ * @param  string $provider URL of the constructed oEmbed provider.
+ * @return string           oEmbed provider with iframely options included.
+ */
+function move_options($provider) {
+    // Parse query string
+    $qs_array = parse_url($provider);
+    $params_string = $qs_array['query'];
+
+    // Deconstruct the iframely query string and url
+    preg_match('/(.+)(?:url=)(.+)(?:&)(.+)/', $params_string, $params_matches);
+    $url_with_opts = urldecode($params_matches[2]);
+    preg_match('/(.+)(?:&__iframelyOptions=\?)(.+)/', $url_with_opts, $url_and_options);
+
+    // Move iframely options from URL to main query
+    $modified_url = urlencode($url_and_options[1]);
+    $query = $params_matches[1] .
+        'url=' .
+        $modified_url .
+        '&' .
+        $params_matches[3] .
+        '&' .
+        $url_and_options[2];
+
+    $qs_array['query'] = $query;
+    $provider = build_url($qs_array);
+    return $provider;
+}
+
+/**
+ * Filters oEmbed fetch URL to include extra options
+ * from iframely if they are provided
+ *
+ * @param  string $provider URL of the oEmbed provider.
+ * @param  string $url      URL of the content to be embedded.
+ * @param  array  $args     Optional arguments, usually passed from a shortcode.
+ * @return string           oEmbed provider with extra arguments included.
+ */
+function move_iframely_options( $provider, $url, $args ) {
+    echo '/n!!!!!!!!!!!!!!!! IFRAMELY !!!!!!!!!!!!!';
+    if (strpos($url, '&__iframelyOptions') !== false) {
+        $provider = move_options($provider);
+        echo $provider;
+    }
+    return $provider;
+}
+add_filter( 'oembed_fetch_url', 'move_iframely_options', 10, 3 );
 
 
 # Create iframely settings menu for admin

@@ -52,10 +52,11 @@ function retrieveDataUrl(selectedIframe) {
 
 iframely.on('options-changed', function(id, formContainer, query) {
     // block options interaction
-    let selectedIframe = $(id).find('iframe').get(0);
-    let newUrl = parseOptions(retrieveDataUrl(selectedIframe), query);
-    selectedIframe.contentWindow.postMessage('gutenbergSetOptions:' + newUrl);
-
+    let clientId = id.split("div#block-")[1];
+    let blockAttrs = wp.data.select('core/editor').getBlockAttributes(clientId);
+    let newUrl = parseOptions(blockAttrs.url + '&__iframelyOptions=?', query);
+    console.log(query);
+    wp.data.dispatch('core/editor').updateBlockAttributes([clientId], { url: newUrl });
 });
 
 window.addEventListener("message",function(e){
@@ -84,8 +85,11 @@ function injectProxy(mutation) {
     scriptProxy.type  = "text/javascript";
     scriptProxy.text  = script_text;
     let iframe = mutation.target.getElementsByTagName("iframe");
-    let innerDoc = iframe[0].contentDocument || iframe[0].contentWindow.document;
-    innerDoc.body.appendChild(scriptProxy);
+    if (iframe[0] !== undefined) {
+        // Block in normal editing mode
+        let innerDoc = iframe[0].contentDocument || iframe[0].contentWindow.document;
+        innerDoc.body.appendChild(scriptProxy);
+    }
 }
 
 let iframelyObserver = new MutationObserver(function (mutationRecords, iframelyObserver) {
