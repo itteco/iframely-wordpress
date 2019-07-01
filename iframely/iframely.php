@@ -337,10 +337,8 @@ function move_options($provider) {
  * @return string           oEmbed provider with extra arguments included.
  */
 function move_iframely_options( $provider, $url, $args ) {
-    echo '/n!!!!!!!!!!!!!!!! IFRAMELY !!!!!!!!!!!!!';
     if (strpos($url, '&__iframelyOptions') !== false) {
         $provider = move_options($provider);
-        echo $provider;
     }
     return $provider;
 }
