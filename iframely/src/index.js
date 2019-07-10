@@ -6,15 +6,11 @@ const { createHigherOrderComponent } = wp.compose;
 const { Fragment } = wp.element;
 const { InspectorControls } = wp.editor;
 const { PanelBody } = wp.components;
-import parseUrl from 'url-parse'; // https://www.npmjs.com/package/url-parse
 
 const script_text = "window.addEventListener(\"message\",function(e){\n" +
     "    if(e.data.indexOf('setIframelyEmbedOptions') >= 0) {\n" +
     "        window.parent.postMessage(e.data,'*');\n" +
     "    }\n" +
-    "    if(e.data.lastIndexOf('gutenbergSetOptions:', 0) === 0){\n" +
-    "        var fr=document.getElementsByTagName('iframe')[0];\n" +
-    "        fr.src=e.data.replace('gutenbergSetOptions:','');}\n" +
     "},false);";
 
 function findIframeByContentWindow(iframes, contentWindow) {
@@ -28,34 +24,25 @@ function findIframeByContentWindow(iframes, contentWindow) {
     return foundIframe;
 }
 
-function parseOptions(src, opts) {
-    // Apply options to the API call url
-    let parsedApiCall = parseUrl(src, true);
-    parsedApiCall.query = Object.assign(parsedApiCall.query, opts);
-    return parsedApiCall.toString();
-}
-
-function retrieveDataUrl(selectedIframe) {
-    // Manages original URL stored without options applied
-    let oldUrl = '';
-    if (selectedIframe.dataUrl) {
-        // getting from a dta parameter
-        oldUrl = selectedIframe.dataUrl;
-    } else {
-        // Retrieving url from child iframe
-        let contents = $(selectedIframe).contents().get(0);
-        oldUrl = $(contents).find('iframe').get(0).src;
-        selectedIframe.dataUrl = oldUrl;
-    }
-    return oldUrl;
-}
-
 iframely.on('options-changed', function(id, formContainer, query) {
     // block options interaction
-    let clientId = id.split("div#block-")[1];
-    let blockAttrs = wp.data.select('core/editor').getBlockAttributes(clientId);
-    let newUrl = parseOptions(blockAttrs.url + '&__iframelyOptions=?', query);
-    console.log(query);
+    let clientId = id.split("div#block-")[1],
+        blockAttrs = wp.data.select('core/editor').getBlockAttributes(clientId),
+        url = blockAttrs.url,
+        iframely_key = '&iframely=';
+
+    // Parse url and make sure we are replacing an url query string properly
+    if(url.indexOf('iframely=') > 0) {
+        let durl = url.split('iframely=')[0];
+        url = durl.substr(0, durl.length-1);
+    }
+    if(url.indexOf('?') === -1) {
+        iframely_key = '?iframely=';
+    }
+
+    // Join the url string with iframely params
+    let params = iframely_key + encodeURIComponent(window.btoa(JSON.stringify(query)));
+    let newUrl = url + params;
     wp.data.dispatch('core/editor').updateBlockAttributes([clientId], { url: newUrl });
 });
 
@@ -67,7 +54,7 @@ window.addEventListener("message",function(e){
     }
 },false);
 
-$(document).ready(function () {
+function init_observer() {
     let target = document.querySelector("#editor");
     let config = {
         childList: true,
@@ -75,6 +62,10 @@ $(document).ready(function () {
         subtree: true,
     };
     iframelyObserver.observe(target, config);
+}
+
+$(document).ready(function () {
+    init_observer();
 });
 
 function injectProxy(mutation) {
