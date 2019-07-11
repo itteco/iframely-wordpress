@@ -87,10 +87,13 @@ function iframely_embed_defaults( $args) {
 
 add_filter( 'the_content_feed', 'iframely_disable_on_feed', 1, 99 );
 function iframely_disable_on_feed ( $content ) {
+
     add_filter( 'embed_defaults', 'iframely_add_feed_arg' );
     wp_oembed_remove_provider( '#https?://[^\s]+#i' );
+
     return $content;
 }
+
 function iframely_add_feed_arg ( $args) {
     $args['feed'] = 1;
     return $args;
@@ -269,7 +272,7 @@ function iframely_create_api_link ($origin = '') {
 
     # Read API key from plugin options
     $api_key = trim( get_site_option( 'iframely_api_key' ) );
-    $link = $api_key ? 'http://iframe.ly/api/oembed': 'http://iframe.ly/api/oembed';
+    $link = $api_key ? 'http://iframe.ly/api/oembed': 'http://open.iframe.ly/api/oembed';
 
     $link = add_query_arg( array(
         'origin'    => '' !== $origin ? $origin : preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ),
