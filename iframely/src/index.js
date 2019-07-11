@@ -54,6 +54,16 @@ window.addEventListener("message",function(e){
     }
 },false);
 
+let iframelyObserver = new MutationObserver(function (mutationRecords, iframelyObserver) {
+    mutationRecords.forEach((mutation) => {
+        if (
+            mutation.type === 'childList' &&
+            mutation.target.getElementsByClassName('wp-block-embed').length > 0 &&
+            mutation.removedNodes.length === 0
+        ) {injectProxy(mutation);}
+    });
+});
+
 function init_observer() {
     let target = document.querySelector("#editor");
     let config = {
@@ -61,12 +71,12 @@ function init_observer() {
         characterData: true,
         subtree: true,
     };
-    iframelyObserver.observe(target, config);
+    if (target) {
+        iframelyObserver.observe(target, config);
+    }
 }
 
-$(document).ready(function () {
-    init_observer();
-});
+init_observer();
 
 function injectProxy(mutation) {
     /* One or more children have been added to and/or removed
@@ -82,16 +92,6 @@ function injectProxy(mutation) {
         innerDoc.body.appendChild(scriptProxy);
     }
 }
-
-let iframelyObserver = new MutationObserver(function (mutationRecords, iframelyObserver) {
-    mutationRecords.forEach((mutation) => {
-        if (
-            mutation.type === 'childList' &&
-            mutation.target.getElementsByClassName('wp-block-embed').length > 0 &&
-            mutation.removedNodes.length === 0
-        ) {injectProxy(mutation);}
-    });
-});
 
 class IframelyOptions extends React.Component {
 
