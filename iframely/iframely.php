@@ -15,6 +15,7 @@ if ( !defined( 'IFRAMELY_URL' ) ) {
 
 # Always add Iframely as provider. Last to the list. If not 'only_shortcode', then this provider will disable all default ones
 
+
 # Add iframely as oembed provider for ANY url, yes it will process any url on separate line with wp oembed functions
 wp_oembed_add_provider( '#https?://[^\s]+#i', iframely_create_api_link(), true );
 
@@ -27,7 +28,7 @@ add_filter( 'pre_oembed_result', 'maybe_remove_wp_self_embeds', PHP_INT_MAX, 3 )
 
 
 # Always add iframely as oembed provider for any iframe.ly short link
-wp_oembed_add_provider( '#https?://dev.iframe\.ly/.+#i', iframely_create_api_link(), true );
+wp_oembed_add_provider( '#https?://iframe\.ly/.+#i', iframely_create_api_link(), true );
 
 function maybe_remove_wp_self_embeds( $result, $url, $args ) {
 
@@ -84,14 +85,26 @@ function iframely_embed_defaults( $args) {
     return $args;
 }
 
+add_filter( 'the_content_feed', 'iframely_disable_on_feed', 1, 99 );
+function iframely_disable_on_feed ( $content ) {
+    add_filter( 'embed_defaults', 'iframely_add_feed_arg' );
+    wp_oembed_remove_provider( '#https?://[^\s]+#i' );
+    return $content;
+}
+function iframely_add_feed_arg ( $args) {
+    $args['feed'] = 1;
+    return $args;
+}
+
 add_filter( 'oembed_fetch_url', 'maybe_add_iframe_amp', 10, 3 );
 function maybe_add_iframe_amp( $provider, $args, $url ) {
     
-    if (is_iframely_amp( $args ) && strpos($provider, '//dev.iframe.ly') !== false) {
+    if (is_iframely_amp( $args ) && strpos($provider, '//iframe.ly') !== false) {
         $provider = add_query_arg( 'iframe', 'amp', $provider );
     }
     return $provider;
 }
+
 
 add_filter( 'embed_oembed_html', 'iframely_filter_oembed_result', 10, 3 ); 
 function iframely_filter_oembed_result( $html, $url, $args ) {
@@ -256,7 +269,7 @@ function iframely_create_api_link ($origin = '') {
 
     # Read API key from plugin options
     $api_key = trim( get_site_option( 'iframely_api_key' ) );
-    $link = $api_key ? 'http://dev.iframe.ly/api/oembed': 'http://dev.iframe.ly/api/oembed';
+    $link = $api_key ? 'http://iframe.ly/api/oembed': 'http://iframe.ly/api/oembed';
 
     $link = add_query_arg( array(
         'origin'    => '' !== $origin ? $origin : preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ),
@@ -423,7 +436,7 @@ function iframely_settings_page() {
         var origin = "<?php print( preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ) )?>";
 
         // CHECK HTTPS
-        var url = location.protocol + "//dev.iframe.ly/api/oembed?api_key=" + $api_key_input.val() + "&url=https://chrome.google.com/webstore/detail/oajehffbidgccdedglcogjoolbdmpjmm&origin=" + origin;
+        var url = location.protocol + "//iframe.ly/api/oembed?api_key=" + $api_key_input.val() + "&url=https://chrome.google.com/webstore/detail/oajehffbidgccdedglcogjoolbdmpjmm&origin=" + origin;
         var api_key_check = true;
         jQuery.ajax({
             url: url,
