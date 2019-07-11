@@ -59,6 +59,7 @@ function is_iframely_amp ( $args ) {
 # Make WP cache work
 add_filter( 'embed_defaults', 'iframely_embed_defaults' );
 function iframely_embed_defaults( $args) {
+
     // args are included in cache key. Bust it if needed and configured by user
     if ((int)get_site_option('iframely_cache_ttl') > 0) {
 
@@ -266,6 +267,7 @@ function embed_iframely( $atts, $content = '' ) {
     # Return code to embed for the url inside shortcode
     return $code;
 }
+
 
 # Create link to iframely API backend
 function iframely_create_api_link ($origin = '') {
