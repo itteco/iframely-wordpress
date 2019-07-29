@@ -4,14 +4,8 @@
 const { __ } = wp.i18n;
 const { createHigherOrderComponent } = wp.compose;
 const { Fragment } = wp.element;
-const { InspectorControls } = wp.editor;
+const { InspectorControls } = wp.blockEditor;
 const { PanelBody } = wp.components;
-
-const script_text = "window.addEventListener(\"message\",function(e){\n" +
-    "    if(e.data.indexOf('setIframelyEmbedOptions') >= 0) {\n" +
-    "        window.parent.postMessage(e.data,'*');\n" +
-    "    }\n" +
-    "},false);";
 
 function findIframeByContentWindow(iframes, contentWindow) {
     let foundIframe;
@@ -27,7 +21,7 @@ function findIframeByContentWindow(iframes, contentWindow) {
 iframely.on('options-changed', function(id, formContainer, query) {
     // block options interaction
     let clientId = id.split("div#block-")[1],
-        blockAttrs = wp.data.select('core/editor').getBlockAttributes(clientId),
+        blockAttrs = wp.data.select('core/block-editor').getBlockAttributes(clientId),
         url = blockAttrs.url,
         iframely_key = '&iframely=';
 
@@ -43,7 +37,9 @@ iframely.on('options-changed', function(id, formContainer, query) {
     // Join the url string with iframely params
     let params = iframely_key + encodeURIComponent(window.btoa(JSON.stringify(query)));
     let newUrl = url + params;
-    wp.data.dispatch('core/editor').updateBlockAttributes([clientId], { url: newUrl });
+    // console.log('New url:', newUrl);
+    // console.log('Old url:', blockAttrs.url);
+    wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
 });
 
 window.addEventListener("message",function(e){
@@ -53,45 +49,6 @@ window.addEventListener("message",function(e){
         $(iframe).data(JSON.parse(e.data));
     }
 },false);
-
-let iframelyObserver = new MutationObserver(function (mutationRecords, iframelyObserver) {
-    mutationRecords.forEach((mutation) => {
-        if (
-            mutation.type === 'childList' &&
-            mutation.target.getElementsByClassName('wp-block-embed').length > 0 &&
-            mutation.removedNodes.length === 0
-        ) {injectProxy(mutation);}
-    });
-});
-
-function init_observer() {
-    let target = document.querySelector("#editor");
-    let config = {
-        childList: true,
-        characterData: true,
-        subtree: true,
-    };
-    if (target) {
-        iframelyObserver.observe(target, config);
-    }
-}
-
-init_observer();
-
-function injectProxy(mutation) {
-    /* One or more children have been added to and/or removed
-    from the tree; see mutation.addedNodes and
-    mutation.removedNodes */
-    let scriptProxy   = document.createElement("script");
-    scriptProxy.type  = "text/javascript";
-    scriptProxy.text  = script_text;
-    let iframe = mutation.target.getElementsByTagName("iframe");
-    if (iframe[0] !== undefined) {
-        // Block in normal editing mode
-        let innerDoc = iframe[0].contentDocument || iframe[0].contentWindow.document;
-        innerDoc.body.appendChild(scriptProxy);
-    }
-}
 
 class IframelyOptions extends React.Component {
 
@@ -105,6 +62,10 @@ class IframelyOptions extends React.Component {
     }
 
     componentDidMount() {
+        this.renderForm(this.props.data);
+    }
+
+    componentDidUpdate() {
         this.renderForm(this.props.data);
     }
 
