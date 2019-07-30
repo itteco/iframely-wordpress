@@ -25,7 +25,7 @@ add_filter( 'oembed_providers', 'maybe_reverse_oembed_providers');
 # Remove short-circuit for self-embeds, that forces it for all the sites and disables our summary cards for own domain
 add_filter( 'pre_oembed_result', 'maybe_remove_wp_self_embeds', PHP_INT_MAX, 3 );
 # alternatively: remove_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10 );
-
+#remove_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10 );
 
 # Always add iframely as oembed provider for any iframe.ly short link
 wp_oembed_add_provider( '#https?://iframe\.ly/.+#i', iframely_create_api_link(), true );
@@ -47,6 +47,7 @@ function maybe_reverse_oembed_providers ($providers) {
         return $providers;
     }
 }
+
 
 # Make compatible with Automatic AMP-WP plugin: https://github.com/Automattic/amp-wp
 function is_iframely_amp ( $args ) {
@@ -121,6 +122,31 @@ function iframely_filter_oembed_result( $html, $url, $args ) {
     }
     
     return $html;
+};
+
+# YG debug
+function debug_file($data) {
+    $myfile = fopen("debugfile.txt", "a");
+    if ($myfile) {
+        $date = date("D M d, Y G:i");
+        $s = print_r($data, 1);
+        fwrite($myfile, '
+        ');
+        fwrite($myfile, $date);
+        fwrite($myfile, $s);
+        fclose($myfile);
+    }
+
+};
+
+add_filter( 'oembed_result', 'inject_proxy', 10, 3 );
+function inject_proxy( $return, $data, $url ) {
+    return $return.
+        '<script type="text/javascript">window.addEventListener("message",function(e){
+            if(e.data.indexOf("setIframelyEmbedOptions") >= 0) {
+                window.parent.postMessage(e.data,"*");
+            }
+        },false);</script>';
 };
 
 add_filter( 'amp_content_embed_handlers', 'maybe_disable_default_embed_handlers', 10, 2 );
