@@ -25,7 +25,6 @@ add_filter( 'oembed_providers', 'maybe_reverse_oembed_providers');
 # Remove short-circuit for self-embeds, that forces it for all the sites and disables our summary cards for own domain
 add_filter( 'pre_oembed_result', 'maybe_remove_wp_self_embeds', PHP_INT_MAX, 3 );
 # alternatively: remove_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10 );
-#remove_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10 );
 
 # Always add iframely as oembed provider for any iframe.ly short link
 wp_oembed_add_provider( '#https?://iframe\.ly/.+#i', iframely_create_api_link(), true );

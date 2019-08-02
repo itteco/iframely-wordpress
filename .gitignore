@@ -14,6 +14,5 @@ webpack.config.js
 webpack.config.js.old
 src*
 build*
-assets*
 
 node_modules/*
