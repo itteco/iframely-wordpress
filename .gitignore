@@ -1,18 +1,10 @@
 .gitignore
-iframely/package-lock.json
 iframely/node_modules
 .idea
 
 # Repository inside plugin directory
 .babelrc
 iframely.php
-package.json
-package-lock.json
-package.json.old
 readme.txt
-webpack.config.js
-webpack.config.js.old
 src*
 build*
-
-node_modules/*

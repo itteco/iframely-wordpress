@@ -157,7 +157,7 @@ function maybe_disable_default_embed_handlers($embed_handler_classes) {
 # Yuri Garmash
 function iframely_scripts_loader()
 {
-    $blockPath = "assets/iframely.js";
+    $blockPath = "iframely/ui/iframely.js";
     $ifcdn = 'https://cdn.iframe.ly/';
     $api_key = get_site_option('iframely_api_key');
 

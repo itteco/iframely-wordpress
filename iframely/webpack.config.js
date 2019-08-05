@@ -5,7 +5,7 @@ module.exports = {
     entry: './src/index.js',
     output: {
         path: __dirname,
-        filename: './assets/iframely.js',
+        filename: './ui/iframely.js',
     },
     module: {
         loaders: [
