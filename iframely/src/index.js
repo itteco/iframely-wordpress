@@ -6,6 +6,7 @@ const { createHigherOrderComponent } = wp.compose;
 const { Fragment } = wp.element;
 const { InspectorControls } = wp.blockEditor;
 const { PanelBody } = wp.components;
+const iEvent = new RegExp("setIframelyEmbedOptions");
 
 function findIframeByContentWindow(iframes, contentWindow) {
     let foundIframe;
@@ -34,20 +35,19 @@ iframely.on('options-changed', function(id, formContainer, query) {
         iframely_key = '?iframely=';
     }
 
+    // Fix the UI caching issue
+    query.timestamp = new Date().getTime();
     // Join the url string with iframely params
     let params = iframely_key + encodeURIComponent(window.btoa(JSON.stringify(query)));
     let newUrl = url + params;
-    console.log('New url:', newUrl);
-    console.log('Old url:', blockAttrs.url);
     wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
 
 });
 
 function initListener() {
     window.addEventListener("message",function(e){
-        console.log('Listener executes!');
         let frames = document.getElementsByTagName("iframe");
-        if(new RegExp("setIframelyEmbedOptions").test(e.data)) {
+        if(iEvent.test(e.data)) {
             let iframe = findIframeByContentWindow(frames, e.source);
             $(iframe).data(JSON.parse(e.data));
         }
@@ -62,8 +62,6 @@ class IframelyOptions extends React.Component {
         let selector = 'div#block-' + clientId;
         let options = $(selector).find('iframe').data();
         if (options) {
-            console.log('Options:');
-            console.log(options);
             iframely.buildOptionsForm(selector, $('div#ifopts').get(0), options.data)
         }
     }
