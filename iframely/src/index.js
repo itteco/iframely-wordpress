@@ -5,8 +5,8 @@ const { __ } = wp.i18n;
 const { createHigherOrderComponent } = wp.compose;
 const { Fragment } = wp.element;
 const { InspectorControls } = wp.blockEditor;
-const { PanelBody } = wp.components;
 const iEvent = new RegExp("setIframelyEmbedOptions");
+import { Panel, PanelBody, PanelRow } from '@wordpress/components';
 
 function findIframeByContentWindow(iframes, contentWindow) {
     let foundIframe;
@@ -62,7 +62,7 @@ class IframelyOptions extends React.Component {
         let selector = 'div#block-' + clientId;
         let options = $(selector).find('iframe').data();
         if (options) {
-            iframely.buildOptionsForm(selector, $('div#ifopts').get(0), options.data)
+            iframely.buildOptionsForm(selector, $('div#ifopts').get(0), options.data);
         }
     }
 
@@ -84,7 +84,6 @@ IframelyOptions.defaultProps = {
     body: '',
     data: '',
 };
-
 const withInspectorControls =  createHigherOrderComponent( ( BlockEdit ) => {
     return ( props ) => {
         if (props.isSelected===true && (props.name === "core/embed" || props.name.startsWith("core-embed"))) {
@@ -92,9 +91,13 @@ const withInspectorControls =  createHigherOrderComponent( ( BlockEdit ) => {
                 <Fragment>
                     <BlockEdit { ...props } />
                     <InspectorControls>
-                        <PanelBody >
-                            <IframelyOptions data={ props.clientId }/>
-                        </PanelBody>
+                            <PanelBody
+                                title="Iframely Embed Settings"
+                                icon="admin-generic"
+                                className={'iframelySettingsPanel'}
+                            >
+                                <IframelyOptions data={ props.clientId }/>
+                            </PanelBody>
                     </InspectorControls>
                 </Fragment>
             );
