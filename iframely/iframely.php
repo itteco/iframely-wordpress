@@ -157,12 +157,11 @@ function maybe_disable_default_embed_handlers($embed_handler_classes) {
 # Yuri Garmash
 function iframely_scripts_loader()
 {
-    $blockPath = "iframely/ui/iframely.js";
+    $blockPath = "ui/iframely.js";
     $ifcdn = 'https://cdn.iframe.ly/';
-    $api_key = get_site_option('iframely_api_key');
 
     // Load iframly CDN scripts
-    wp_enqueue_script( 'iframely-embed', $ifcdn.'embed.js?api_key='.$api_key, array( 'jquery' ) );
+    wp_enqueue_script( 'iframely-embed', $ifcdn.'embed.js', array( 'jquery' ) );
     wp_enqueue_script( 'iframely-options', $ifcdn.'options.js', array( 'jquery' ) );
 
     // Register plugin Admin functionality
@@ -175,7 +174,7 @@ function iframely_scripts_loader()
     );
     wp_enqueue_script('iframely');
 }
-add_action( 'admin_enqueue_scripts', 'iframely_scripts_loader' );
+add_action( 'enqueue_block_editor_assets', 'iframely_scripts_loader' );
 
 
 function iframely_autop_on_amp( $content ) {
