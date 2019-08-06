@@ -92,8 +92,7 @@ const withInspectorControls =  createHigherOrderComponent( ( BlockEdit ) => {
                     <BlockEdit { ...props } />
                     <InspectorControls>
                             <PanelBody
-                                title="Iframely Embed Settings"
-                                icon="admin-generic"
+                                title="Iframely options"
                                 className={'iframelySettingsPanel'}
                             >
                                 <IframelyOptions data={ props.clientId }/>
