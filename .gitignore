@@ -8,3 +8,4 @@ iframely.php
 readme.txt
 src*
 build*
+.DS_Store

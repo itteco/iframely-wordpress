@@ -138,9 +138,9 @@ function debug_file($data) {
 
 };
 
-add_filter( 'oembed_result', 'inject_proxy', 10, 3 );
-function inject_proxy( $return, $data, $url ) {
-    return $return.
+add_filter( 'embed_oembed_html', 'inject_events_proxy_to_gutenberg', 10, 3 );
+function inject_events_proxy_to_gutenberg( $html, $url, $args ) {
+    return $html.
         '<script type="text/javascript">window.addEventListener("message",function(e){
             if(e.data.indexOf("setIframelyEmbedOptions") >= 0) {
                 window.parent.postMessage(e.data,"*");
