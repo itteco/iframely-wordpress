@@ -6,7 +6,7 @@ const { createHigherOrderComponent } = wp.compose;
 const { Fragment } = wp.element;
 const { InspectorControls } = wp.blockEditor;
 const iEvent = new RegExp("setIframelyEmbedOptions");
-import { Panel, PanelBody, PanelRow } from '@wordpress/components';
+const { PanelBody } = wp.components;
 
 function findIframeByContentWindow(iframes, contentWindow) {
     let foundIframe;
@@ -75,7 +75,7 @@ class IframelyOptions extends React.Component {
     }
 
     render() {
-        return <div id="ifopts" data-id={ this.props.data }>{ this.body }</div>;
+        return `<div id="ifopts" data-id={ this.props.data }>{ this.body }</div>`;
     }
 
 }
