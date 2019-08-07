@@ -7,5 +7,5 @@ iframely/node_modules
 iframely.php
 readme.txt
 src*
-build*
+ui*
 .DS_Store

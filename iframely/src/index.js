@@ -75,7 +75,7 @@ class IframelyOptions extends React.Component {
     }
 
     render() {
-        return `<div id="ifopts" data-id={ this.props.data }>{ this.body }</div>`;
+        return <div id="ifopts" data-id={ this.props.data }>{ this.body }</div>;
     }
 
 }
