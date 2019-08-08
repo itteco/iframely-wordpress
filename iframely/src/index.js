@@ -19,7 +19,7 @@ function findIframeByContentWindow(iframes, contentWindow) {
     return foundIframe;
 }
 
-iframely.on('options-changed', function(id, formContainer, query) {
+function updateIframe(id, query) {
     // block options interaction
     let clientId = id.split("div#block-")[1],
         blockAttrs = wp.data.select('core/block-editor').getBlockAttributes(clientId),
@@ -42,7 +42,16 @@ iframely.on('options-changed', function(id, formContainer, query) {
     let newUrl = url + params;
     wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
 
-});
+}
+
+if (iframely) {
+    // Failsafe in case of iframely name space accessible.
+    // E.g. no internet connection
+    iframely.on('options-changed', function(id, formContainer, query) {
+        updateIframe(id, query)
+    });
+}
+
 
 function initListener() {
     window.addEventListener("message",function(e){
@@ -57,51 +66,50 @@ initListener();
 
 class IframelyOptions extends React.Component {
 
-    renderForm(clientId) {
-        // Rendering form for options in the Inspector
-        let selector = 'div#block-' + clientId;
-        let options = $(selector).find('iframe').data();
-        if (options) {
-            iframely.buildOptionsForm(selector, $('div#ifopts').get(0), options.data);
-        }
+    renderForm() {
+        iframely.buildOptionsForm(this.props.selector, $('div#ifopts').get(0), this.props.options.data);
     }
 
     componentDidMount() {
-        this.renderForm(this.props.data);
+        this.renderForm();
     }
 
     componentDidUpdate() {
-        this.renderForm(this.props.data);
+        this.renderForm();
     }
 
     render() {
-        return <div id="ifopts" data-id={ this.props.data }>{ this.body }</div>;
+        return <div id="ifopts" data-id={ this.props.clientId }>{ this.body }</div>;
     }
-
 }
 
 IframelyOptions.defaultProps = {
     body: '',
-    data: '',
+    clientId: '',
+    selector: '',
+    options: '',
 };
 const withInspectorControls =  createHigherOrderComponent( ( BlockEdit ) => {
     return ( props ) => {
+        let fragment = (<Fragment><BlockEdit { ...props } /></Fragment>);
         if (props.isSelected===true && (props.name === "core/embed" || props.name.startsWith("core-embed"))) {
+            let selector = 'div#block-' + props.clientId;
+            let options = $(selector).find('iframe').data();
+            if (!options.data) {
+                return fragment;
+            }
             return (
                 <Fragment>
                     <BlockEdit { ...props } />
                     <InspectorControls>
-                            <PanelBody
-                                title="Iframely options"
-                                className={'iframelySettingsPanel'}
-                            >
-                                <IframelyOptions data={ props.clientId }/>
+                            <PanelBody title="Iframely options" >
+                                <IframelyOptions selector={ selector } options={ options } clientId={ props.clientId } />
                             </PanelBody>
                     </InspectorControls>
                 </Fragment>
             );
         } else {
-            return (<Fragment><BlockEdit { ...props } /></Fragment>);
+            return fragment;
         }
     };
 }, "withInspectorControl" );
