@@ -123,29 +123,25 @@ function iframely_filter_oembed_result( $html, $url, $args ) {
     return $html;
 };
 
-# YG debug
-function debug_file($data) {
-    $myfile = fopen("debugfile.txt", "a");
-    if ($myfile) {
-        $date = date("D M d, Y G:i");
-        $s = print_r($data, 1);
-        fwrite($myfile, '
-        ');
-        fwrite($myfile, $date);
-        fwrite($myfile, $s);
-        fclose($myfile);
-    }
+function is_gutenberg_page() {
 
-};
+    # TODO: this does not work!
 
-add_filter( 'oembed_result', 'inject_proxy', 10, 3 );
-function inject_proxy( $return, $data, $url ) {
-    return $return.
-        '<script type="text/javascript">window.addEventListener("message",function(e){
+    return true;
+}
+
+
+add_filter( 'oembed_result', 'inject_events_proxy_to_gutenberg', 10, 3 );
+function inject_events_proxy_to_gutenberg( $html, $url, $args ) {
+    if (  is_gutenberg_page() ) {
+        return $html .
+                '<script type="text/javascript">window.addEventListener("message",function(e){
             if(e.data.indexOf("setIframelyEmbedOptions") >= 0) {
                 window.parent.postMessage(e.data,"*");
             }
         },false);</script>';
+    }
+    return $html;
 };
 
 add_filter( 'amp_content_embed_handlers', 'maybe_disable_default_embed_handlers', 10, 2 );
@@ -260,6 +256,24 @@ function publish_embeds_via_iframely($url, $permalink, $format = 'json') {
     }
     
 }
+
+# YURI HARMASH
+/**
+ * Filters oEmbed fetch URL to include extra options
+ * from iframely if they are provided
+ *
+ * @param  string $provider URL of the oEmbed provider.
+ * @param  string $url      URL of the content to be embedded.
+ * @param  array  $args     Optional arguments, usually passed from a shortcode.
+ * @return string           oEmbed provider with extra arguments included.
+ */
+function move_iframely_options( $provider, $url, $args ) {
+    if ( is_gutenberg_page() ) {
+        $provider = $provider.'&gutenberg=1';
+    }
+    return $provider;
+}
+add_filter( 'oembed_fetch_url', 'move_iframely_options', 10, 3 );
 
 # Function to process content in iframely shortcode, ex: [iframely]http://anything[/iframely]
 function embed_iframely( $atts, $content = '' ) {

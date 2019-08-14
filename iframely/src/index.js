@@ -88,7 +88,7 @@ const withInspectorControls =  createHigherOrderComponent( ( BlockEdit ) => {
         if (props.isSelected===true && (props.name === "core/embed" || props.name.startsWith("core-embed"))) {
             let selector = 'div#block-' + props.clientId;
             let options = $(selector).find('iframe').data();
-            if (!options && !options.data) {
+            if (!options || !options.data) {
                 return fragment;
             }
             return (
