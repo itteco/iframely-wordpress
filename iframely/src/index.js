@@ -35,13 +35,10 @@ function updateIframe(id, query) {
         iframely_key = '?iframely=';
     }
 
-    // Fix the UI caching issue
-    query.timestamp = new Date().getTime();
     // Join the url string with iframely params
     let params = iframely_key + encodeURIComponent(window.btoa(JSON.stringify(query)));
     let newUrl = url + params;
     wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
-
 }
 
 if (iframely) {
@@ -74,10 +71,6 @@ class IframelyOptions extends React.Component {
         this.renderForm();
     }
 
-    componentDidUpdate() {
-        this.renderForm();
-    }
-
     render() {
         return <div id="ifopts" data-id={ this.props.clientId }>{ this.body }</div>;
     }
@@ -95,7 +88,7 @@ const withInspectorControls =  createHigherOrderComponent( ( BlockEdit ) => {
         if (props.isSelected===true && (props.name === "core/embed" || props.name.startsWith("core-embed"))) {
             let selector = 'div#block-' + props.clientId;
             let options = $(selector).find('iframe').data();
-            if (!options.data) {
+            if (!options && !options.data) {
                 return fragment;
             }
             return (
