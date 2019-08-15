@@ -19,6 +19,14 @@ function findIframeByContentWindow(iframes, contentWindow) {
     return foundIframe;
 }
 
+function sortObject(unordered) {
+    let ordered = {};
+    Object.keys(unordered).sort().forEach(function(key) {
+        ordered[key] = unordered[key];
+    });
+    return ordered;
+}
+
 function updateIframe(id, query) {
     // block options interaction
     let clientId = id.split("div#block-")[1],
@@ -34,6 +42,10 @@ function updateIframe(id, query) {
     if(url.indexOf('?') === -1) {
         iframely_key = '?iframely=';
     }
+
+    // Ensure sorted options object to make sure
+    // we generating same data each time for same options.
+    query = sortObject(query);
 
     // Join the url string with iframely params
     let params = iframely_key + encodeURIComponent(window.btoa(JSON.stringify(query)));
