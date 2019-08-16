@@ -30,7 +30,6 @@ add_filter( 'pre_oembed_result', 'maybe_remove_wp_self_embeds', PHP_INT_MAX, 3 )
 wp_oembed_add_provider( '#https?://iframe\.ly/.+#i', iframely_create_api_link(), true );
 
 function maybe_remove_wp_self_embeds( $result, $url, $args ) {
-
     return get_site_option( 'publish_iframely_cards') ? null : $result;
 }
 
@@ -48,16 +47,8 @@ function maybe_reverse_oembed_providers ($providers) {
 }
 
 
-# Make compatible with Automatic AMP-WP plugin: https://github.com/Automattic/amp-wp
-function is_iframely_amp ( $args ) {
-    return 
-        (is_array($args) && array_key_exists('iframely', $args) && $args['iframely'] == 'amp') 
-        || (is_string($args) && strpos($args, 'iframely=amp') !== false)
-        || (function_exists('is_amp_endpoint') && is_amp_endpoint());
-}
-
 # Make WP cache work
-add_filter( 'embed_defaults', 'iframely_embed_defaults' );
+add_filter( 'embed_defaults', 'iframely_embed_defaults', 10, 1 );
 function iframely_embed_defaults( $args) {
 
     // args are included in cache key. Bust it if needed and configured by user
@@ -86,6 +77,7 @@ function iframely_embed_defaults( $args) {
     return $args;
 }
 
+# Disable on RSS feeds as there's no JavaScript to run embed codes
 add_filter( 'the_content_feed', 'iframely_disable_on_feed', 1, 99 );
 function iframely_disable_on_feed ( $content ) {
 
@@ -100,6 +92,14 @@ function iframely_add_feed_arg ( $args) {
     return $args;
 }
 
+# Make compatible with Automatic AMP-WP plugin: https://github.com/Automattic/amp-wp
+function is_iframely_amp ( $args ) {
+    return 
+        (is_array($args) && array_key_exists('iframely', $args) && $args['iframely'] == 'amp') 
+        || (is_string($args) && strpos($args, 'iframely=amp') !== false)
+        || (function_exists('is_amp_endpoint') && is_amp_endpoint());
+}
+
 add_filter( 'oembed_fetch_url', 'maybe_add_iframe_amp', 10, 3 );
 function maybe_add_iframe_amp( $provider, $args, $url ) {
     
@@ -108,7 +108,6 @@ function maybe_add_iframe_amp( $provider, $args, $url ) {
     }
     return $provider;
 }
-
 
 add_filter( 'embed_oembed_html', 'iframely_filter_oembed_result', 10, 3 ); 
 function iframely_filter_oembed_result( $html, $url, $args ) {
@@ -121,57 +120,7 @@ function iframely_filter_oembed_result( $html, $url, $args ) {
     }
     
     return $html;
-};
-
-function is_gutenberg_page() {
-
-    # TODO: this does not work!
-
-    return true;
 }
-
-
-add_filter( 'oembed_result', 'inject_events_proxy_to_gutenberg', 10, 3 );
-function inject_events_proxy_to_gutenberg( $html, $url, $args ) {
-    if (  is_gutenberg_page() ) {
-        return $html .
-                '<script type="text/javascript">window.addEventListener("message",function(e){
-            if(e.data.indexOf("setIframelyEmbedOptions") >= 0) {
-                window.parent.postMessage(e.data,"*");
-            }
-        },false);</script>';
-    }
-    return $html;
-};
-
-add_filter( 'amp_content_embed_handlers', 'maybe_disable_default_embed_handlers', 10, 2 );
-function maybe_disable_default_embed_handlers($embed_handler_classes) {
-
-    return get_site_option( 'iframely_disable_default_amp_embeds' ) ? array() : $embed_handler_classes;
-};
-
-# Yuri Garmash
-function iframely_scripts_loader()
-{
-    $blockPath = "ui/iframely.js";
-    $ifcdn = 'https://cdn.iframe.ly/';
-
-    // Load iframly CDN scripts
-    wp_enqueue_script( 'iframely-embed', $ifcdn.'embed.js', array( 'jquery' ) );
-    wp_enqueue_script( 'iframely-options', $ifcdn.'options.js', array( 'jquery' ) );
-
-    // Register plugin Admin functionality
-    wp_register_script(
-        'iframely',
-        plugins_url($blockPath, __FILE__),
-        array( 'wp-i18n', 'wp-element', 'wp-blocks', 'wp-components', 'wp-api', 'wp-editor' ),
-        filemtime(plugin_dir_path(__FILE__) . $blockPath),
-        true
-    );
-    wp_enqueue_script('iframely');
-}
-add_action( 'enqueue_block_editor_assets', 'iframely_scripts_loader' );
-
 
 function iframely_autop_on_amp( $content ) {
 
@@ -200,37 +149,102 @@ function iframely_autop_on_amp( $content ) {
     return $content;
 }
 
+add_filter( 'amp_content_embed_handlers', 'maybe_disable_default_embed_handlers', 10, 2 );
+function maybe_disable_default_embed_handlers($embed_handler_classes) {
+
+    return get_site_option( 'iframely_disable_default_amp_embeds' ) ? array() : $embed_handler_classes;
+};
+
+
+# Add URL options to Gutenberg
+
+# 'oembed_default_width' filter is used only in oembed/1.0/rest - i.e in the editor
+add_filter( 'oembed_default_width', 'iframely_flag_ajax_oembed' );
+function iframely_flag_ajax_oembed( $width ) {
+
+    add_filter( 'embed_defaults', 'iframely_bust_gutenberg_cache', 10, 1 );
+    add_filter( 'oembed_fetch_url', 'maybe_add_gutenberg_1', 10, 3 );
+    add_filter( 'oembed_result', 'inject_events_proxy_to_gutenberg', 10, 3 );
+
+    # The core's code doesn't even bother to look into default values and just hardcodes 600.
+    # since we use the filter anyway - let's fix that
+    if ( ! empty( $GLOBALS['content_width'] ) ) {
+        $width = (int) $GLOBALS['content_width'];
+    }
+    return $width;
+}
+
+function iframely_bust_gutenberg_cache( $args) {
+    $args['gutenberg'] = 1;
+    return $args;
+}
+
+function maybe_add_gutenberg_1( $provider, $args, $url ) {
+    
+    if (strpos($provider, '//iframe.ly') !== false) {
+        $provider = add_query_arg( 'iframe', '1', $provider );
+    }
+    return $provider;
+}
+
+function inject_events_proxy_to_gutenberg( $html, $url, $args ) {
+    return $html .
+        '<script type="text/javascript">window.addEventListener("message",function(e){
+            if(e.data.indexOf("setIframelyEmbedOptions") >= 0) {
+                window.parent.postMessage(e.data,"*");
+            }
+        },false);</script>';
+};
+
+add_action( 'enqueue_block_editor_assets', 'iframely_gutenberg_loader' );
+function iframely_gutenberg_loader() {
+    $blockPath = "ui/iframely.js";
+    $ifcdn = 'https://if-cdn.com/';
+
+    // Load iframly CDN scripts
+    wp_enqueue_script( 'iframely-embed', $ifcdn.'embed.js', array( 'jquery' ) );
+    wp_enqueue_script( 'iframely-options', $ifcdn.'options.js', array( 'jquery' ) );
+
+    // Register plugin Admin functionality
+    wp_register_script(
+        'iframely',
+        plugins_url($blockPath, __FILE__),
+        array( 'wp-i18n', 'wp-element', 'wp-blocks', 'wp-components', 'wp-api', 'wp-editor' ),
+        filemtime(plugin_dir_path(__FILE__) . $blockPath),
+        true
+    );
+    wp_enqueue_script('iframely');
+}
 
 # fix cache ttl
 add_filter('oembed_ttl', 'maybe_disable_cache', 99, 4);
 function maybe_disable_cache($ttl, $url, $attr, $post_ID) {
         
-        $iframely_ttl = DAY_IN_SECONDS * (int)get_site_option('iframely_cache_ttl');
+    $iframely_ttl = DAY_IN_SECONDS * (int)get_site_option('iframely_cache_ttl');
 
-        if ($iframely_ttl > 0) { 
+    if ($iframely_ttl > 0) { 
 
-            global $wp_embed;
+        global $wp_embed;
 
-            # Copy keys from wp-embed        
-            $key_suffix = md5( $url . serialize( $attr ) );
-            $cachekey = '_oembed_' . $key_suffix;
-            $cachekey_time = '_oembed_time_' . $key_suffix;
+        # Copy keys from wp-embed
+        $key_suffix = md5( $url . serialize( $attr ) );
+        $cachekey = '_oembed_' . $key_suffix;
+        $cachekey_time = '_oembed_time_' . $key_suffix;
 
-            $cache_time = get_post_meta( $post_ID, $cachekey_time, true );
+        $cache_time = get_post_meta( $post_ID, $cachekey_time, true );
 
-            if ( ! $cache_time || (time() - $cache_time  > $iframely_ttl) ) {
-                $wp_embed->usecache = false;
-                delete_post_meta( $post_ID, $cachekey_time);
-                delete_post_meta( $post_ID, $cachekey);
-                return $iframely_ttl;
-            } else {
-                return $ttl;
-            }
+        if ( ! $cache_time || (time() - $cache_time  > $iframely_ttl) ) {
+            $wp_embed->usecache = false;
+            delete_post_meta( $post_ID, $cachekey_time);
+            delete_post_meta( $post_ID, $cachekey);
+            return $iframely_ttl;
         } else {
             return $ttl;
-        } 
-        
+        }
+    } else {
+        return $ttl;
     }
+}
 
 # Register [iframely] shortcode
 add_shortcode( 'iframely', 'embed_iframely' );
@@ -256,24 +270,6 @@ function publish_embeds_via_iframely($url, $permalink, $format = 'json') {
     }
     
 }
-
-# YURI HARMASH
-/**
- * Filters oEmbed fetch URL to include extra options
- * from iframely if they are provided
- *
- * @param  string $provider URL of the oEmbed provider.
- * @param  string $url      URL of the content to be embedded.
- * @param  array  $args     Optional arguments, usually passed from a shortcode.
- * @return string           oEmbed provider with extra arguments included.
- */
-function move_iframely_options( $provider, $url, $args ) {
-    if ( is_gutenberg_page() ) {
-        $provider = $provider.'&gutenberg=1';
-    }
-    return $provider;
-}
-add_filter( 'oembed_fetch_url', 'move_iframely_options', 10, 3 );
 
 # Function to process content in iframely shortcode, ex: [iframely]http://anything[/iframely]
 function embed_iframely( $atts, $content = '' ) {
