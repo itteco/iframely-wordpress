@@ -48,7 +48,7 @@ function maybe_reverse_oembed_providers ($providers) {
 
 
 # Make WP cache work
-add_filter( 'embed_defaults', 'iframely_embed_defaults' );
+add_filter( 'embed_defaults', 'iframely_embed_defaults', 10, 1 );
 function iframely_embed_defaults( $args) {
 
     // args are included in cache key. Bust it if needed and configured by user
@@ -159,11 +159,26 @@ function maybe_disable_default_embed_handlers($embed_handler_classes) {
 # Add URL options to Gutenberg
 
 # 'oembed_default_width' filter is used only in oembed/1.0/rest - i.e in the editor
-add_filter( 'oembed_default_width', 'iframely_flag_ajax_oembed' ); 
+add_filter( 'oembed_default_width', 'iframely_flag_ajax_oembed' );
 function iframely_flag_ajax_oembed( $width ) {
+
+    add_filter( 'embed_defaults', 'iframely_bust_gutenberg_cache', 10, 1 );
     add_filter( 'oembed_fetch_url', 'maybe_add_gutenberg_1', 10, 3 );
-    add_filter( 'oembed_result', 'inject_events_proxy_to_gutenberg', 10, 3 );    
+    add_filter( 'oembed_result', 'inject_events_proxy_to_gutenberg', 10, 3 );
+
+    # The core's code doesn't even bother to look into default values and just hardcodes 600.
+    # since we use the filter anyway - let's fix that
+    if ( ! empty( $GLOBALS['content_width'] ) ) {
+        $width = (int) $GLOBALS['content_width'];
+    }
+    return $width;
 }
+
+function iframely_bust_gutenberg_cache( $args) {
+    $args['gutenberg'] = 1;
+    return $args;
+}
+
 function maybe_add_gutenberg_1( $provider, $args, $url ) {
     
     if (strpos($provider, '//iframe.ly') !== false) {
@@ -180,7 +195,6 @@ function inject_events_proxy_to_gutenberg( $html, $url, $args ) {
             }
         },false);</script>';
 };
-
 
 add_action( 'enqueue_block_editor_assets', 'iframely_gutenberg_loader' );
 function iframely_gutenberg_loader() {
