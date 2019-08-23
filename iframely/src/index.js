@@ -53,27 +53,43 @@ function updateIframe(id, query) {
     // Ensure sorted options object to make sure
     // we generating same data each time for same options.
     query = sortObject(query);
+    //query.timestamp = new Date();
 
     // Join the url string with iframely params
     let params = iframely_key + encodeURIComponent(window.btoa(JSON.stringify(query)));
     let newUrl = url + params;
+
+    // Update the corresponding block and get a preview if required
     wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
+    let prUrl, preview = wp.data.select( 'core' ).getEmbedPreview(newUrl);
+
+    if (preview) {
+        // This returns cached preview if we have any
+
+        // TODO: this is wrong. we should find a standard hook to update an embed with cached preview.
+        console.log(preview.html);
+    //     $('div[data-block='+clientId+']').find('iframe').each(function() {
+    //         let dz = $('div', this.contentWindow.document||this.contentDocument).get(0);
+    //         $(dz).html(preview.html);
+    //     });
+    }
+
 }
 
 if (iframely) {
-    // Failsafe in case of iframely name space accessible.
+    // Failsafe in case of iframely name space not accessible.
     // E.g. no internet connection
     iframely.on('options-changed', function(id, formContainer, query) {
-        updateIframe(id, query)
+        updateIframe(id, query);
     });
 }
 
 
 function initListener() {
     window.addEventListener("message",function(e){
-        let frames = document.getElementsByTagName("iframe");
         if(iEvent.test(e.data)) {
-            let iframe = findIframeByContentWindow(frames, e.source);
+            let frames = document.getElementsByTagName("iframe"),
+                iframe = findIframeByContentWindow(frames, e.source);
             $(iframe).data(JSON.parse(e.data));
         }
     },false);
@@ -82,16 +98,16 @@ initListener();
 
 class IframelyOptions extends React.Component {
 
-    renderForm() {
+    componentDidMount() {
         iframely.buildOptionsForm(this.props.selector, $('div#ifopts').get(0), this.props.options.data);
     }
 
-    componentDidMount() {
-        this.renderForm();
-    }
-
     render() {
-        return <div id="ifopts" data-id={ this.props.clientId }>{ this.body }</div>;
+        // console.log('data: ', this.props.options.data);
+        return <div id="ifopts"
+                    data-id={ this.props.clientId }
+                    data-opts={JSON.stringify(this.props.options.data)}
+        >{ this.body }</div>;
     }
 }
 
