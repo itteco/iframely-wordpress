@@ -67,11 +67,15 @@ function updateIframe(id, query) {
         // This returns cached preview if we have any
 
         // TODO: this is wrong. we should find a standard hook to update an embed with cached preview.
-        console.log(preview.html);
-    //     $('div[data-block='+clientId+']').find('iframe').each(function() {
-    //         let dz = $('div', this.contentWindow.document||this.contentDocument).get(0);
-    //         $(dz).html(preview.html);
-    //     });
+        let wpIframe = $('div[data-block='+clientId+']').find('iframe').contents().get(0);
+        //let iframelyDiv = $(wpIframe).find('div.iframely-embed').get(0);
+        //$(iframelyDiv).html(preview.html+"");
+        let preview_url = 'https:' + $(preview.html).find('a').attr('data-iframely-url');
+        $('div[data-block='+clientId+']').find('iframe').get(0).src = preview_url;
+        // $('div[data-block='+clientId+']').find('iframe').each(function() {
+        //     let dz = $('div', this.contentWindow.document||this.contentDocument).get(0);
+        //     $(dz).html(preview.html);
+        // });
     }
 
 }
