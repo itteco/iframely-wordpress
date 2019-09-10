@@ -60,23 +60,16 @@ function updateIframe(id, query) {
     let newUrl = url + params;
 
     // Update the corresponding block and get a preview if required
-    wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
-    let prUrl, preview = wp.data.select( 'core' ).getEmbedPreview(newUrl);
+    let promise = wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
+    promise.then(function(value) {
+        let id = value.clientId[0];
+        console.log(id);
+        $('div[data-block='+ id+ '] iframe').on('load', function() {
+            console.log("Loaded Iframe", this);
+        });
+        $($('div#ifopts').get(0)).attr('data-id', id);
 
-    if (preview) {
-        // This returns cached preview if we have any
-
-        // TODO: this is wrong. we should find a standard hook to update an embed with cached preview.
-        let wpIframe = $('div[data-block='+clientId+']').find('iframe').contents().get(0);
-        //let iframelyDiv = $(wpIframe).find('div.iframely-embed').get(0);
-        //$(iframelyDiv).html(preview.html+"");
-        let preview_url = 'https:' + $(preview.html).find('a').attr('data-iframely-url');
-        $('div[data-block='+clientId+']').find('iframe').get(0).src = preview_url;
-        // $('div[data-block='+clientId+']').find('iframe').each(function() {
-        //     let dz = $('div', this.contentWindow.document||this.contentDocument).get(0);
-        //     $(dz).html(preview.html);
-        // });
-    }
+    });
 
 }
 
@@ -88,13 +81,18 @@ if (iframely) {
     });
 }
 
-
 function initListener() {
     window.addEventListener("message",function(e){
         if(iEvent.test(e.data)) {
             let frames = document.getElementsByTagName("iframe"),
                 iframe = findIframeByContentWindow(frames, e.source);
-            $(iframe).data(JSON.parse(e.data));
+            let data = JSON.parse(e.data)
+            $(iframe).data(data);
+            if ($('div#ifopts').get(0)) {
+                console.log('form exists');
+                let id = $('div#ifopts').attr('data-id');
+                iframely.buildOptionsForm(id, $('div#ifopts').get(0), data);
+            }
         }
     },false);
 }
@@ -107,7 +105,6 @@ class IframelyOptions extends React.Component {
     }
 
     render() {
-        // console.log('data: ', this.props.options.data);
         return <div id="ifopts"
                     data-id={ this.props.clientId }
                     data-opts={JSON.stringify(this.props.options.data)}
