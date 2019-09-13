@@ -60,12 +60,8 @@ function updateIframe(id, query) {
     let newUrl = url + params;
 
     // Update the corresponding block and get a preview if required
-    let promise1 = wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
-    promise1.then(function(value) {
-        // TODO: ???? should we?
-        console.log(value);
-        // expected output: "foo"
-    });
+    wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
+    console.log("Changed URL: ", newUrl);
 }
 
 if (iframely) {
