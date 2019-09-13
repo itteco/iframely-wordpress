@@ -22,10 +22,10 @@ function findIframeByContentWindow(iframes, contentWindow) {
 function sortObject(obj){
     return Object.keys(obj).sort().reduce((acc,key)=>{
         if (Array.isArray(obj[key])){
-            acc[key]=obj[key].map(sortObjectKeys);
+            acc[key]=obj[key].map(sortObject);
         }
         if (typeof obj[key] === 'object'){
-            acc[key]=sortObjectKeys(obj[key]);
+            acc[key]=sortObject(obj[key]);
         }
         else{
             acc[key]=obj[key];
