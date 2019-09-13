@@ -1,131 +1,73 @@
-/**
- * Iramely oembed scripts
- */
-const { __ } = wp.i18n;
-const { createHigherOrderComponent } = wp.compose;
-const { Fragment } = wp.element;
-const { InspectorControls } = wp.blockEditor;
-const iEvent = new RegExp("setIframelyEmbedOptions");
-const { PanelBody } = wp.components;
+/******/ (function(modules) { // webpackBootstrap
+    /******/ 	// The module cache
+    /******/ 	var installedModules = {};
+    /******/
+    /******/ 	// The require function
+    /******/ 	function __webpack_require__(moduleId) {
+        /******/
+        /******/ 		// Check if module is in cache
+        /******/ 		if(installedModules[moduleId]) {
+            /******/ 			return installedModules[moduleId].exports;
+            /******/ 		}
+        /******/ 		// Create a new module (and put it into the cache)
+        /******/ 		var module = installedModules[moduleId] = {
+            /******/ 			i: moduleId,
+            /******/ 			l: false,
+            /******/ 			exports: {}
+            /******/ 		};
+        /******/
+        /******/ 		// Execute the module function
+        /******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+        /******/
+        /******/ 		// Flag the module as loaded
+        /******/ 		module.l = true;
+        /******/
+        /******/ 		// Return the exports of the module
+        /******/ 		return module.exports;
+        /******/ 	}
+    /******/
+    /******/
+    /******/ 	// expose the modules object (__webpack_modules__)
+    /******/ 	__webpack_require__.m = modules;
+    /******/
+    /******/ 	// expose the module cache
+    /******/ 	__webpack_require__.c = installedModules;
+    /******/
+    /******/ 	// define getter function for harmony exports
+    /******/ 	__webpack_require__.d = function(exports, name, getter) {
+        /******/ 		if(!__webpack_require__.o(exports, name)) {
+            /******/ 			Object.defineProperty(exports, name, {
+                /******/ 				configurable: false,
+                /******/ 				enumerable: true,
+                /******/ 				get: getter
+                /******/ 			});
+            /******/ 		}
+        /******/ 	};
+    /******/
+    /******/ 	// getDefaultExport function for compatibility with non-harmony modules
+    /******/ 	__webpack_require__.n = function(module) {
+        /******/ 		var getter = module && module.__esModule ?
+            /******/ 			function getDefault() { return module['default']; } :
+            /******/ 			function getModuleExports() { return module; };
+        /******/ 		__webpack_require__.d(getter, 'a', getter);
+        /******/ 		return getter;
+        /******/ 	};
+    /******/
+    /******/ 	// Object.prototype.hasOwnProperty.call
+    /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+    /******/
+    /******/ 	// __webpack_public_path__
+    /******/ 	__webpack_require__.p = "";
+    /******/
+    /******/ 	// Load entry module and return exports
+    /******/ 	return __webpack_require__(__webpack_require__.s = 0);
+    /******/ })
+/************************************************************************/
+/******/ ([
+    /* 0 */
+    /***/ (function(module, exports) {
 
-function findIframeByContentWindow(iframes, contentWindow) {
-    let foundIframe;
-    for(let i = 0; i < iframes.length && !foundIframe; i++) {
-        let iframe = iframes[i];
-        if (iframe.contentWindow === contentWindow) {
-            foundIframe = iframe;
-        }
-    }
-    return foundIframe;
-}
+        eval("var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nvar _typeof = typeof Symbol === \"function\" && typeof Symbol.iterator === \"symbol\" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === \"function\" && obj.constructor === Symbol && obj !== Symbol.prototype ? \"symbol\" : typeof obj; };\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return call && (typeof call === \"object\" || typeof call === \"function\") ? call : self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function, not \" + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }\n\n/**\n * Iramely oembed scripts\n */\nvar __ = wp.i18n.__;\nvar createHigherOrderComponent = wp.compose.createHigherOrderComponent;\nvar Fragment = wp.element.Fragment;\nvar InspectorControls = wp.blockEditor.InspectorControls;\n\nvar iEvent = new RegExp(\"setIframelyEmbedOptions\");\nvar PanelBody = wp.components.PanelBody;\n\n\nfunction findIframeByContentWindow(iframes, contentWindow) {\n    var foundIframe = void 0;\n    for (var i = 0; i < iframes.length && !foundIframe; i++) {\n        var iframe = iframes[i];\n        if (iframe.contentWindow === contentWindow) {\n            foundIframe = iframe;\n        }\n    }\n    return foundIframe;\n}\n\nfunction sortObject(obj) {\n    return Object.keys(obj).sort().reduce(function (acc, key) {\n        if (Array.isArray(obj[key])) {\n            acc[key] = obj[key].map(sortObject);\n        }\n        if (_typeof(obj[key]) === 'object') {\n            acc[key] = sortObject(obj[key]);\n        } else {\n            acc[key] = obj[key];\n        }\n        return acc;\n    }, {});\n}\n\nfunction updateIframe(id, query) {\n    // block options interaction\n    var clientId = id.split(\"div#block-\")[1],\n        blockAttrs = wp.data.select('core/block-editor').getBlockAttributes(clientId),\n        url = blockAttrs.url,\n        iframely_key = '&iframely=';\n\n    // Parse url and make sure we are replacing an url query string properly\n    if (url.indexOf('iframely=') > 0) {\n        var durl = url.split('iframely=')[0];\n        url = durl.substr(0, durl.length - 1);\n    }\n    if (url.indexOf('?') === -1) {\n        iframely_key = '?iframely=';\n    }\n\n    // Ensure sorted options object to make sure\n    // we generating same data each time for same options.\n    query = sortObject(query);\n    //query.timestamp = new Date();\n\n    // Join the url string with iframely params\n    var params = iframely_key + encodeURIComponent(window.btoa(JSON.stringify(query)));\n    var newUrl = url + params;\n\n    // Update the corresponding block and get a preview if required\n    wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });\n    console.log(\"Changed URL: \", newUrl);\n}\n\nif (iframely) {\n    // Failsafe in case of iframely name space not accessible.\n    // E.g. no internet connection\n    iframely.on('options-changed', function (id, formContainer, query) {\n        updateIframe(id, query);\n    });\n}\n\nwindow.addEventListener(\"message\", function (e) {\n    // Listen for messages from iframe proxy script\n    if (iEvent.test(e.data)) {\n        var frames = document.getElementsByTagName(\"iframe\"),\n            iframe = findIframeByContentWindow(frames, e.source);\n        var data = JSON.parse(e.data);\n        $(iframe).data(data);\n    }\n}, false);\n\nvar IframelyOptions = function (_React$Component) {\n    _inherits(IframelyOptions, _React$Component);\n\n    function IframelyOptions() {\n        _classCallCheck(this, IframelyOptions);\n\n        return _possibleConstructorReturn(this, (IframelyOptions.__proto__ || Object.getPrototypeOf(IframelyOptions)).apply(this, arguments));\n    }\n\n    _createClass(IframelyOptions, [{\n        key: \"componentDidMount\",\n        value: function componentDidMount() {\n            iframely.buildOptionsForm(this.props.selector, $('div#ifopts').get(0), this.props.options.data);\n        }\n    }, {\n        key: \"render\",\n        value: function render() {\n            return wp.element.createElement(\n                \"div\",\n                { id: \"ifopts\",\n                    \"data-id\": this.props.clientId,\n                    \"data-opts\": JSON.stringify(this.props.options.data)\n                },\n                this.body\n            );\n        }\n    }]);\n\n    return IframelyOptions;\n}(React.Component);\n\nIframelyOptions.defaultProps = {\n    body: '',\n    clientId: '',\n    selector: '',\n    options: ''\n};\nvar withInspectorControls = createHigherOrderComponent(function (BlockEdit) {\n    return function (props) {\n        var fragment = wp.element.createElement(\n            Fragment,\n            null,\n            wp.element.createElement(BlockEdit, props)\n        );\n        if (props.isSelected === true && (props.name === \"core/embed\" || props.name.startsWith(\"core-embed\"))) {\n            var selector = 'div#block-' + props.clientId;\n            var options = $(selector).find('iframe').data();\n            if (!options || !options.data) {\n                return fragment;\n            }\n            return wp.element.createElement(\n                Fragment,\n                null,\n                wp.element.createElement(BlockEdit, props),\n                wp.element.createElement(\n                    InspectorControls,\n                    null,\n                    wp.element.createElement(\n                        PanelBody,\n                        { title: \"Iframely options\" },\n                        wp.element.createElement(IframelyOptions, { selector: selector, options: options, clientId: props.clientId })\n                    )\n                )\n            );\n        } else {\n            return fragment;\n        }\n    };\n}, \"withInspectorControl\");\n\nwp.hooks.addFilter('editor.BlockEdit', 'iframely/with-inspector-controls', withInspectorControls);\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8vLi9zcmMvaW5kZXguanM/OTU1MiJdLCJuYW1lcyI6WyJfXyIsIndwIiwiaTE4biIsImNyZWF0ZUhpZ2hlck9yZGVyQ29tcG9uZW50IiwiY29tcG9zZSIsIkZyYWdtZW50IiwiZWxlbWVudCIsIkluc3BlY3RvckNvbnRyb2xzIiwiYmxvY2tFZGl0b3IiLCJpRXZlbnQiLCJSZWdFeHAiLCJQYW5lbEJvZHkiLCJjb21wb25lbnRzIiwiZmluZElmcmFtZUJ5Q29udGVudFdpbmRvdyIsImlmcmFtZXMiLCJjb250ZW50V2luZG93IiwiZm91bmRJZnJhbWUiLCJpIiwibGVuZ3RoIiwiaWZyYW1lIiwic29ydE9iamVjdCIsIm9iaiIsIk9iamVjdCIsImtleXMiLCJzb3J0IiwicmVkdWNlIiwiYWNjIiwia2V5IiwiQXJyYXkiLCJpc0FycmF5IiwibWFwIiwidXBkYXRlSWZyYW1lIiwiaWQiLCJxdWVyeSIsImNsaWVudElkIiwic3BsaXQiLCJibG9ja0F0dHJzIiwiZGF0YSIsInNlbGVjdCIsImdldEJsb2NrQXR0cmlidXRlcyIsInVybCIsImlmcmFtZWx5X2tleSIsImluZGV4T2YiLCJkdXJsIiwic3Vic3RyIiwicGFyYW1zIiwiZW5jb2RlVVJJQ29tcG9uZW50Iiwid2luZG93IiwiYnRvYSIsIkpTT04iLCJzdHJpbmdpZnkiLCJuZXdVcmwiLCJkaXNwYXRjaCIsInVwZGF0ZUJsb2NrQXR0cmlidXRlcyIsImNvbnNvbGUiLCJsb2ciLCJpZnJhbWVseSIsIm9uIiwiZm9ybUNvbnRhaW5lciIsImFkZEV2ZW50TGlzdGVuZXIiLCJlIiwidGVzdCIsImZyYW1lcyIsImRvY3VtZW50IiwiZ2V0RWxlbWVudHNCeVRhZ05hbWUiLCJzb3VyY2UiLCJwYXJzZSIsIiQiLCJJZnJhbWVseU9wdGlvbnMiLCJidWlsZE9wdGlvbnNGb3JtIiwicHJvcHMiLCJzZWxlY3RvciIsImdldCIsIm9wdGlvbnMiLCJib2R5IiwiUmVhY3QiLCJDb21wb25lbnQiLCJkZWZhdWx0UHJvcHMiLCJ3aXRoSW5zcGVjdG9yQ29udHJvbHMiLCJCbG9ja0VkaXQiLCJmcmFnbWVudCIsImlzU2VsZWN0ZWQiLCJuYW1lIiwic3RhcnRzV2l0aCIsImZpbmQiLCJob29rcyIsImFkZEZpbHRlciJdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7OztBQUFBOzs7SUFHUUEsRSxHQUFPQyxHQUFHQyxJLENBQVZGLEU7SUFDQUcsMEIsR0FBK0JGLEdBQUdHLE8sQ0FBbENELDBCO0lBQ0FFLFEsR0FBYUosR0FBR0ssTyxDQUFoQkQsUTtJQUNBRSxpQixHQUFzQk4sR0FBR08sVyxDQUF6QkQsaUI7O0FBQ1IsSUFBTUUsU0FBUyxJQUFJQyxNQUFKLENBQVcseUJBQVgsQ0FBZjtJQUNRQyxTLEdBQWNWLEdBQUdXLFUsQ0FBakJELFM7OztBQUVSLFNBQVNFLHlCQUFULENBQW1DQyxPQUFuQyxFQUE0Q0MsYUFBNUMsRUFBMkQ7QUFDdkQsUUFBSUMsb0JBQUo7QUFDQSxTQUFJLElBQUlDLElBQUksQ0FBWixFQUFlQSxJQUFJSCxRQUFRSSxNQUFaLElBQXNCLENBQUNGLFdBQXRDLEVBQW1EQyxHQUFuRCxFQUF3RDtBQUNwRCxZQUFJRSxTQUFTTCxRQUFRRyxDQUFSLENBQWI7QUFDQSxZQUFJRSxPQUFPSixhQUFQLEtBQXlCQSxhQUE3QixFQUE0QztBQUN4Q0MsMEJBQWNHLE1BQWQ7QUFDSDtBQUNKO0FBQ0QsV0FBT0gsV0FBUDtBQUNIOztBQUVELFNBQVNJLFVBQVQsQ0FBb0JDLEdBQXBCLEVBQXdCO0FBQ3BCLFdBQU9DLE9BQU9DLElBQVAsQ0FBWUYsR0FBWixFQUFpQkcsSUFBakIsR0FBd0JDLE1BQXhCLENBQStCLFVBQUNDLEdBQUQsRUFBS0MsR0FBTCxFQUFXO0FBQzdDLFlBQUlDLE1BQU1DLE9BQU4sQ0FBY1IsSUFBSU0sR0FBSixDQUFkLENBQUosRUFBNEI7QUFDeEJELGdCQUFJQyxHQUFKLElBQVNOLElBQUlNLEdBQUosRUFBU0csR0FBVCxDQUFhVixVQUFiLENBQVQ7QUFDSDtBQUNELFlBQUksUUFBT0MsSUFB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UDtBQUNIO0FBQ0osS0FyQkQ7QUFzQkgsQ0F2QjhCLEVBdUI1QixzQkF2QjRCLENBQS9COztBQXlCQS9FLEdBQUdvRixLQUFILENBQVNDLFNBQVQsQ0FBb0Isa0JBQXBCLEVBQXdDLGtDQUF4QyxFQUE0RVIscUJBQTVFIiwiZmlsZSI6IjAuanMiLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIElyYW1lbHkgb2VtYmVkIHNjcmlwdHNcbiAqL1xuY29uc3QgeyBfXyB9ID0gd3AuaTE4bjtcbmNvbnN0IHsgY3JlYXRlSGlnaGVyT3JkZXJDb21wb25lbnQgfSA9IHdwLmNvbXBvc2U7XG5jb25zdCB7IEZyYWdtZW50IH0gPSB3cC5lbGVtZW50O1xuY29uc3QgeyBJbnNwZWN0b3JDb250cm9scyB9ID0gd3AuYmxvY2tFZGl0b3I7XG5jb25zdCBpRXZlbnQgPSBuZXcgUmVnRXhwKFwic2V0SWZyYW1lbHlFbWJlZE9wdGlvbnNcIik7XG5jb25zdCB7IFBhbmVsQm9keSB9ID0gd3AuY29tcG9uZW50cztcblxuZnVuY3Rpb24gZmluZElmcmFtZUJ5Q29udGVudFdpbmRvdyhpZnJhbWVzLCBjb250ZW50V2luZG93KSB7XG4gICAgbGV0IGZvdW5kSWZyYW1lO1xuICAgIGZvcihsZXQgaSA9IDA7IGkgPCBpZnJhbWVzLmxlbmd0aCAmJiAhZm91bmRJZnJhbWU7IGkrKykge1xuICAgICAgICBsZXQgaWZyYW1lID0gaWZyYW1lc1tpXTtcbiAgICAgICAgaWYgKGlmcmFtZS5jb250ZW50V2luZG93ID09PSBjb250ZW50V2luZG93KSB7XG4gICAgICAgICAgICBmb3VuZElmcmFtZSA9IGlmcmFtZTtcbiAgICAgICAgfVxuICAgIH1cbiAgICByZXR1cm4gZm91bmRJZnJhbWU7XG59XG5cbmZ1bmN0aW9uIHNvcnRPYmplY3Qob2JqKXtcbiAgICByZXR1cm4gT2JqZWN0LmtleXMob2JqKS5zb3J0KCkucmVkdWNlKChhY2Msa2V5KT0+e1xuICAgICAgICBpZiAoQXJyYXkuaXNBcnJheShvYmpba2V5XSkpe1xuICAgICAgICAgICAgYWNjW2tleV09b2JqW2tleV0ubWFwKHNvcnRPYmplY3QpO1xuICAgICAgICB9XG4gICAgICAgIGlmICh0eXBlb2Ygb2JqW2tleV0gPT09ICdvYmplY3QnKXtcbiAgICAgICAgICAgIGFjY1trZXldPXNvcnRPYmplY3Qob2JqW2tleV0pO1xuICAgICAgICB9XG4gICAgICAgIGVsc2V7XG4gICAgICAgICAgICBhY2Nba2V5XT1vYmpba2V5XTtcbiAgICAgICAgfVxuICAgICAgICByZXR1cm4gYWNjO1xuICAgIH0se30pO1xufVxuXG5mdW5jdGlvbiB1cGRhdGVJZnJhbWUoaWQsIHF1ZXJ5KSB7XG4gICAgLy8gYmxvY2sgb3B0aW9ucyBpbnRlcmFjdGlvblxuICAgIGxldCBjbGllbnRJZCA9IGlkLnNwbGl0KFwiZGl2I2Jsb2NrLVwiKVsxXSxcbiAgICAgICAgYmxvY2tBdHRycyA9IHdwLmRhdGEuc2VsZWN0KCdjb3JlL2Jsb2NrLWVkaXRvcicpLmdldEJsb2NrQXR0cmlidXRlcyhjbGllbnRJZCksXG4gICAgICAgIHVybCA9IGJsb2NrQXR0cnMudXJsLFxuICAgICAgICBpZnJhbWVseV9rZXkgPSAnJmlmcmFtZWx5PSc7XG5cbiAgICAvLyBQYXJzZSB1cmwgYW5kIG1ha2Ugc3VyZSB3ZSBhcmUgcmVwbGFjaW5nIGFuIHVybCBxdWVyeSBzdHJpbmcgcHJvcGVybHlcbiAgICBpZih1cmwuaW5kZXhPZignaWZyYW1lbHk9JykgPiAwKSB7XG4gICAgICAgIGxldCBkdXJsID0gdXJsLnNwbGl0KCdpZnJhbWVseT0nKVswXTtcbiAgICAgICAgdXJsID0gZHVybC5zdWJzdHIoMCwgZHVybC5sZW5ndGgtMSk7XG4gICAgfVxuICAgIGlmKHVybC5pbmRleE9mKCc/JykgPT09IC0xKSB7XG4gICAgICAgIGlmcmFtZWx5X2tleSA9ICc/aWZyYW1lbHk9JztcbiAgICB9XG5cbiAgICAvLyBFbnN1cmUgc29ydGVkIG9wdGlvbnMgb2JqZWN0IHRvIG1ha2Ugc3VyZVxuICAgIC8vIHdlIGdlbmVyYXRpbmcgc2FtZSBkYXRhIGVhY2ggdGltZSBmb3Igc2FtZSBvcHRpb25zLlxuICAgIHF1ZXJ5ID0gc29ydE9iamVjdChxdWVyeSk7XG4gICAgLy9xdWVyeS50aW1lc3RhbXAgPSBuZXcgRGF0ZSgpO1xuXG4gICAgLy8gSm9pbiB0aGUgdXJsIHN0cmluZyB3aXRoIGlmcmFtZWx5IHBhcmFtc1xuICAgIGxldCBwYXJhbXMgPSBpZnJhbWVseV9rZXkgKyBlbmNvZGVVUklDb21wb25lbnQod2luZG93LmJ0b2EoSlNPTi5zdHJpbmdpZnkocXVlcnkpKSk7XG4gICAgbGV0IG5ld1VybCA9IHVybCArIHBhcmFtcztcblxuICAgIC8vIFVwZGF0ZSB0aGUgY29ycmVzcG9uZGluZyBibG9jayBhbmQgZ2V0IGEgcHJldmlldyBpZiByZXF1aXJlZFxuICAgIHdwLmRhdGEuZGlzcGF0Y2goJ2NvcmUvYmxvY2stZWRpdG9yJykudXBkYXRlQmxvY2tBdHRyaWJ1dGVzKFtjbGllbnRJZF0sIHsgdXJsOiBuZXdVcmwgfSk7XG4gICAgY29uc29sZS5sb2coXCJDaGFuZ2VkIFVSTDogXCIsIG5ld1VybCk7XG59XG5cbmlmIChpZnJhbWVseSkge1xuICAgIC8vIEZhaWxzYWZlIGluIGNhc2Ugb2YgaWZyYW1lbHkgbmFtZSBzcGFjZSBub3QgYWNjZXNzaWJsZS5cbiAgICAvLyBFLmcuIG5vIGludGVybmV0IGNvbm5lY3Rpb25cbiAgICBpZnJhbWVseS5vbignb3B0aW9ucy1jaGFuZ2VkJywgZnVuY3Rpb24oaWQsIGZvcm1Db250YWluZXIsIHF1ZXJ5KSB7XG4gICAgICAgIHVwZGF0ZUlmcmFtZShpZCwgcXVlcnkpO1xuICAgIH0pO1xufVxuXG53aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcihcIm1lc3NhZ2VcIixmdW5jdGlvbihlKXtcbiAgICAvLyBMaXN0ZW4gZm9yIG1lc3NhZ2VzIGZyb20gaWZyYW1lIHByb3h5IHNjcmlwdFxuICAgIGlmKGlFdmVudC50ZXN0KGUuZGF0YSkpIHtcbiAgICAgICAgbGV0IGZyYW1lcyA9IGRvY3VtZW50LmdldEVsZW1lbnRzQnlUYWdOYW1lKFwiaWZyYW1lXCIpLFxuICAgICAgICAgICAgaWZyYW1lID0gZmluZElmcmFtZUJ5Q29udGVudFdpbmRvdyhmcmFtZXMsIGUuc291cmNlKTtcbiAgICAgICAgbGV0IGRhdGEgPSBKU09OLnBhcnNlKGUuZGF0YSk7XG4gICAgICAgICQoaWZyYW1lKS5kYXRhKGRhdGEpO1xuICAgIH1cbn0sZmFsc2UpO1xuXG5cbmNsYXNzIElmcmFtZWx5T3B0aW9ucyBleHRlbmRzIFJlYWN0LkNvbXBvbmVudCB7XG5cbiAgICBjb21wb25lbnREaWRNb3VudCgpIHtcbiAgICAgICAgaWZyYW1lbHkuYnVpbGRPcHRpb25zRm9ybSh0aGlzLnByb3BzLnNlbGVjdG9yLCAkKCdkaXYjaWZvcHRzJykuZ2V0KDApLCB0aGlzLnByb3BzLm9wdGlvbnMuZGF0YSk7XG4gICAgfVxuXG4gICAgcmVuZGVyKCkge1xuICAgICAgICByZXR1cm4gPGRpdiBpZD1cImlmb3B0c1wiXG4gICAgICAgICAgICAgICAgICAgIGRhdGEtaWQ9eyB0aGlzLnByb3BzLmNsaWVudElkIH1cbiAgICAgICAgICAgICAgICAgICAgZGF0YS1vcHRzPXtKU09OLnN0cmluZ2lmeSh0aGlzLnByb3BzLm9wdGlvbnMuZGF0YSl9XG4gICAgICAgID57IHRoaXMuYm9keSB9PC9kaXY+O1xuICAgIH1cbn1cblxuSWZyYW1lbHlPcHRpb25zLmRlZmF1bHRQcm9wcyA9IHtcbiAgICBib2R5OiAnJyxcbiAgICBjbGllbnRJZDogJycsXG4gICAgc2VsZWN0b3I6ICcnLFxuICAgIG9wdGlvbnM6ICcnLFxufTtcbmNvbnN0IHdpdGhJbnNwZWN0b3JDb250cm9scyA9ICBjcmVhdGVIaWdoZXJPcmRlckNvbXBvbmVudCggKCBCbG9ja0VkaXQgKSA9PiB7XG4gICAgcmV0dXJuICggcHJvcHMgKSA9PiB7XG4gICAgICAgIGxldCBmcmFnbWVudCA9ICg8RnJhZ21lbnQ+PEJsb2NrRWRpdCB7IC4uLnByb3BzIH0gLz48L0ZyYWdtZW50Pik7XG4gICAgICAgIGlmIChwcm9wcy5pc1NlbGVjdGVkPT09dHJ1ZSAmJiAocHJvcHMubmFtZSA9PT0gXCJjb3JlL2VtYmVkXCIgfHwgcHJvcHMubmFtZS5zdGFydHNXaXRoKFwiY29yZS1lbWJlZFwiKSkpIHtcbiAgICAgICAgICAgIGxldCBzZWxlY3RvciA9ICdkaXYjYmxvY2stJyArIHByb3BzLmNsaWVudElkO1xuICAgICAgICAgICAgbGV0IG9wdGlvbnMgPSAkKHNlbGVjdG9yKS5maW5kKCdpZnJhbWUnKS5kYXRhKCk7XG4gICAgICAgICAgICBpZiAoIW9wdGlvbnMgfHwgIW9wdGlvbnMuZGF0YSkge1xuICAgICAgICAgICAgICAgIHJldHVybiBmcmFnbWVudDtcbiAgICAgICAgICAgIH1cbiAgICAgICAgICAgIHJldHVybiAoXG4gICAgICAgICAgICAgICAgPEZyYWdtZW50PlxuICAgICAgICAgICAgICAgICAgICA8QmxvY2tFZGl0IHsgLi4ucHJvcHMgfSAvPlxuICAgICAgICAgICAgICAgICAgICA8SW5zcGVjdG9yQ29udHJvbHM+XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPFBhbmVsQm9keSB0aXRsZT1cIklmcmFtZWx5IG9wdGlvbnNcIiA+XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxJZnJhbWVseU9wdGlvbnMgc2VsZWN0b3I9eyBzZWxlY3RvciB9IG9wdGlvbnM9eyBvcHRpb25zIH0gY2xpZW50SWQ9eyBwcm9wcy5jbGllbnRJZCB9IC8+XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9QYW5lbEJvZHk+XG4gICAgICAgICAgICAgICAgICAgIDwvSW5zcGVjdG9yQ29udHJvbHM+XG4gICAgICAgICAgICAgICAgPC9GcmFnbWVudD5cbiAgICAgICAgICAgICk7XG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgICByZXR1cm4gZnJhZ21lbnQ7XG4gICAgICAgIH1cbiAgICB9O1xufSwgXCJ3aXRoSW5zcGVjdG9yQ29udHJvbFwiICk7XG5cbndwLmhvb2tzLmFkZEZpbHRlciggJ2VkaXRvci5CbG9ja0VkaXQnLCAnaWZyYW1lbHkvd2l0aC1pbnNwZWN0b3ItY29udHJvbHMnLCB3aXRoSW5zcGVjdG9yQ29udHJvbHMgKTtcblxuXG4vLyBXRUJQQUNLIEZPT1RFUiAvL1xuLy8gLi9zcmMvaW5kZXguanMiXSwic291cmNlUm9vdCI6IiJ9\n//# sourceURL=webpack-internal:///0\n");
 
-function sortObject(obj){
-    return Object.keys(obj).sort().reduce((acc,key)=>{
-        if (Array.isArray(obj[key])){
-            acc[key]=obj[key].map(sortObject);
-        }
-        if (typeof obj[key] === 'object'){
-            acc[key]=sortObject(obj[key]);
-        }
-        else{
-            acc[key]=obj[key];
-        }
-        return acc;
-    },{});
-}
-
-function updateIframe(id, query) {
-    // block options interaction
-    let clientId = id.split("div#block-")[1],
-        blockAttrs = wp.data.select('core/block-editor').getBlockAttributes(clientId),
-        url = blockAttrs.url,
-        iframely_key = '&iframely=';
-
-    // Parse url and make sure we are replacing an url query string properly
-    if(url.indexOf('iframely=') > 0) {
-        let durl = url.split('iframely=')[0];
-        url = durl.substr(0, durl.length-1);
-    }
-    if(url.indexOf('?') === -1) {
-        iframely_key = '?iframely=';
-    }
-
-    // Ensure sorted options object to make sure
-    // we generating same data each time for same options.
-    query = sortObject(query);
-    //query.timestamp = new Date();
-
-    // Join the url string with iframely params
-    let params = iframely_key + encodeURIComponent(window.btoa(JSON.stringify(query)));
-    let newUrl = url + params;
-
-    // Update the corresponding block and get a preview if required
-    wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
-    console.log("Changed URL: ", newUrl);
-}
-
-if (iframely) {
-    // Failsafe in case of iframely name space not accessible.
-    // E.g. no internet connection
-    iframely.on('options-changed', function(id, formContainer, query) {
-        updateIframe(id, query);
-    });
-}
-
-window.addEventListener("message",function(e){
-    // Listen for messages from iframe proxy script
-    if(iEvent.test(e.data)) {
-        let frames = document.getElementsByTagName("iframe"),
-            iframe = findIframeByContentWindow(frames, e.source);
-        let data = JSON.parse(e.data);
-        $(iframe).data(data);
-    }
-},false);
-
-
-class IframelyOptions extends React.Component {
-
-    componentDidMount() {
-        iframely.buildOptionsForm(this.props.selector, $('div#ifopts').get(0), this.props.options.data);
-    }
-
-    render() {
-        return <div id="ifopts"
-                    data-id={ this.props.clientId }
-                    data-opts={JSON.stringify(this.props.options.data)}
-        >{ this.body }</div>;
-    }
-}
-
-IframelyOptions.defaultProps = {
-    body: '',
-    clientId: '',
-    selector: '',
-    options: '',
-};
-const withInspectorControls =  createHigherOrderComponent( ( BlockEdit ) => {
-    return ( props ) => {
-        let fragment = (<Fragment><BlockEdit { ...props } /></Fragment>);
-        if (props.isSelected===true && (props.name === "core/embed" || props.name.startsWith("core-embed"))) {
-            let selector = 'div#block-' + props.clientId;
-            let options = $(selector).find('iframe').data();
-            if (!options || !options.data) {
-                return fragment;
-            }
-            return (
-                <Fragment>
-                    <BlockEdit { ...props } />
-                    <InspectorControls>
-                            <PanelBody title="Iframely options" >
-                                <IframelyOptions selector={ selector } options={ options } clientId={ props.clientId } />
-                            </PanelBody>
-                    </InspectorControls>
-                </Fragment>
-            );
-        } else {
-            return fragment;
-        }
-    };
-}, "withInspectorControl" );
-
-wp.hooks.addFilter( 'editor.BlockEdit', 'iframely/with-inspector-controls', withInspectorControls );
+        /***/ })
+    /******/ ]);
