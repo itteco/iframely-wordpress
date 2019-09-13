@@ -60,17 +60,12 @@ function updateIframe(id, query) {
     let newUrl = url + params;
 
     // Update the corresponding block and get a preview if required
-    let promise = wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
-    promise.then(function(value) {
-        let id = value.clientId[0];
-        console.log(id);
-        $('div[data-block='+ id+ '] iframe').on('load', function() {
-            console.log("Loaded Iframe", this);
-        });
-        $($('div#ifopts').get(0)).attr('data-id', id);
-
+    let promise1 = wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
+    promise1.then(function(value) {
+        // TODO: ???? should we?
+        console.log(value);
+        // expected output: "foo"
     });
-
 }
 
 if (iframely) {
@@ -81,22 +76,16 @@ if (iframely) {
     });
 }
 
-function initListener() {
-    window.addEventListener("message",function(e){
-        if(iEvent.test(e.data)) {
-            let frames = document.getElementsByTagName("iframe"),
-                iframe = findIframeByContentWindow(frames, e.source);
-            let data = JSON.parse(e.data)
-            $(iframe).data(data);
-            if ($('div#ifopts').get(0)) {
-                console.log('form exists');
-                let id = $('div#ifopts').attr('data-id');
-                iframely.buildOptionsForm(id, $('div#ifopts').get(0), data);
-            }
-        }
-    },false);
-}
-initListener();
+window.addEventListener("message",function(e){
+    // Listen for messages from iframe proxy script
+    if(iEvent.test(e.data)) {
+        let frames = document.getElementsByTagName("iframe"),
+            iframe = findIframeByContentWindow(frames, e.source);
+        let data = JSON.parse(e.data);
+        $(iframe).data(data);
+    }
+},false);
+
 
 class IframelyOptions extends React.Component {
 
