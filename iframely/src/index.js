@@ -34,39 +34,32 @@ function sortObject(obj){
     },{});
 }
 
-function updateIframe(id, query) {
+function getSelectedBlockID() {
+    return wp.data.select( 'core/editor' ).getBlockSelectionStart();
+}
+
+function addIframelyString(url, query) {
+    var newUrl = url.replace(/\??&?iframely=(.+)$/, '');
+    newUrl += Object.keys(query).length === 0 ? '' : ((/\?/.test(newUrl) ? '&': '?') + 'iframely=' + window.btoa(JSON.stringify(query)));
+
+    return newUrl;
+}
+
+function updatePreview(query) {
     // block options interaction
-    let clientId = id.split("div#block-")[1],
-        blockAttrs = wp.data.select('core/block-editor').getBlockAttributes(clientId),
-        url = blockAttrs.url,
-        iframely_key = '&iframely=';
+    let blockAttrs = wp.data.select('core/block-editor').getBlockAttributes(getSelectedBlockID()),
+        url = blockAttrs.url;
 
-    // Parse url and make sure we are replacing an url query string properly
-    if(url.indexOf('iframely=') > 0) {
-        let durl = url.split('iframely=')[0];
-        url = durl.substr(0, durl.length-1);
-    }
-    if(url.indexOf('?') === -1) {
-        iframely_key = '?iframely=';
-    }
-
-    // Ensure sorted options object to make sure
-    // we generating same data each time for same options.
-    query = sortObject(query);
-    //query.timestamp = new Date();
-
-    // Join the url string with iframely params
-    let params = iframely_key + encodeURIComponent(window.btoa(JSON.stringify(query)));
-    let newUrl = url + params;
+    let newUrl = addIframelyString(url, sortObject(query));
 
     // bust the cache preview, so it re-renders when returning to previous options
     // also warms up cache if URL is new, as the next time getEmbedPreview will return cached value
     if (wp.data.select( 'core' ).getEmbedPreview(newUrl)) {
         wp.data.dispatch('core/data').invalidateResolution( 'core', 'getEmbedPreview', [ newUrl ] );
-    }    
+    }
 
     // Update the corresponding block and get a preview if required
-    wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
+    wp.data.dispatch('core/block-editor').updateBlockAttributes(getSelectedBlockID(), { url: newUrl });
     console.log("Changed URL: ", newUrl);
 }
 
@@ -74,7 +67,7 @@ if (iframely) {
     // Failsafe in case of iframely name space not accessible.
     // E.g. no internet connection
     iframely.on('options-changed', function(id, formContainer, query) {
-        updateIframe(id, query);
+        updatePreview(query);
     });
 }
 
