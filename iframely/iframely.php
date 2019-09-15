@@ -190,9 +190,7 @@ function maybe_add_gutenberg_1( $provider, $args, $url ) {
 function inject_events_proxy_to_gutenberg( $html, $url, $args ) {
     return $html .
         '<script type="text/javascript">window.addEventListener("message",function(e){
-            if(e.data.indexOf("setIframelyEmbedOptions") >= 0) {
-                window.parent.postMessage(e.data,"*");
-            }
+            window.parent.postMessage(e.data,"*");
         },false);</script>';
 };
 
