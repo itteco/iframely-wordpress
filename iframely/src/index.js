@@ -59,6 +59,12 @@ function updateIframe(id, query) {
     let params = iframely_key + encodeURIComponent(window.btoa(JSON.stringify(query)));
     let newUrl = url + params;
 
+    // bust the cache preview, so it re-renders when returning to previous options
+    // also warms up cache if URL is new, as the next time getEmbedPreview will return cached value
+    if (wp.data.select( 'core' ).getEmbedPreview(newUrl)) {
+        wp.data.dispatch('core/data').invalidateResolution( 'core', 'getEmbedPreview', [ newUrl ] );
+    }    
+
     // Update the corresponding block and get a preview if required
     wp.data.dispatch('core/block-editor').updateBlockAttributes([clientId], { url: newUrl });
     console.log("Changed URL: ", newUrl);
