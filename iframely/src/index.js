@@ -1,9 +1,8 @@
 /**
- * Iramely oembed scripts
+ * Iframely oembed scripts
  */
-const { __ } = wp.i18n;
 const { createHigherOrderComponent } = wp.compose;
-const { Fragment } = wp.element;
+const { Fragment, RawHTML, renderToString} = wp.element;
 const { InspectorControls } = wp.blockEditor;
 const iEvent = new RegExp("setIframelyEmbedOptions");
 const { PanelBody } = wp.components;
@@ -19,110 +18,161 @@ function findIframeByContentWindow(iframes, contentWindow) {
     return foundIframe;
 }
 
-function sortObject(obj){
-    return Object.keys(obj).sort().reduce((acc,key)=>{
-        if (Array.isArray(obj[key])){
-            acc[key]=obj[key].map(sortObject);
-        }
-        if (typeof obj[key] === 'object'){
-            acc[key]=sortObject(obj[key]);
-        }
-        else{
-            acc[key]=obj[key];
-        }
-        return acc;
-    },{});
-}
-
 function getSelectedBlockID() {
-    return wp.data.select( 'core/editor' ).getBlockSelectionStart();
+    return wp.data.select('core/editor').getBlockSelectionStart();
 }
 
 function addIframelyString(url, query) {
-    var newUrl = url.replace(/\??&?iframely=(.+)$/, '');
+    let newUrl = url.replace(/(?:&amp;|\?|&)?iframely=(.+)$/, '');
     newUrl += Object.keys(query).length === 0 ? '' : ((/\?/.test(newUrl) ? '&': '?') + 'iframely=' + window.btoa(JSON.stringify(query)));
 
     return newUrl;
-}
-
-function updatePreview(query) {
-    // block options interaction
-    let blockAttrs = wp.data.select('core/block-editor').getBlockAttributes(getSelectedBlockID()),
-        url = blockAttrs.url;
-
-    let newUrl = addIframelyString(url, sortObject(query));
-
-    // bust the cache preview, so it re-renders when returning to previous options
-    // also warms up cache if URL is new, as the next time getEmbedPreview will return cached value
-    if (wp.data.select( 'core' ).getEmbedPreview(newUrl)) {
-        wp.data.dispatch('core/data').invalidateResolution( 'core', 'getEmbedPreview', [ newUrl ] );
-    }
-
-    // Update the corresponding block and get a preview if required
-    wp.data.dispatch('core/block-editor').updateBlockAttributes(getSelectedBlockID(), { url: newUrl });
-    console.log("Changed URL: ", newUrl);
 }
 
 if (iframely) {
     // Failsafe in case of iframely name space not accessible.
     // E.g. no internet connection
     iframely.on('options-changed', function(id, formContainer, query) {
-        updatePreview(query);
+
+        const selector = 'div#block-' + getSelectedBlockID();
+        const iframe = document.querySelector(selector + ' iframe').contentWindow.document.querySelector('iframe');
+
+        const preview = $(selector).find('iframe');
+
+        if (preview && preview.data() && preview.data().data && preview.data().context) {
+            const data = preview.data();
+
+            let src = data.context;
+
+            // wipe out old query completely
+            if (data.data.query && data.data.query.length > 0) {
+                data.data.query.forEach(function(key) {
+                    if (src.indexOf(key) > -1) {
+                        src = src.replace (new RegExp ('&?' + key.replace('-', '\\-') + '=[^\\?\\&]+'), ''); // delete old key
+                    };
+                });
+            }
+            // and add entire new query instead
+            Object.keys(query).forEach(function(key) {
+                src += (src.indexOf('?') > -1 ? '&' : '?') + key + '=' + query[key];
+            });
+
+            iframe.src = src;
+
+            wp.data.dispatch('core/block-editor').updateBlockAttributes(
+                getSelectedBlockID(),
+                {iquery: query}
+            );
+        }
     });
 }
 
-window.addEventListener("message",function(e){
+function updateForm () { // always single instance of form for all blocks...
+    let selector = 'div#block-' + getSelectedBlockID();
+    let preview = $(selector).find('iframe');
+
+    if (preview && $(preview).data()) {
+
+        iframely.buildOptionsForm(
+            getSelectedBlockID(),
+            $('div#ifopts').get(0), 
+            $(preview).data().data
+        );
+    }
+}
+
+window.addEventListener("message", function(e) {
     // Listen for messages from iframe proxy script
     if(iEvent.test(e.data)) {
+
         let frames = document.getElementsByTagName("iframe"),
             iframe = findIframeByContentWindow(frames, e.source);
+
         let data = JSON.parse(e.data);
-        $(iframe).data(data);
+        $(iframe).data(data); // Store current state of options form in the iframe
+
+        // update only if the form is open. If not, it will be built on render
+        const block = wp.data.select('core/editor').getBlock(getSelectedBlockID());
+        if (block && /^core\-?\/?embed/i.test(block.name)) {
+            updateForm();
+        }
     }
 },false);
+
+function addAttributes (settings) {
+
+    if (/^embed$/i.test(settings.category) && typeof settings.attributes !== 'undefined' && !settings.attributes.iquery) {
+        settings.attributes = Object.assign(settings.attributes, {
+            iquery:{ 
+                type: 'string',
+                default: ''
+            }
+        });    
+    }
+
+    return settings;
+}
+wp.hooks.addFilter ('blocks.registerBlockType', 'iframely/add-attributes', addAttributes);
+
+
+function saveQueryURL (element, blockType, attributes) {
+
+    if (/^embed$/i.test(blockType.category), attributes.iquery && attributes.url) {
+        let url = attributes.url;
+        let newUrl = addIframelyString(attributes.url, attributes.iquery);
+        attributes.url = newUrl; // this is to pass blocks validation
+
+// Cache busting doesn't seem to be needed
+/* 
+    // bust the cache preview, so it re-renders when returning to previous options
+    // also warms up cache if URL is new, as the next time getEmbedPreview will return cached value
+    if (wp.data.select( 'core' ).getEmbedPreview(newUrl)) {
+        wp.data.dispatch('core/data').invalidateResolution( 'core', 'getEmbedPreview', [ newUrl ] );
+    }
+*/        
+
+        let s = renderToString(element).replace(/&amp;/g, '&');
+
+        let elAsString = s.replace(url, newUrl);
+
+        return (
+            <RawHTML>{elAsString}</RawHTML>
+        );
+    } else {
+        return element;
+    }
+}
+wp.hooks.addFilter ('blocks.getSaveElement', 'iframely/save-query', saveQueryURL);
 
 
 class IframelyOptions extends React.Component {
 
     componentDidMount() {
-        iframely.buildOptionsForm(this.props.selector, $('div#ifopts').get(0), this.props.options.data);
+        updateForm();
     }
 
     render() {
         return <div id="ifopts"
-                    data-id={ this.props.clientId }
-                    data-opts={JSON.stringify(this.props.options.data)}
-        >{ this.body }</div>;
+            ></div>;
     }
 }
 
-IframelyOptions.defaultProps = {
-    body: '',
-    clientId: '',
-    selector: '',
-    options: '',
-};
-const withInspectorControls =  createHigherOrderComponent( ( BlockEdit ) => {
-    return ( props ) => {
-        let fragment = (<Fragment><BlockEdit { ...props } /></Fragment>);
-        if (props.isSelected===true && (props.name === "core/embed" || props.name.startsWith("core-embed"))) {
-            let selector = 'div#block-' + props.clientId;
-            let options = $(selector).find('iframe').data();
-            if (!options || !options.data) {
-                return fragment;
-            }
+IframelyOptions.defaultProps = {};
+const withInspectorControls = createHigherOrderComponent( (BlockEdit) => {
+    return (props) => {        
+        if (props.isSelected === true && /^core\-?\/?embed/i.test(props.name)) {
             return (
                 <Fragment>
                     <BlockEdit { ...props } />
                     <InspectorControls>
                             <PanelBody title="Iframely options" >
-                                <IframelyOptions selector={ selector } options={ options } clientId={ props.clientId } />
+                                <IframelyOptions/>
                             </PanelBody>
                     </InspectorControls>
                 </Fragment>
             );
         } else {
-            return fragment;
+            return (<Fragment><BlockEdit { ...props } /></Fragment>);
         }
     };
 }, "withInspectorControl" );
