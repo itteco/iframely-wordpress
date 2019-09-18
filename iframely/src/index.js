@@ -60,7 +60,6 @@ function updatePreview(query) {
 
     // Update the corresponding block and get a preview if required
     wp.data.dispatch('core/block-editor').updateBlockAttributes(getSelectedBlockID(), { url: newUrl });
-    console.log("Changed URL: ", newUrl);
 }
 
 if (iframely) {
@@ -78,6 +77,12 @@ window.addEventListener("message",function(e){
             iframe = findIframeByContentWindow(frames, e.source);
         let data = JSON.parse(e.data);
         $(iframe).data(data);
+        console.log(data);
+        let selBlock = wp.data.select('core/block-editor').getSelectedBlock();
+        if (!$('div#ifopts').get(0) && selBlock) {
+            console.log('Form data came! with no form!');
+            // TODO: render component in form.
+        }
     }
 },false);
 
