@@ -181,7 +181,7 @@ const withInspectorControls = createHigherOrderComponent( (BlockEdit) => {
             return (
                 <Fragment>
                     <BlockEdit { ...props } />
-                    <InspectorControls className={"iramelyContorols"}>
+                    <InspectorControls>
                             <PanelBody title="Iframely options" >
                                 <IframelyOptions/>
                             </PanelBody>
