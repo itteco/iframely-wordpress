@@ -95,6 +95,8 @@ window.addEventListener("message", function(e) {
         const block = wp.data.select('core/editor').getBlock(getSelectedBlockID());
         if (block && /^core\-?\/?embed/i.test(block.name)) {
             updateForm();
+            // Make sure we are showing embed options form placeholder
+            $('div#ifopts').parent().show();
         }
     }
 },false);
@@ -147,13 +149,28 @@ wp.hooks.addFilter ('blocks.getSaveElement', 'iframely/save-query', saveQueryURL
 
 class IframelyOptions extends React.Component {
 
+    updatePlaceholder() {
+        // Make sure placeholder
+        // only shown when the form is not empty
+        let formPlaceholder = $('div#ifopts');
+        if (!formPlaceholder.html()) {
+            formPlaceholder.parent().hide();
+        } else {
+            formPlaceholder.parent().show();
+        }
+    }
+
     componentDidMount() {
         updateForm();
+        this.updatePlaceholder();
+    }
+
+    componentDidUpdate() {
+        this.updatePlaceholder();
     }
 
     render() {
-        return <div id="ifopts"
-            ></div>;
+        return <div id="ifopts"></div>
     }
 }
 
@@ -164,7 +181,7 @@ const withInspectorControls = createHigherOrderComponent( (BlockEdit) => {
             return (
                 <Fragment>
                     <BlockEdit { ...props } />
-                    <InspectorControls>
+                    <InspectorControls className={"iramelyContorols"}>
                             <PanelBody title="Iframely options" >
                                 <IframelyOptions/>
                             </PanelBody>
