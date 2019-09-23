@@ -6,6 +6,8 @@ const { Fragment, RawHTML, renderToString} = wp.element;
 const { InspectorControls } = wp.blockEditor;
 const iEvent = new RegExp("setIframelyEmbedOptions");
 const { PanelBody } = wp.components;
+const admHtml = 'If your <a href="https://iframely.com/plans" target="_blank">plan</a> supports it, Iframely will show edit options for selected URL here, whenever  available.';
+const usrHtml = 'Iframely will show edit options for selected URL here, whenever  available.';
 
 function findIframeByContentWindow(iframes, contentWindow) {
     let foundIframe;
@@ -95,8 +97,6 @@ window.addEventListener("message", function(e) {
         const block = wp.data.select('core/editor').getBlock(getSelectedBlockID());
         if (block && /^core\-?\/?embed/i.test(block.name)) {
             updateForm();
-            // Make sure we are showing embed options form placeholder
-            $('div#ifopts').parent().show();
         }
     }
 },false);
@@ -149,32 +149,32 @@ wp.hooks.addFilter ('blocks.getSaveElement', 'iframely/save-query', saveQueryURL
 
 class IframelyOptions extends React.Component {
 
-    updatePlaceholder() {
-        // Make sure placeholder
-        // only shown when the form is not empty
+    updateEmptyPlaceholder() {
+        // Placeholder text in case of no options exist.
         let formPlaceholder = $('div#ifopts');
         if (!formPlaceholder.html()) {
-            formPlaceholder.parent().hide();
-        } else {
-            formPlaceholder.parent().show();
+            if (wp.data.select( 'core' ).canUser( 'create', 'users' )) {
+                formPlaceholder.html(admHtml);
+            } else {
+                formPlaceholder.html(usrHtml);
+            }
         }
     }
 
     componentDidMount() {
         updateForm();
-        this.updatePlaceholder();
+        this.updateEmptyPlaceholder();
     }
 
     componentDidUpdate() {
-        this.updatePlaceholder();
+        this.updateEmptyPlaceholder();
     }
 
     render() {
-        return <div id="ifopts"></div>
+        return <div id="ifopts"></div>;
     }
 }
 
-IframelyOptions.defaultProps = {};
 const withInspectorControls = createHigherOrderComponent( (BlockEdit) => {
     return (props) => {        
         if (props.isSelected === true && /^core\-?\/?embed/i.test(props.name)) {
