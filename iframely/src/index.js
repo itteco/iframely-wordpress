@@ -166,6 +166,10 @@ class IframelyOptions extends React.Component {
         this.updateEmptyPlaceholder();
     }
 
+    componentDidUpdate() {
+        this.updateEmptyPlaceholder();
+    }
+
     render() {
         return <div id="ifopts"></div>;
     }
@@ -178,7 +182,7 @@ const withInspectorControls = createHigherOrderComponent( (BlockEdit) => {
                 <Fragment>
                     <BlockEdit { ...props } />
                     <InspectorControls>
-                            <PanelBody title="Iframely options" initialOpen={ false }>
+                            <PanelBody title="Iframely options">
                                 <IframelyOptions/>
                             </PanelBody>
                     </InspectorControls>
