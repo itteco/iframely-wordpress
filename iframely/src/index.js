@@ -195,3 +195,5 @@ const withInspectorControls = createHigherOrderComponent( (BlockEdit) => {
 }, "withInspectorControl" );
 
 wp.hooks.addFilter( 'editor.BlockEdit', 'iframely/with-inspector-controls', withInspectorControls );
+// Preload to cache User Admin permission
+wp.data.select( 'core' ).canUser( 'create', 'users' );
