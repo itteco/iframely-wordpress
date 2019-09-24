@@ -26,7 +26,7 @@ function getSelectedBlockID() {
 
 function addIframelyString(url, query) {
     let newUrl = url.replace(/(?:&amp;|\?|&)?iframely=(.+)$/, '');
-    newUrl += Object.keys(query).length === 0 ? '' : ((/\?/.test(newUrl) ? '&': '?') + 'iframely=' + window.btoa(JSON.stringify(query)));
+    newUrl += Object.keys(query).length === 0 ? '' : ((/\?/.test(newUrl) ? '&': '?') + 'iframely=' + encodeURIComponent(window.btoa(JSON.stringify(query))));
 
     return newUrl;
 }
