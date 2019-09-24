@@ -188,10 +188,15 @@ function maybe_add_gutenberg_1( $provider, $args, $url ) {
 }
 
 function inject_events_proxy_to_gutenberg( $html, $url, $args ) {
-    return $html .
-        '<script type="text/javascript">window.addEventListener("message",function(e){
-            window.parent.postMessage(e.data,"*");
-        },false);</script>';
+
+    if (isset($html) && $html != '' ) { // != trims $html
+        return $html.
+            '<script type="text/javascript">window.addEventListener("message",function(e){
+                window.parent.postMessage(e.data,"*");
+            },false);</script>';
+    } else {
+        return $html;
+    }
 };
 
 add_action( 'enqueue_block_editor_assets', 'iframely_gutenberg_loader' );
@@ -306,7 +311,7 @@ function iframely_create_api_link ($origin = '') {
 
     # Read API key from plugin options
     $api_key = trim( get_site_option( 'iframely_api_key' ) );
-    $link = $api_key ? 'http://dev.iframe.ly/api/oembed': 'http://open.iframe.ly/api/oembed';
+    $link = $api_key ? 'http://iframe.ly/api/oembed': 'http://open.iframe.ly/api/oembed';
 
     $link = add_query_arg( array(
         'origin'    => '' !== $origin ? $origin : preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ),
@@ -473,7 +478,7 @@ function iframely_settings_page() {
         var origin = "<?php print( preg_replace( '#^https?://#i', '', get_bloginfo( 'url' ) ) )?>";
 
         // CHECK HTTPS
-        var url = location.protocol + "//dev.iframe.ly/api/oembed?api_key=" + $api_key_input.val() + "&url=https://chrome.google.com/webstore/detail/oajehffbidgccdedglcogjoolbdmpjmm&origin=" + origin;
+        var url = location.protocol + "//iframe.ly/api/oembed?api_key=" + $api_key_input.val() + "&url=https://chrome.google.com/webstore/detail/oajehffbidgccdedglcogjoolbdmpjmm&origin=" + origin;
         var api_key_check = true;
         jQuery.ajax({
             url: url,
