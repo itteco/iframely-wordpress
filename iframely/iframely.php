@@ -104,7 +104,7 @@ add_filter( 'oembed_fetch_url', 'maybe_add_iframe_amp', 10, 3 );
 function maybe_add_iframe_amp( $provider, $args, $url ) {
     
     if (is_iframely_amp( $args ) && strpos($provider, '//iframe.ly') !== false) {
-        $provider = add_query_arg( 'iframe', 'amp', $provider );
+        $provider = add_query_arg( 'amp', '1', $provider );
     }
     return $provider;
 }
