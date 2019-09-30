@@ -1,12 +1,12 @@
 /**
- * Iframely oembed scripts
+ * Iframely URL options form scripts
  */
 const { createHigherOrderComponent } = wp.compose;
 const { Fragment, RawHTML, renderToString} = wp.element;
 const { InspectorControls } = wp.blockEditor;
 const iEvent = new RegExp("setIframelyEmbedOptions");
 const { PanelBody } = wp.components;
-const admHtml = 'If your <a href="https://iframely.com/plans" target="_blank">plan</a> supports it, Iframely will show edit options for selected URL here, whenever  available.';
+const admHtml = 'If your <a href="https://iframely.com/plans" target="_blank">plan</a> supports it and config allows, Iframely will show <a href="https://iframely.com/docs/options" target="_blank">edit options</a> for selected URL here, whenever  available.';
 const usrHtml = 'Iframely will show edit options for selected URL here, whenever  available.';
 
 function findIframeByContentWindow(iframes, contentWindow) {
