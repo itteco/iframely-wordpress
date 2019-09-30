@@ -369,7 +369,7 @@ function iframely_settings_page() {
 
 <h1>How to use Iframely</h1>
 
-<p>Iframely will take URL in your post and replace it with (responsive, if possible) embed code. We cover well over 1900 domains. Plus summary cards for other URLs. You can <a href="https://iframely.com/embed" target="_blank">test your URLs here</a>.</p>
+<p>Iframely will take URL in your post, it to the cloud API parsers and replace it with the embed code we could find. Responsive, if possible. We cover well over 1900 domains. Plus summary cards for other URLs, including your own site. You can <a href="https://iframely.com/embed" target="_blank">test some URLs here</a>.</p>
 
 <ul>
 <li><p>Put URL on a separate line - standard WP way</p></li>
@@ -377,11 +377,11 @@ function iframely_settings_page() {
 </ul>
 
 
-<p><em>Note</em>: Some people expect Iframely to wrap URLs with <code>&lt;iframe src=...&gt;</code> code. That's not what Iframely is for. It converts original URLs into native embed codes itself.</p>
+<p><em>Note</em>: Some people expect Iframely to wrap URLs with <code>&lt;iframe src=...&gt;</code> code. That's not what Iframely is for. Iframely needs a canonical URL, and we'll find the embed codes/iframes ourselves.</p>
 
 <form method="post" action="">
 
-<h1>Configure your options</h1>
+<h1>Configure your settings</h1>
 
     <?php
 
@@ -397,10 +397,13 @@ function iframely_settings_page() {
         wp_nonce_field('form-settings');
     ?>
 
+    <p>These are the options of this plugin only. More Iframely features are available in your account's dashboard at iframely.com. API key and account with Iframely is only required if/when you go live. You can just skip API key field for testing purposes. Albeit, you won't see some features, say <a href="https://iframely.com/docs/options" target="_blank">URL options</a> in your Guttenberg editor and AMP embeds.</p>
+
     <ul>
         <li>
             <p>Your Iframely API Key (get one at <a href="https://iframely.com/?from=wp" target="_blank">iframely.com</a>): </p>
             <p><input type="text" style="width: 250px;" name="iframely_api_key" value="<?php echo get_site_option('iframely_api_key'); ?>" placeholder="required"/></p>
+
         </li>
 
         <li>
@@ -422,7 +425,7 @@ function iframely_settings_page() {
         <li>
             <p><input type="checkbox" name="iframely_only_shortcode" value="1" <?php if (get_site_option('iframely_only_shortcode')) { ?> checked="checked" <?php } ?> /> Don't override default embed providers</p>
             <p>It will block Iframely from intercepting all URLs in your editor that may be covered by other embeds plugins you have installed, e.g. a Jetpack, or default embeds supported by WordPress (including AMP). 
-            Although, we should support default WP providers too, just make it better. Say, add URL options editor as below.
+            Although, we should support default WP providers too, just make it better. Say, add <a href="https://iframely.com/docs/options" target="_blank">URL options editor</a>.
         </p>
         </li>
 
