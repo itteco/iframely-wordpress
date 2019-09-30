@@ -36,9 +36,7 @@ function maybe_remove_wp_self_embeds( $result, $url, $args ) {
 function maybe_reverse_oembed_providers ($providers) {
     
     # iframely_only_shortcode option is unset in shortcode, so that the filter can work. Then returned back.
-    if ( !get_site_option( 'iframely_only_shortcode' ) 
-        || (function_exists('is_amp_endpoint') && is_amp_endpoint() 
-            && get_site_option( 'iframely_disable_default_amp_embeds' ) ) ) {
+    if ( !get_site_option( 'iframely_only_shortcode' ) ) {
         return array_reverse($providers);
     }
     else {
@@ -46,32 +44,30 @@ function maybe_reverse_oembed_providers ($providers) {
     }
 }
 
-
 # Make WP cache work
 add_filter( 'embed_defaults', 'iframely_embed_defaults', 10, 1 );
 function iframely_embed_defaults( $args) {
 
     // args are included in cache key. Bust it if needed and configured by user
-    if ((int)get_site_option('iframely_cache_ttl') > 0) {
+    if (get_site_option( 'iframely_only_shortcode' ) && !$args['iframely_shortcode']) {
+        $args['iframely_only_shortcode'] = get_site_option( 'iframely_only_shortcode' );
+    }
 
-        if (get_site_option( 'iframely_only_shortcode' )) {
-            $args['iframely_only_shortcode'] = get_site_option( 'iframely_only_shortcode' );
-        }
+    if ((int)get_site_option('iframely_cache_ttl') > 0) {
 
         $api_params = trim( get_site_option( 'iframely_api_params' ) );
         if ( !empty( $api_params )) {
             $args['api_params'] = $api_params;
         }
+    }
 
-        $api_key = trim( get_site_option( 'iframely_api_key' ) );
-        if (!empty( $api_key )) {
-            $args['api_key'] = $api_key;
-        }
+    $api_key = trim( get_site_option( 'iframely_api_key' ) );
+    if (!empty( $api_key )) {
+        $args['api_key'] = $api_key;
     }
 
     if (is_iframely_amp( $args )) {
         $args['iframely'] = 'amp';
-        $args['iframely_disable_default_amp_embeds'] = get_site_option( 'iframely_disable_default_amp_embeds' );
     }
 
     return $args;
@@ -151,8 +147,7 @@ function iframely_autop_on_amp( $content ) {
 
 add_filter( 'amp_content_embed_handlers', 'maybe_disable_default_embed_handlers', 10, 2 );
 function maybe_disable_default_embed_handlers($embed_handler_classes) {
-
-    return get_site_option( 'iframely_disable_default_amp_embeds' ) ? array() : $embed_handler_classes;
+    return ! get_site_option( 'iframely_only_shortcode' ) ? array() : $embed_handler_classes;
 };
 
 
@@ -291,6 +286,7 @@ function embed_iframely( $atts, $content = '' ) {
 
     if ($only_shortcode_before) {
         iframely_update_option('iframely_only_shortcode', null);
+        $atts['iframely_shortcode'] = true;
     }
 
     # Get embed code for the url using internal wp embed object (it caches results for the post automatically)
@@ -373,7 +369,7 @@ function iframely_settings_page() {
 
 <h1>How to use Iframely</h1>
 
-<p>Iframely will take URL in your post and replace it with (responsive, if possible) embed code. We cover well over 1700 domains. Plus summary cards for other URLs. You can <a href="https://iframely.com/embed" target="_blank">test your URLs here</a>.</p>
+<p>Iframely will take URL in your post and replace it with (responsive, if possible) embed code. We cover well over 1900 domains. Plus summary cards for other URLs. You can <a href="https://iframely.com/embed" target="_blank">test your URLs here</a>.</p>
 
 <ul>
 <li><p>Put URL on a separate line - standard WP way</p></li>
@@ -396,7 +392,6 @@ function iframely_settings_page() {
             iframely_update_option('publish_iframely_cards', (isset($_POST['publish_iframely_cards'])) ? (int)$_POST['publish_iframely_cards'] : null);
             iframely_update_option('iframely_api_params', trim($_POST['iframely_api_params']));
             iframely_update_option('iframely_cache_ttl', (isset($_POST['iframely_cache_ttl'])) ? (int)trim($_POST['iframely_cache_ttl']) : 0);
-            iframely_update_option('iframely_disable_default_amp_embeds', (isset($_POST['iframely_disable_default_amp_embeds'])) ? (int)trim($_POST['iframely_disable_default_amp_embeds']) : 0);
         }
 
         wp_nonce_field('form-settings');
@@ -417,27 +412,17 @@ function iframely_settings_page() {
             <p>Cache the embed codes for this number of days: </p>
             <p><input type="text" style="width: 250px;" name="iframely_cache_ttl" 
                 value="<?php echo ((null !== get_site_option('iframely_cache_ttl')) ? get_site_option('iframely_cache_ttl') : ''); ?>" placeholder="Number of days, 1 - recommended" /></p>
-            <p>By default, WordPress will refresh embed codes <a href="https://core.trac.wordpress.org/ticket/37597" target="_blank">only</a> when you edit and save a post.<br>
+            <p>By default, WordPress will refresh embed codes <a href="https://core.trac.wordpress.org/ticket/37597" target="_blank">only</a> when you edit and save a post. 
             This isn't right. Embed codes should be refreshed periodically.<br>
-            Configure how often it will be done. As in "Once every XX days for each post".<br>
+            Configure how often it will be done. As in "Once every XX days for each post".
             Enter 0 to skip Iframely's cache handler and use WP defaults.
             </p>                
         </li>        
 
         <li>
-            <p><input type="checkbox" name="iframely_only_shortcode" value="1" <?php if (get_site_option('iframely_only_shortcode')) { ?> checked="checked" <?php } ?> /> Do not override default embed providers</p>
-            <p>It will block Iframely from intercepting all URLs in your editor that may be covered by other embeds plugins you have installed, e.g. a Jetpack or default embeds supported by WordPress.<br>
-            Although, we should support the same providers and output the same code, just make it responsive.<br>
-            Iframely shortcode will still process such URLs regardless of this setting.
-        </p>
-        </li>        
-
-        <li>
-            <p><input type="checkbox" name="iframely_disable_default_amp_embeds" value="1" <?php if (get_site_option('iframely_disable_default_amp_embeds')) { ?> checked="checked" <?php } ?> /> For AMP pages, replace default embeds with Iframely.</p>
-            <p>Iframely works nicely with <a href="https://wordpress.org/plugins/amp/" target="_blank_">AMP WordPress</a> plugin for Google AMP support. 
-            It catches all missing embeds and follow your Iframely settings.<br>
-            But you can also choose Iframely for all embeds, including default AMP embeds too.<br>
-            For example, Facebook video will be indeed a nice video without user's text message.
+            <p><input type="checkbox" name="iframely_only_shortcode" value="1" <?php if (get_site_option('iframely_only_shortcode')) { ?> checked="checked" <?php } ?> /> Don't override default embed providers</p>
+            <p>It will block Iframely from intercepting all URLs in your editor that may be covered by other embeds plugins you have installed, e.g. a Jetpack, or default embeds supported by WordPress (including AMP). 
+            Although, we should support default WP providers too, just make it better. Say, add URL options editor as below.
         </p>
         </li>
 
@@ -446,7 +431,7 @@ function iframely_settings_page() {
             <p>Since WP 4.4 your site <a href="https://make.wordpress.org/core/2015/10/28/new-embeds-feature-in-wordpress-4-4/" target="_blank">publishes embeds</a> by default so that <strong>your own</strong> and other WP sites can embed summaries of your posts.                 
             <br>Use this option to override the default widgets and use nice Iframely cards instead. 
             <br>Customize design of your cards <a href="https://iframely.com/customize" target="_blank">here</a>.
-            <br>Preview your Iframely cards <a href="https://iframely.com/embed" target="_blank">here</a>.
+            Preview your Iframely cards <a href="https://iframely.com/embed" target="_blank">here</a>.
         </p>
         </li>
 
@@ -483,7 +468,7 @@ function iframely_settings_page() {
         jQuery.ajax({
             url: url,
             error: function() {
-                showError('Oops, API Key can not be verified. Test URL/API call didn\'t pass. <br>Make sure your <a href="https://iframely.com/settings" target="_blank">API settings</a> do not "Respond with error 417 when API call results in no embed codes"');
+                showError('Oops, API Key can not be verified. Test URL/API call didn\'t pass. <br>Make sure your <a href="https://iframely.com/settings/app" target="_blank">API settings</a> do not "Respond with error 417 when API call results in no embed codes"');
                 api_key_check = false;
             },
             async: false
