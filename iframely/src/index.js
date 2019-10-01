@@ -31,13 +31,21 @@ function addIframelyString(url, query) {
     return newUrl;
 }
 
+function loadIframelyEmbedJs($w) {
+    if ($w && !$w.iframely) { // already loaded
+        var ifs = $w.document.createElement('script'); ifs.type = 'text/javascript'; ifs.async = true;
+        ifs.src = ('https:' == document.location.protocol ? 'https:' : 'http:') + '//if-cdn.com/embed.js';
+        var s = $w.document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ifs, s);
+    }
+}
+
 if (iframely) {
     // Failsafe in case of iframely name space not accessible.
     // E.g. no internet connection
     iframely.on('options-changed', function(id, formContainer, query) {
 
         const selector = 'div#block-' + getSelectedBlockID();
-        const iframe = document.querySelector(selector + ' iframe').contentWindow.document.querySelector('iframe');
+        const iframe = document.querySelector(selector + ' iframe').contentDocument.querySelector('iframe');
 
         const preview = $(selector).find('iframe');
 
@@ -58,6 +66,9 @@ if (iframely) {
             Object.keys(query).forEach(function(key) {
                 src += (src.indexOf('?') > -1 ? '&' : '?') + key + '=' + query[key];
             });
+
+            // load embed.js if it was missing to catch chaning sizes
+            loadIframelyEmbedJs(document.querySelector(selector + ' iframe').contentWindow);
 
             iframe.src = src;
 
