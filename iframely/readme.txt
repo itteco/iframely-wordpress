@@ -249,6 +249,13 @@ And please, help do submit issues if you see any.
 
 == Upgrade Notice ==
 
+= 0.7.1 =
+
+Introducing [URL options](https://iframely.com/docs/options) editor for your Gutenberg embed blocks. Available for higher-tier plans or during a trial period.
+
+We add publishers fine-tuning options as if you manually copy-pasted HTML codes from their websites. If you see that we miss any options that are important to you - let us know at support@iframely.com.
+
+
 = 0.6.0 =
 
 This Iframely update fixes compatibility with the newer versions of [AMP WP plugin](https://wordpress.org/plugins/amp/). Also makes caching more reliable and responsive to the changes in your settings.
