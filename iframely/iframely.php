@@ -369,7 +369,7 @@ function iframely_settings_page() {
 
 <h1>How to use Iframely</h1>
 
-<p>Iframely will take URL in your post, it to the cloud API parsers and replace it with the embed code we could find. Responsive, if possible. We cover well over 1900 domains. Plus summary cards for other URLs, including your own site. You can <a href="https://iframely.com/embed" target="_blank">test some URLs here</a>.</p>
+<p>Iframely will take URL in your post, it to the cloud API parsers and replace it with the embed code we could find. Responsive, if possible. We cover well over 2000 domains. Plus summary cards for other URLs, including your own site. You can <a href="https://iframely.com/embed" target="_blank">test some URLs here</a>.</p>
 
 <ul>
 <li><p>Put URL on a separate line - standard WP way</p></li>

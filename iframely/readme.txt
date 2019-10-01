@@ -1,19 +1,18 @@
-=== Iframely Responsive Embeds ===
+=== Iframely - rich media embeds for 2000+ publishers ===
 Contributors: psergeev, ivanp
-Tags: iframely, oembed, embed, responsive, video, amp, youtube, vimeo, instagram, gist, vine, gif, giphy, google maps, facebook, mu, streamable, gfycat, vidme, Reddit, Tableau, spotify, prezi, apester, qzzr, tidal, mlb,
+Tags: iframely, oembed, embed, embed code, responsive, video, amp, youtube, vimeo, instagram, gist, gif, giphy, google maps, facebook, mu, streamable, gfycat, vidme, Reddit, Tableau, spotify, prezi, apester, qzzr, tidal, mlb, media
 Requires at least: 3.5.1
-Tested up to: 4.9.8
+Tested up to: 5.2.3
 Stable tag: trunk
 License: MIT
 
 
-Iframely extends WordPress default embeds and adds over 2000 more providers and cards as URL previews for the rest of the Web. Provides responsive embed codes, works with AMP. Powered by Iframely cloud service.
+Iframely extends WordPress default rich media embeds and adds support of over 2000 more providers and cards as URL previews for the rest of the Web. Provides responsive embed codes, works with AMP. Powered by Iframely cloud service and requires an account with us.
 
 == Description ==
 
 
-[Iframely](https://iframely.com?from=wp) extends WordPress default embeds and adds over 2000 more providers and cards as URL previews for the rest of the Web. Provides responsive embed codes, works with AMP. Powered by Iframely cloud service.
-
+[Iframely](https://iframely.com?from=wp) extends WordPress default embeds and adds over 2000 more providers and cards as URL previews for the rest of the Web. Provides responsive embed codes, works with AMP. 
 
 Just like default WordPress embeds, Iframely will detect URLs in your posts and replace it with responsive embed codes. Supports all usual suspects such as YouTube, Vimeo, Instagram, Facebook, Giphy, GfyCat, Imgur, Google +, GitHub Gists, Storify, SlideShare, Streamable, Vidme, Reddit, Dailymotion, Spotify, Tableau, Prezi, Apester, QZZR, Tidal, MLB. Well over two thousand of providers and keeps growing. 
 
@@ -21,9 +20,14 @@ Just like default WordPress embeds, Iframely will detect URLs in your posts and 
 
 Iframely also generates and hosts summary cards as URL previews for general articles. It includes your own site, and Iframely can replace the default embed cards that your publish via WordPress for other sites to use.
 
-Iframely is powered by server API. API Key is required. Get one at [iframely.com](https://iframely.com). Get help at support at iframely.com.
+= API key and paid/free =
 
-Depending on your use and settings, a [service subscription](https://iframely.com/plans) may be required. 
+Powered by Iframely cloud service and requires an account with us. Grab an API key for extended trial at [iframely.com](https://iframely.com), or test the plugin out without an API key. 
+
+
+Before you push the plugin to production, a [service subscription](https://iframely.com/plans) is required to avoid any possible disruptions. 
+
+We maintain an overwhelming number of integrations and widgets in the background for you, and make sure your sites remains fast and keeps your users happy. This requires a substantial effort on our part, and we won't be able to provide it without requiring a service subscription.
 
 
 
@@ -48,23 +52,28 @@ Iframely also has its own shortcode `[iframely]http://your.url/here[/iframely]`.
 
 = Heads-up: =  
 
-Iframely does not simply wrap URLs with <code>&lt;iframe src=...&gt;</code> code. That's not what Iframely is for. We can only match URLs to the known embed codes if publisher offers them for manual copy-paste, or generate a summary card for preview.
+Iframely does not simply wrap URLs with <code>&lt;iframe src=...&gt;</code> code. That's not what Iframely is for. We can only match URLs to the known embed codes if publisher offers them for manual copy-paste, or generate a summary card for URL preview if a publisher provides at least a thumnnail image.
 
 
 = To keep default embed providers = 
 
 By default, Iframely will inject itself to be the first embeds provider in the list, thus intercepting all URLs. It means that the default providers that are later in the list won't get called and will thus be disabled. 
 
-For example, default YouTube, Vimeo, Twitter, other oEmbed plugins that you have (like JetPack), etc. 
+It means Iframely replaces default YouTube, Vimeo, Twitter, other oEmbed plugins that you might have(like JetPack), etc. 
 
-Although, we should support the same providers and output the same code, just make it responsive, you can still disable such behavior and tell Iframely to only process links that otherwise don't have embed provider. 
+Although we should support the same providers and output the same code, just make it responsive and add extra features, you can still disable such behavior and tell Iframely to only process links that otherwise don't have an embed provider. 
 
 Just choose this option in your settings. It will essentially put Iframely to be the last in the list, be "a catcher", rather then "an interceptor".
 
+= URL editor options = 
+
+You can fine-tune many aspects of Iframely on your dashboard at iframely.com. This would include some most common settings for popular rich media publishers. Our support team can also fine-tune many other publishers, just for you. 
+
+However, you might need a per-post editor for the widgets options. And, Iframely does provide this too. It's done via [URL options](https://iframely.com/docs/options) editor, and available for higher-tier plans, or during your initial trial period. Make sure to check it out. 
+
 = AMP support = 
 
-Iframely works nicely with [AMP WP plugin](https://wordpress.org/plugins/amp/). It catches all missing embeds and follow your Iframely settings. But you can also opt to have Iframely for all embeds, including default AMP embeds too. For example, Facebook video will be indeed a nice video without user's text message.
-
+Yes, Iframely works nicely with [AMP WP plugin](https://wordpress.org/plugins/amp/). It catches all missing embeds and follow your Iframely settings. But you can also opt to have Iframely for all embeds, including default AMP embeds too. For example, Facebook video will be indeed a nice video without user's text message.
 
 
 == Installation ==
@@ -90,13 +99,15 @@ You can fine-tune many more aspects of Iframely in your account settings with us
 
 Here's some samples of what Iframely supports. 
 
-1. Instagram sample
-2. Vimeo sample
-3. GitHub Gists
-4. Google+ Posts
-5. Imgur & Galleries
-6. Facebook Statuses
-7. And many-many others
+1. Over 2000 domains
+2. Responsive embed codes
+3. This is Giphy
+4. This is Tidal
+5. This is Google Maps
+6. Change URL options
+7. Change URL options
+8. Change URL options
+9. Change URL options
 
 [Here's some more examples](https://iframely.com/domains).
 
@@ -110,9 +121,11 @@ That's not a purpose of the plugin. Iframely works with original URLs and will d
 
 Iframely is powered by the cloud APIs. Getting embed codes requires connecting to multiple 3rd party servers, and packiging it all into your WordPress server would create unsustaible workload. This plugin is therefore integrating your WordPress with Iframely cloud.
 
-To be able to save your settings, you'd need to get your own API key. Get one by signing up at [iframely.com](https://iframely.com?from=wp). New API keys come with unlimited 30 days trial, and have a free tier option afterwards. Depending on your use, you may require a monthly [subscription](https://iframely.com/plans).
+To be able to save your settings, you'd need to get your own API key. Get one by signing up at [iframely.com](https://iframely.com?from=wp). New API keys come with 30 days tria. You will require a monthly [subscription](https://iframely.com/plans) if you want to continue using Iframely on your live site afterwards.
 
 However, API key isn't required if you just want to give Iframely a try. The plugin will work with the default settings, albeit only for new posts or if you manually edit/save posts with expired embed codes.
+
+We maintain an overwhelming number of integrations and widgets in the background for you, and make sure your sites remains fast and keeps your users happy. This requires a substantial effort on our part, and we won't be able to provide it without requiring a service subscription.
 
 
 = How do I resize my widgets? = 
@@ -140,7 +153,7 @@ If there's a specific post you'd like to update, just go to Edit and Save it aga
 
 = Will my other shortcodes work? =
 
-Iframely does not change behavior of other shortcode plugins. Everything should work the old way, except for `[embed]` shortcode, which will now start producing responsive widgets unless limited in size.
+Iframely does not change behavior of other shortcode plugins if they don't plug into oEmbed sandbox. Everything should work the old way, except for `[embed]` shortcode, which will now start producing responsive widgets unless limited in size.
 
 = Does it support WordPress MU? =
 
@@ -151,6 +164,13 @@ Iframely will work well with multisite installations. Iframely options page is a
 Yes, Iframely knows the embed codes for Facebook posts, photos and videos. However, some of the posts can be private and not accesssible to our parsers. For those, we can not convert the URL into embed code. Also, Facebook events don't have native embed codes and so Iframely doesn't support these too. 
 
 == Changelog ==
+
+= 0.7.0 =
+
+Introducing [URL options](https://iframely.com/docs/options) editor for your Gutenberg embed blocks. Available for higher-tier plans or during a trial period.
+
+We add publishers fine-tuning options as if you manually copy-pasted HTML codes from their websites. If you see that we miss any options that are important to you - let us know at support@iframely.com.
+
 
 = 0.6.0 =
 
