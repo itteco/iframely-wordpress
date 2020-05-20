@@ -1,6 +1,6 @@
 {
   "name": "iframely-wp",
-  "version": "0.7.0",
+  "version": "0.7.2",
   "author": "Yuri Harmash",
   "engines": {
     "node": ">=8.0.0",
