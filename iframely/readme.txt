@@ -165,6 +165,10 @@ Yes, Iframely knows the embed codes for Facebook posts, photos and videos. Howev
 
 == Changelog ==
 
+= 0.7.2 =
+
+Fix bugs with newer Wordpress versions of 5.4+
+
 = 0.7.0 =
 
 Introducing [URL options](https://iframely.com/docs/options) editor for your Gutenberg embed blocks. Available for higher-tier plans or during a trial period.

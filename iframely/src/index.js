@@ -47,7 +47,7 @@ if (iframely) {
         const selector = 'div#block-' + getSelectedBlockID();
         const iframe = document.querySelector(selector + ' iframe').contentDocument.querySelector('iframe');
 
-        const preview = $(selector).find('iframe');
+        const preview = jQuery(selector).find('iframe');
 
         if (preview && preview.data() && preview.data().data && preview.data().context) {
             const data = preview.data();
@@ -82,14 +82,14 @@ if (iframely) {
 
 function updateForm () { // always single instance of form for all blocks...
     let selector = 'div#block-' + getSelectedBlockID();
-    let preview = $(selector).find('iframe');
+    let preview = jQuery(selector).find('iframe');
 
-    if (preview && $(preview).data()) {
+    if (preview && jQuery(preview).data()) {
 
         iframely.buildOptionsForm(
             getSelectedBlockID(),
-            $('div#ifopts').get(0), 
-            $(preview).data().data
+            jQuery('div#ifopts').get(0),
+            jQuery(preview).data().data
         );
     }
 }
@@ -102,7 +102,7 @@ window.addEventListener("message", function(e) {
             iframe = findIframeByContentWindow(frames, e.source);
 
         let data = JSON.parse(e.data);
-        $(iframe).data(data); // Store current state of options form in the iframe
+        jQuery(iframe).data(data); // Store current state of options form in the iframe
 
         // update only if the form is open. If not, it will be built on render
         const block = wp.data.select('core/editor').getBlock(getSelectedBlockID());
@@ -162,7 +162,7 @@ class IframelyOptions extends React.Component {
 
     updateEmptyPlaceholder() {
         // Placeholder text in case of no options exist.
-        let formPlaceholder = $('div#ifopts');
+        let formPlaceholder = jQuery('div#ifopts');
         if (!formPlaceholder.html()) {
             if (wp.data.select( 'core' ).canUser( 'create', 'users' )) {
                 formPlaceholder.html(admHtml);
