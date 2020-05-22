@@ -1,5 +1,5 @@
 === Iframely - rich media embeds for 2000+ publishers ===
-Contributors: psergeev, ivanp
+Contributors: psergeev, ivanp, garmoncheg
 Tags: iframely, oembed, embed, embed code, responsive, video, amp, youtube, vimeo, instagram, gist, gif, giphy, google maps, facebook, mu, streamable, gfycat, vidme, Reddit, Tableau, spotify, prezi, apester, qzzr, tidal, mlb, media
 Requires at least: 3.5.1
 Tested up to: 5.4.1
