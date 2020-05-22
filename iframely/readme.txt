@@ -2,7 +2,7 @@
 Contributors: psergeev, ivanp
 Tags: iframely, oembed, embed, embed code, responsive, video, amp, youtube, vimeo, instagram, gist, gif, giphy, google maps, facebook, mu, streamable, gfycat, vidme, Reddit, Tableau, spotify, prezi, apester, qzzr, tidal, mlb, media
 Requires at least: 3.5.1
-Tested up to: 5.2.3
+Tested up to: 5.4.1
 Stable tag: trunk
 License: MIT
 
@@ -167,7 +167,7 @@ Yes, Iframely knows the embed codes for Facebook posts, photos and videos. Howev
 
 = 0.7.2 =
 
-Fix bugs with newer Wordpress versions of 5.4+
+Fix scripting errors in Gutenberg editor in latest WordPress 5.4+.
 
 = 0.7.0 =
 
@@ -252,6 +252,10 @@ And please, help do submit issues if you see any.
 
 
 == Upgrade Notice ==
+
+= 0.7.2 =
+
+Fix scripting errors in Gutenberg editor in latest WordPress 5.4+.
 
 = 0.7.1 =
 
