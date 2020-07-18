@@ -9,7 +9,7 @@
   "dependencies": {
     "@wordpress/block-library": "^2.4.6",
     "classnames": "^2.2.5",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.19"
   },
   "homepage": "http://iframely.com",
   "repository": {
