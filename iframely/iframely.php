@@ -147,7 +147,13 @@ function iframely_autop_on_amp( $content ) {
 
 add_filter( 'amp_content_embed_handlers', 'maybe_disable_default_embed_handlers', 10, 2 );
 function maybe_disable_default_embed_handlers($embed_handler_classes) {
-    return ! get_site_option( 'iframely_only_shortcode' ) ? array() : $embed_handler_classes;
+    # JetPack as of version 9.0.2 asserts itself as early wp_embed_register_handler 
+    # for Facebook and Instagram, bypassing oEmbed sandbox. Presumably, this way they fix
+    # access tokens for new oEmbed endpoints that are stored in wordpress.com accounts.
+    # As there will be no regular oEmbed flow, we need their content handlers back here.
+    return ! get_site_option( 'iframely_only_shortcode' ) && (! class_exists( 'Jetpack_AMP_Support' ))
+        ? array() 
+        : $embed_handler_classes;
 };
 
 
