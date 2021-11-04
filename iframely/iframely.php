@@ -182,7 +182,7 @@ function iframely_bust_gutenberg_cache( $args) {
 
 function maybe_add_gutenberg_1( $provider, $args, $url ) {
     
-    if (strpos($provider, '//iframe.ly') !== false) {
+    if (strpos($provider, '//iframe.ly') !== false && strpos($provider, 'iframe=card') === false) {
         $provider = add_query_arg( 'iframe', '1', $provider );
     }
     return $provider;
