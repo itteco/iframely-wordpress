@@ -99,7 +99,7 @@ function is_iframely_amp ( $args ) {
 add_filter( 'oembed_fetch_url', 'maybe_add_iframe_amp', 10, 3 );
 function maybe_add_iframe_amp( $provider, $args, $url ) {
     
-    if (is_iframely_amp( $args ) && strpos($provider, '//iframe.ly') !== false) {
+    if (is_iframely_amp( $args ) && strpos($provider, 'iframe.ly') !== false) {
         $provider = add_query_arg( 'amp', '1', $provider );
     }
     return $provider;
@@ -108,7 +108,7 @@ function maybe_add_iframe_amp( $provider, $args, $url ) {
 add_filter( 'embed_oembed_html', 'iframely_filter_oembed_result', 10, 3 ); 
 function iframely_filter_oembed_result( $html, $url, $args ) {
 
-    if (strpos($html, '<amp-iframe') !== false) {
+    if (strpos($html, '<amp-iframe') !== false) { // covers "amp-iframely"
         // Avoid corrupted amp-iframe overflow div as a result of wpautop
         remove_filter( 'the_content', 'wpautop' );
         // Restore wpautop if it was disabled
@@ -182,7 +182,7 @@ function iframely_bust_gutenberg_cache( $args) {
 
 function maybe_add_gutenberg_1( $provider, $args, $url ) {
     
-    if (strpos($provider, '//iframe.ly') !== false && strpos($provider, 'iframe=card') === false) {
+    if (strpos($provider, 'iframe.ly') !== false && strpos($provider, 'iframe=card') === false) {
         $provider = add_query_arg( 'iframe', '1', $provider );
     }
     return $provider;
@@ -253,27 +253,6 @@ function maybe_disable_cache($ttl, $url, $attr, $post_ID) {
 # Register [iframely] shortcode
 add_shortcode( 'iframely', 'embed_iframely' );
 
-# rewrite oembed discovery
-add_filter( 'oembed_endpoint_url', 'publish_embeds_via_iframely', 10, 2) ;
-function publish_embeds_via_iframely($url, $permalink, $format = 'json') {
-
-    if ('' !== $permalink  && get_site_option( 'publish_iframely_cards')) {
-
-        $endpoint = iframely_create_api_link ('discovery');        
-
-        $endpoint = add_query_arg( array(
-            'url'    => urlencode( $permalink ),
-            'format' => strpos($url, 'format=xml') ? 'xml': 'json'
-            // $format isn't passed inside the filter for some reason, hence the workaround
-        ), $endpoint );
-
-        return $endpoint;
-
-    } else {
-        return $url;
-    }
-    
-}
 
 # Function to process content in iframely shortcode, ex: [iframely]http://anything[/iframely]
 function embed_iframely( $atts, $content = '' ) {
@@ -437,7 +416,7 @@ function iframely_settings_page() {
 
         <li>
             <p><input type="checkbox" name="publish_iframely_cards" value="1" <?php if (get_site_option('publish_iframely_cards')) { ?> checked="checked" <?php } ?> /> Use Iframely <a href="https://iframely.com/docs/cards" target="_blanak">summary cards</a> as embeds for your site</p>
-            <p>Since WP 4.4 your site <a href="https://make.wordpress.org/core/2015/10/28/new-embeds-feature-in-wordpress-4-4/" target="_blank">publishes embeds</a> by default so that <strong>your own</strong> and other WP sites can embed summaries of your posts.                 
+            <p>Since WP 4.4 your site <a href="https://make.wordpress.org/core/2015/10/28/new-embeds-feature-in-wordpress-4-4/" target="_blank">publishes embeds</a> by default so that <strong>your own</strong> WP site can embed summaries of your posts.                 
             <br>Use this option to override the default widgets and use nice Iframely cards instead. 
             <br>Customize design of your cards <a href="https://iframely.com/customize" target="_blank">here</a>.
             Preview your Iframely cards <a href="https://iframely.com/embed" target="_blank">here</a>.
