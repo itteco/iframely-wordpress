@@ -1,0 +1,13 @@
+.iframely-card {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  margin: 0;
+}
+.iframely-card__body {
+  flex: 1;
+  margin-bottom: 1em;
+}
+.iframely-card__footer {
+  margin-top: 0;
+}

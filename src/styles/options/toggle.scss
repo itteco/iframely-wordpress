@@ -1,0 +1,64 @@
+.iframely-option-check {
+  position: relative;
+  padding-left: 48px;
+
+  &:not(:last-child) {
+    margin-bottom: 12px;
+  }
+}
+.iframely-option-check__input {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 24px;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0.0001;
+}
+.iframely-option-check__label {
+  display: block;
+
+  &:before,
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 36px;
+    height: 18px;
+  }
+  &:before {
+    border: 1px solid #1e1e1e;
+    border-radius: 9px;
+    background: #fff;
+    transition: 0.2s background ease;
+  }
+  &:after {
+    top: 3px;
+    left: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #1e1e1e;
+    transition: 0.1s transform ease;
+  }
+  .iframely-option-check__input:checked + & {
+    &:before {
+      background: var(--wp-admin-theme-color);
+      border-color: var(--wp-admin-theme-color);
+    }
+    &:after {
+      background: #fff;
+      transform: translateX(18px);
+    }
+  }
+  .iframely-option-check__input:focus + & {
+    &:before {
+      box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--wp-admin-theme-color);
+      outline: 2px solid transparent;
+      outline-offset: 2px;
+    }
+  }
+}

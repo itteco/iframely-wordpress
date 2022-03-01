@@ -1,0 +1,459 @@
+# Copyright (C) 2022 Iframely.com
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Iframely\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/iframely/\n"
+"Last-Translator: Iframely.com\n"
+"Language-Team: Iframely.com\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2022-02-23T19:09:10+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.6.0\n"
+"X-Domain: iframely\n"
+
+#. Plugin Name of the plugin
+#: app/UI/Settings.php:30
+#: app/UI/Settings.php:32
+msgid "Iframely"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://iframely.com/wordpress"
+msgstr ""
+
+#. Description of the plugin
+msgid "WP media embeds, cards and blocks."
+msgstr ""
+
+#. Author of the plugin
+msgid "Iframely.com"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://iframely.com/"
+msgstr ""
+
+#: app/Embed/Cache.php:74
+msgid "1 month"
+msgstr ""
+
+#: app/Embed/Cache.php:75
+msgid "3 weeks"
+msgstr ""
+
+#: app/Embed/Cache.php:76
+msgid "2 weeks"
+msgstr ""
+
+#: app/Embed/Cache.php:77
+msgid "1 week"
+msgstr ""
+
+#: app/Embed/Cache.php:78
+msgid "6 days"
+msgstr ""
+
+#: app/Embed/Cache.php:79
+msgid "5 days"
+msgstr ""
+
+#: app/Embed/Cache.php:80
+msgid "4 days"
+msgstr ""
+
+#: app/Embed/Cache.php:81
+msgid "3 days"
+msgstr ""
+
+#: app/Embed/Cache.php:82
+msgid "2 days"
+msgstr ""
+
+#: app/Embed/Cache.php:83
+msgid "1 day"
+msgstr ""
+
+#: app/Plugin.php:47
+msgid "Settings"
+msgstr ""
+
+#: app/UI/Notice.php:30
+msgid "Complete Iframely installation. <a href=\"%s\">Enter your API key</a>."
+msgstr ""
+
+#: app/UI/Settings.php:74
+msgid "Please enter new API key."
+msgstr ""
+
+#: app/UI/Settings.php:80
+msgid "Settings saved."
+msgstr ""
+
+#: app/UI/Settings.php:92
+msgid "Invalid API key. Please check <a href=\"%s\" target=\"_blank\">your keys</a> and try again."
+msgstr ""
+
+#: app/UI/Settings.php:106
+msgid "HTTP error"
+msgstr ""
+
+#: app/UI/Settings.php:114
+msgid "Sorry, your API key can't be verified."
+msgstr ""
+
+#: app/UI/Settings.php:116
+msgid "Sorry, your API key can't be verified (error code %s). <a href=\"%s\" target=\"_blank\">Learn more</a>"
+msgstr ""
+
+#: app/UI/Settings.php:126
+msgid "API key has been updated."
+msgstr ""
+
+#: views/activation.php:8
+msgid "Activate Iframely"
+msgstr ""
+
+#: views/activation.php:11
+msgid "In order to use Iframely service, you need an API key from <a href=\"%s\" target=\"_blank\">iframely.com</a>."
+msgstr ""
+
+#: views/activation.php:17
+msgid "I already have an API key"
+msgstr ""
+
+#: views/activation.php:18
+msgid "Enter your API key to connect this website with Iframely cloud API. You can find and manage API keys in your dashboard at <a href=\"%s\" target=\"_blank\">iframely.com</a>."
+msgstr ""
+
+#: views/activation.php:25
+msgid "Enter your API key"
+msgstr ""
+
+#: views/activation.php:26
+msgid "Connect with API key"
+msgstr ""
+
+#: views/activation.php:32
+msgid "I’m new to Iframely"
+msgstr ""
+
+#: views/activation.php:33
+msgid "Register at <a href=\"%s\" target=\"_blank\">iframely.com</a> and get free full-featured 30 days trial period. Iframely also offers a free and limited \"Developer\" plan for development and testing purposes."
+msgstr ""
+
+#: views/activation.php:36
+msgid "Register and get API key"
+msgstr ""
+
+#: views/partials/onboarding.php:3
+#: views/partials/onboarding.php:23
+msgid "Enjoy your new embeds!"
+msgstr ""
+
+#: views/partials/onboarding.php:8
+msgid "How to use Iframely?"
+msgstr ""
+
+#: views/partials/onboarding.php:10
+msgid "Just enter or paste a link in Gutenberg as you usually do. Iframely will detect a link and replace it with a rich media embed."
+msgstr ""
+
+#: views/partials/onboarding.php:11
+msgid "Use embed options in the sidebar to fine-tune your embeds."
+msgstr ""
+
+#: views/partials/onboarding.php:13
+msgid "Next steps"
+msgstr ""
+
+#: views/partials/onboarding.php:14
+msgid "You change every aspect of Iframely via settings. Configure what you get and how you get it. Match cards and click-to-play to your branding."
+msgstr ""
+
+#: views/partials/promo.php:14
+msgid "Rich media embeds from 1900+ publishers"
+msgstr ""
+
+#: views/partials/promo.php:15
+msgid "<a href=\"%s\" target=\"_blank\">Iframely</a> extends WordPress default embeds and adds customizable rich media blocks from over <a href=\"%s\" target=\"_blank\">1900 rich media publishers</a>. For the rest of the Web, Iframely cloud serves a summary card preview."
+msgstr ""
+
+#: views/partials/promo.php:22
+msgid "Per-URL embed options"
+msgstr ""
+
+#: views/partials/promo.php:28
+msgid "Custom cards design"
+msgstr ""
+
+#: views/partials/promo.php:34
+msgid "Natively responsive"
+msgstr ""
+
+#: views/partials/promo.php:40
+msgid "Content recirculation"
+msgstr ""
+
+#: views/partials/promo.php:46
+#: views/tabs/settings.php:68
+msgid "Evergreen cache"
+msgstr ""
+
+#: views/partials/promo.php:52
+msgid "AMP, lazy-loading, consents and more"
+msgstr ""
+
+#: views/partials/promo.php:59
+msgid "Explore all features"
+msgstr ""
+
+#: views/partials/promo.php:60
+msgid "Test your URL"
+msgstr ""
+
+#: views/partials/tabs.php:4
+msgid "Enable"
+msgstr ""
+
+#: views/partials/tabs.php:5
+msgid "Customize"
+msgstr ""
+
+#: views/partials/tabs.php:6
+msgid "Help & Support"
+msgstr ""
+
+#: views/settings.php:7
+msgid "Iframely – media embed blocks"
+msgstr ""
+
+#: views/tabs/customize.php:7
+msgid "URL cards"
+msgstr ""
+
+#: views/tabs/customize.php:8
+msgid "Cards are previews for URLs without rich media or when media is attached. Design is also applied when you paste and recirculate a link to your own post."
+msgstr ""
+
+#: views/tabs/customize.php:9
+msgid "Design URL cards"
+msgstr ""
+
+#: views/tabs/customize.php:14
+msgid "User consents"
+msgstr ""
+
+#: views/tabs/customize.php:15
+msgid "You may request user consent before exposing them to third-party rich media. Optional for GDPR, it brings its own intrinsic privacy value."
+msgstr ""
+
+#: views/tabs/customize.php:16
+msgid "Design consents"
+msgstr ""
+
+#: views/tabs/customize.php:21
+msgid "Click-to-play"
+msgstr ""
+
+#: views/tabs/customize.php:22
+msgid "Unify third-party players and MP4 with your Iframely click-to-play cover design, or just activate players lazy-loading with image placeholder."
+msgstr ""
+
+#: views/tabs/customize.php:23
+msgid "Stylize click-to-play"
+msgstr ""
+
+#: views/tabs/customize.php:28
+msgid "iFrame helpers"
+msgstr ""
+
+#: views/tabs/customize.php:29
+msgid "iFrames do the heavy lifting of rich media rendering, making sure embeds work for you and your user and delivering async speed and all of our HTML."
+msgstr ""
+
+#: views/tabs/customize.php:30
+msgid "Customize helpers"
+msgstr ""
+
+#: views/tabs/customize.php:35
+msgid "Content IDs"
+msgstr ""
+
+#: views/tabs/customize.php:36
+msgid "Short IDs are used as permanent source of iFrames. Unlike API key-based iFrames, Iframely cloud takes care of your content even if you cancel (requires a supporting plan)."
+msgstr ""
+
+#: views/tabs/customize.php:37
+msgid "Activate IDs"
+msgstr ""
+
+#: views/tabs/customize.php:42
+msgid "Providers"
+msgstr ""
+
+#: views/tabs/customize.php:43
+msgid "Activate Google Maps, Twitch and configure other providers with most frequent options. For more, contact Iframely support."
+msgstr ""
+
+#: views/tabs/customize.php:44
+msgid "Fine-tune providers"
+msgstr ""
+
+#: views/tabs/customize.php:51
+msgid "The following features are available in your account's dashboard at <a href=\"%s\">iframely.com</a>."
+msgstr ""
+
+#: views/tabs/help.php:7
+msgid "Documentation"
+msgstr ""
+
+#: views/tabs/help.php:8
+msgid "Take a read about third-party rich media, Iframely interactives and content delivery helpers."
+msgstr ""
+
+#: views/tabs/help.php:12
+msgid "Plugin discussion"
+msgstr ""
+
+#: views/tabs/help.php:13
+msgid "We reply to every community post or review on Iframely page at WordPress.org."
+msgstr ""
+
+#: views/tabs/help.php:17
+msgid "Missing a provider?"
+msgstr ""
+
+#: views/tabs/help.php:18
+msgid "We keep adding new media providers to the service daily. Let us know if we miss the one you need."
+msgstr ""
+
+#: views/tabs/help.php:22
+msgid "Support"
+msgstr ""
+
+#: views/tabs/help.php:23
+msgid "Email or website chat, we are just one message away and arehere to help along the way."
+msgstr ""
+
+#: views/tabs/help.php:30
+msgid "Iframely team is very friendly. We want you to get the best rich media experience."
+msgstr ""
+
+#: views/tabs/help.php:31
+msgid "If you run into any difficulties, there are several places you can find help."
+msgstr ""
+
+#: views/tabs/reactivate.php:7
+msgid "When you change your API key, the media cache in your posts is cleared. You will need a new valid key to reinstate the embedded content. Are you sure?"
+msgstr ""
+
+#: views/tabs/reactivate.php:9
+#: views/tabs/settings.php:18
+msgid "Change API key"
+msgstr ""
+
+#: views/tabs/settings.php:6
+msgid "Iframely cloud"
+msgstr ""
+
+#: views/tabs/settings.php:8
+msgid "Iframely service adds and maintains rich media embeds from 1900 providers, and URL preview cards for the rest of the Internet."
+msgstr ""
+
+#: views/tabs/settings.php:14
+msgid "Iframely API key"
+msgstr ""
+
+#: views/tabs/settings.php:24
+msgid "Existing media providers"
+msgstr ""
+
+#: views/tabs/settings.php:26
+msgid "Your WordPress comes with the number of built-in rich media providers, and Iframely can extend those by providing <a href=\"%s\" target=\"_blank\">per-URL options</a> and other improvements."
+msgstr ""
+
+#: views/tabs/settings.php:33
+msgid "Include built-in providers"
+msgstr ""
+
+#: views/tabs/settings.php:38
+msgid "Enable Iframely for WordPress providers like YouTube, Twitter, Vimeo, etc."
+msgstr ""
+
+#: views/tabs/settings.php:45
+msgid "Your own posts"
+msgstr ""
+
+#: views/tabs/settings.php:47
+msgid "When you paste this site's URL in a post, WordPress shows <a href=\"%s\" target=\"_blank\">its summary</a>."
+msgstr ""
+
+#: views/tabs/settings.php:49
+msgid "Override it with Iframely <a href=\"%s\" target=\"_blank\">customizable cards</a> instead."
+msgstr ""
+
+#: views/tabs/settings.php:56
+msgid "Enhance site previews"
+msgstr ""
+
+#: views/tabs/settings.php:61
+msgid "Show Iframely cards when you link to your own posts"
+msgstr ""
+
+#: views/tabs/settings.php:70
+msgid "WordPress resolves embed codes as you write a post and keeps them cached. Media is refreshed only when you edit & save the post manually."
+msgstr ""
+
+#: views/tabs/settings.php:72
+msgid "To avoid broken embedded blocks, we recommend automating the cache refreshes."
+msgstr ""
+
+#: views/tabs/settings.php:79
+msgid "Automate caching"
+msgstr ""
+
+#: views/tabs/settings.php:84
+msgid "Refresh embedded blocks at regular intervals"
+msgstr ""
+
+#: views/tabs/settings.php:91
+msgid "Keep cache for"
+msgstr ""
+
+#: views/tabs/settings.php:105
+msgid "Advanced options"
+msgstr ""
+
+#: views/tabs/settings.php:107
+msgid "Together with your cloud <a href=\"%s\" target=\"_blank\">API settings</a>, optional query string API parameters help you fine-tune embeds."
+msgstr ""
+
+#: views/tabs/settings.php:109
+msgid "You can override your default Iframely settings for this website with <a href=\"%s\" target=\"_blank\">additional API parameters</a>."
+msgstr ""
+
+#: views/tabs/settings.php:116
+msgid "Query string parameters"
+msgstr ""
+
+#: views/tabs/settings.php:120
+msgid "Example"
+msgstr ""
+
+#: build/index.js:1
+#: src/js/components/IframelyOptions.js:21
+msgid "If your <a href=\"%s\" target=\"_blank\">plan</a> supports it and config allows, Iframely will show <a href=\"%s\" target=\"_blank\">edit options</a> for selected URL here, whenever available."
+msgstr ""
+
+#: build/index.js:1
+#: src/js/components/IframelyOptions.js:28
+msgid "Iframely will show edit options for selected URL here, whenever available."
+msgstr ""
+
+#: build/index.js:1
+#: src/js/options.js:17
+msgid "Iframely options"
+msgstr ""

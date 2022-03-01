@@ -1,0 +1,44 @@
+{
+  "name": "iframely-wordpress",
+  "version": "1.0.0",
+  "description": "Iframely WordPress plugin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yellowby/iframely-wordpress.git"
+  },
+  "keywords": [
+    "gutenberg",
+    "embed",
+    "iframely"
+  ],
+  "author": "Iframely.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yellowby/iframely-wordpress/issues"
+  },
+  "homepage": "https://github.com/yellowby/iframely-wordpress#readme",
+  "prettier": {
+    "singleQuote": true
+  },
+  "source": "src/index.js",
+  "main": "js/index.js",
+  "scripts": {
+    "start": "wp-scripts start",
+    "build": "wp-scripts build"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^19.2.3",
+    "gulp": "^4.0.2",
+    "mri": "^1.2.0",
+    "prettier": "^2.5.1"
+  },
+  "dependencies": {
+    "@wordpress/block-editor": "^8.0.13",
+    "@wordpress/components": "^19.2.0",
+    "@wordpress/compose": "^5.0.7",
+    "@wordpress/data": "^6.1.5",
+    "@wordpress/element": "^4.0.4",
+    "@wordpress/hooks": "^3.2.2",
+    "@wordpress/i18n": "^4.2.4"
+  }
+}

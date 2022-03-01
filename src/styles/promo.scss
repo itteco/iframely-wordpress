@@ -1,0 +1,56 @@
+.iframely-promo {
+  max-width: none;
+  margin-top: 2.5em;
+  padding: 0;
+}
+.iframely-promo__body {
+  padding: 2em;
+}
+.iframely-promo__footer {
+  display: flex;
+  gap: 1em;
+  padding: 0.5em 2em;
+  background: #f6f7f7;
+  border-top: 1px solid #ebebeb;
+}
+.iframely-promo__logo {
+  display: inline-block;
+}
+.iframely-promo__tagline {
+  max-width: 54em;
+  margin-bottom: 1.5em;
+}
+.iframely-promo__list {
+}
+.iframely-promo__item {
+  display: flex;
+  align-items: center;
+  margin: 0.5em 0;
+}
+.iframely-promo__icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1.231em;
+  height: 1.231em;
+  margin-right: 0.5em;
+  border-radius: 50%;
+  fill: white;
+}
+
+@media (min-width: 600px) {
+  .iframely-promo__list {
+    display: flex;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    max-width: 560px;
+  }
+  .iframely-promo__item {
+    box-sizing: border-box;
+    width: 40%;
+    padding-right: 1em;
+
+    &:nth-child(even) {
+      width: 60%;
+    }
+  }
+}

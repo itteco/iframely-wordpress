@@ -1,0 +1,26 @@
+.iframely-activation {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+
+  @media (min-width: 1100px) {
+    flex-direction: row;
+  }
+}
+.iframely-activation__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  margin: 0.5em 0 1em;
+
+  @media (min-width: 783px) {
+    flex-direction: row;
+  }
+}
+.iframely-activation__input {
+  display: block;
+  flex: 1;
+}
+.iframely-activation__button {
+  align-self: flex-start;
+}
