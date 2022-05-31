@@ -3,8 +3,8 @@ Contributors: yellowby, garmoncheg, ivanp, psergeev
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: gutenberg, facebook, instagram, twitter, youtube, tiktok, twitch
-Tested up to: 5.9.1
-Stable tag: 1.0
+Tested up to: 6.0
+Stable tag: 1.0.1
 Requires at least: 3.8
 Requires PHP: 7.2
 
