@@ -122,6 +122,10 @@ You can change every aspect of Iframely embeds via your account settings at [ifr
 
 == Changelog ==
 
+= 1.0.1 =
+
+* WordPress 6.0 compatibility
+
 = 1.0 =
 
 * We re-built Iframely for WordPress from the ground up, revamped user interface, Gutenberg blocks, plugin settings and activation
