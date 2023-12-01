@@ -23,6 +23,7 @@ class Gutenberg
         # i.e in the editor and self-oEmbed discovery
         add_filter('oembed_default_width', [self::class, 'iframely_flag_ajax_oembed']);
         add_filter('oembed_request_post_id', [self::class, 'maybe_remove_wp_self_embeds_in_guttenberg'], 10, 2);
+        add_filter('embed_oembed_html', [self::class, 'filter_oembed_result'], 20, 3);
 
         # load assets
         add_action('enqueue_block_editor_assets', [self::class, 'iframely_gutenberg_loader']);
@@ -44,7 +45,7 @@ class Gutenberg
 
     public static function iframely_bust_gutenberg_cache($args)
     {
-        $args['gutenberg'] = 1;
+        $args['gutenberg'] = 2;
         return $args;
     }
 
@@ -54,17 +55,27 @@ class Gutenberg
             if (!Utils::stringContains($provider, 'iframe=card')) {
                 $provider = add_query_arg('iframe', '1', $provider);
             }
-            $provider = add_query_arg('gutenberg', '1', $provider);
+            $provider = add_query_arg('gutenberg', '2', $provider);
         }
         return $provider;
     }
 
     public static function inject_events_proxy_to_gutenberg($html, $url, $args)
     {
+        $html = str_replace('"//cdn.iframe.ly', '"https://cdn.iframe.ly', $html);
+
         if (!empty(trim($html))) { // != trims $html
             return $html . '<script type="text/javascript">window.addEventListener("message",function(e){window.top.postMessage(e.data,"*");},false);</script>';
         }
         return $html;
+    }
+
+    public static function filter_oembed_result($cache) {
+        $cache = str_replace(
+           ['"//cdn.iframe.ly', 'window.parent.postMessage(e.data,"*")'],
+           ['"https://cdn.iframe.ly', 'window.top.postMessage(e.data,"*")'],
+         $cache);
+        return $cache;
     }
 
     public static function maybe_remove_wp_self_embeds_in_guttenberg($post_id, $url)
