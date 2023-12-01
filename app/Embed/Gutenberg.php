@@ -62,7 +62,7 @@ class Gutenberg
     public static function inject_events_proxy_to_gutenberg($html, $url, $args)
     {
         if (!empty(trim($html))) { // != trims $html
-            return $html . '<script type="text/javascript">window.addEventListener("message",function(e){window.parent.postMessage(e.data,"*");},false);</script>';
+            return $html . '<script type="text/javascript">window.addEventListener("message",function(e){window.top.postMessage(e.data,"*");},false);</script>';
         }
         return $html;
     }
