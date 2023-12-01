@@ -47,7 +47,7 @@ class IframelyOptions extends Component {
 }
 
 function updateForm() {
-  console.log('updateForm');
+  //console.log('updateForm');
   const blockId = getBlockId();
   const iframe = getBlockIframe(blockId);
   const data = jQuery(iframe).data();

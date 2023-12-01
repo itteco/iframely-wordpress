@@ -1,4 +1,4 @@
-import { getBlockId } from '../utils';
+import { getBlockId, getEmbedIframe, getBlockIframe, getBlockWindow } from '../utils';
 import { dispatch } from '@wordpress/data';
 
 function loadIframelyEmbedJs($w) {
@@ -14,38 +14,34 @@ function loadIframelyEmbedJs($w) {
 }
 
 export function optionsChanged(id, formContainer, query) {
-  const selector = '#block-' + getBlockId();
-  const iframe = document.querySelector(selector + ' iframe').contentDocument.querySelector('iframe');
-  const preview = jQuery(selector).find('iframe');
+  const blockId = getBlockId();
+  const blockIframe = getBlockIframe(blockId);
+  const embedIframe = getEmbedIframe(blockId);
+  const data = jQuery(blockIframe)?.data();
+  let src = data?.context;
 
-  if (preview && preview.data() && preview.data().data && preview.data().context) {
-    const data = preview.data();
-
-    let src = data.context;
-
-    // wipe out old query completely
-    if (data.data.query && data.data.query.length > 0) {
-      data.data.query.forEach(function (key) {
-        if (src.indexOf(key) > -1) {
-          src = src.replace(new RegExp('&?' + key.replace('-', '\\-') + '=[^\\?\\&]+'), ''); // delete old key
-        }
-      });
-    }
-    // and add entire new query instead
-    Object.keys(query).forEach(function (key) {
-      src += (src.indexOf('?') > -1 ? '&' : '?') + key + '=' + query[key];
-    });
-
-    console.log('optionsChanged', {
-      query: data?.data?.query,
-      src,
-    });
-
-    // load embed.js if it was missing to catch chaning sizes
-    loadIframelyEmbedJs(document.querySelector(selector + ' iframe').contentWindow);
-
-    iframe.src = src;
-
-    dispatch('core/block-editor').updateBlockAttributes(getBlockId(), { iquery: query });
+  if (!(blockIframe && src && data?.data)) {
+    return;
   }
+
+  // wipe out old query completely
+  if (data.data.query && data.data.query.length > 0) {
+    data.data.query.forEach(function (key) {
+      if (src.indexOf(key) > -1) {
+        src = src.replace(new RegExp('&?' + key.replace('-', '\\-') + '=[^\\?\\&]+'), ''); // delete old key
+      }
+    });
+  }
+
+  // and add entire new query instead
+  Object.keys(query).forEach(function (key) {
+    src += (src.indexOf('?') > -1 ? '&' : '?') + key + '=' + query[key];
+  });
+
+  // load embed.js if it was missing to catch chaning sizes
+  //loadIframelyEmbedJs(getBlockWindow(blockId));
+
+  embedIframe.src = src;
+
+  dispatch('core/block-editor').updateBlockAttributes(blockId, { iquery: query });
 }

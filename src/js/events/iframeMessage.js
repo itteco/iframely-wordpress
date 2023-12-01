@@ -1,37 +1,39 @@
 import { select } from '@wordpress/data';
-import { getBlockId } from '../utils';
 import { updateForm } from '../components/IframelyOptions';
+import { getEditorDocument, getBlockId, isObject } from '../utils';
 
-const iEvent = new RegExp('setIframelyEmbedOptions');
+const methodName = 'setIframelyEmbedOptions';
 
-function findIframeByContentWindow(iframes, contentWindow) {
-  let foundIframe;
-  for (let i = 0; i < iframes.length && !foundIframe; i++) {
-    let iframe = iframes[i];
-    if (iframe.contentWindow === contentWindow) {
-      foundIframe = iframe;
+function getCurrentIframe(source) {
+  let editor = getEditorDocument();
+  let iframes = editor.querySelectorAll('iframe');
+  let iframe = null;
+  iframes.forEach((item) => {
+    if (item.contentWindow === source) {
+      iframe = item;
     }
-  }
-  return foundIframe;
+  });
+  return iframe;
 }
 
 export function iframeMessage(e) {
-  // Listen for messages from iframe proxy script
-  if (iEvent.test(e.data)) {
-    let frames = document.getElementsByTagName('iframe'),
-      iframe = findIframeByContentWindow(frames, e.source);
+  const data = isObject(e?.data) ? e.data : JSON.parse(e?.data) || {};
+  if (data?.method !== methodName) {
+    return;
+  }
+  let iframe = getCurrentIframe(e.source);
+  if (!iframe) {
+    return;
+  }
+  // console.log('messageReceived');
 
-    let data = JSON.parse(e.data);
+  // Store the current state of options form in the iframe
+  jQuery(iframe).data(data);
 
-    console.log('messageReceived', data?.data);
+  // update only if the form is open. If not, it will be built on render
+  const block = select('core/block-editor').getBlock(getBlockId());
 
-    jQuery(iframe).data(data); // Store current state of options form in the iframe
-
-    // update only if the form is open. If not, it will be built on render
-    const block = select('core/block-editor').getBlock(getBlockId());
-
-    if (block && /^core-?\/?embed/i.test(block.name)) {
-      updateForm();
-    }
+  if (block && /^core-?\/?embed/i.test(block.name)) {
+    updateForm();
   }
 }
