@@ -5,8 +5,8 @@ import { getEditorDocument, getBlockId, isObject } from '../utils';
 const methodName = 'setIframelyEmbedOptions';
 
 function getCurrentIframe(source) {
-  let editor = getEditorDocument();
-  let iframes = editor.querySelectorAll('iframe');
+  const editor = getEditorDocument();
+  const iframes = editor.querySelectorAll('iframe');
   let iframe = null;
   iframes.forEach((item) => {
     if (item.contentWindow === source) {
@@ -25,6 +25,7 @@ export function iframeMessage(e) {
   if (!iframe) {
     return;
   }
+
   // console.log('messageReceived');
 
   // Store the current state of options form in the iframe

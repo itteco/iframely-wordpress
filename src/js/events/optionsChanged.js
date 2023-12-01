@@ -1,16 +1,42 @@
 import { getBlockId, getEmbedIframe, getBlockIframe, getBlockWindow } from '../utils';
 import { dispatch } from '@wordpress/data';
 
-function loadIframelyEmbedJs($w) {
-  if ($w && !$w.iframely) {
-    // already loaded
-    var ifs = $w.document.createElement('script');
-    ifs.type = 'text/javascript';
-    ifs.async = true;
-    ifs.src = ('https:' === document.location.protocol ? 'https:' : 'http:') + '//if-cdn.com/embed.js';
-    var s = $w.document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(ifs, s);
+function loadIframelyEmbedJs(window) {
+  console.log('embed.js loaded?');
+  if (window.iframely) {
+    console.log('yep');
+    return;
   }
+  console.log('nope, loading');
+
+  let script = window.document.createElement('script');
+  script.type = 'text/javascript';
+  script.async = true;
+  script.src = ('https:' === document.location.protocol ? 'https:' : 'http:') + '//if-cdn.com/embed.js';
+  window.document.head.appendChild(script);
+
+  /*
+  let style = window.document.createElement('style');
+  style.textContent = `.iframely-responsive {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 0;
+      position: relative;
+      padding-bottom: 56.25%;
+      box-sizing: border-box;
+  }
+  .iframely-responsive > * {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      border: 0;
+      box-sizing: border-box;
+  }`;
+  window.document.head.appendChild(style);
+  */
 }
 
 export function optionsChanged(id, formContainer, query) {
@@ -38,8 +64,8 @@ export function optionsChanged(id, formContainer, query) {
     src += (src.indexOf('?') > -1 ? '&' : '?') + key + '=' + query[key];
   });
 
-  // load embed.js if it was missing to catch chaning sizes
-  //loadIframelyEmbedJs(getBlockWindow(blockId));
+  // load embed.js if it was missing to catch changing sizes
+  loadIframelyEmbedJs(getBlockWindow(blockId));
 
   embedIframe.src = src;
 
