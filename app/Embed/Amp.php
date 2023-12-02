@@ -23,7 +23,7 @@ class Amp
             || (function_exists('is_amp_endpoint') && is_amp_endpoint());
     }
 
-    public static function maybe_add_iframe_amp($provider, $args, $url)
+    public static function maybe_add_iframe_amp($provider, $url, $args)
     {
         if (self::is_iframely_amp($args) && Utils::stringContains($provider, 'iframe.ly')) {
             $provider = add_query_arg('amp', '1', $provider);

@@ -49,7 +49,7 @@ class Gutenberg
         return $args;
     }
 
-    public static function maybe_add_gutenberg_1($provider, $args, $url)
+    public static function maybe_add_gutenberg_1($provider, $url, $args)
     {
         if (Utils::stringContains($provider, 'iframe.ly')) {
             if (!Utils::stringContains($provider, 'iframe=card')) {
