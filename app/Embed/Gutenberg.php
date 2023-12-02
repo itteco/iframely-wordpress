@@ -32,7 +32,7 @@ class Gutenberg
     public static function iframely_flag_ajax_oembed($width)
     {
         add_filter('embed_defaults', [self::class, 'iframely_bust_gutenberg_cache'], 10, 1);
-        add_filter('oembed_fetch_url', [self::class, 'maybe_add_gutenberg_1'], 10, 3);
+        add_filter('oembed_fetch_url', [self::class, 'maybe_add_gutenberg_1'], 20, 3);
         add_filter('oembed_result', [self::class, 'inject_events_proxy_to_gutenberg'], 10, 3);
 
         # The core's code doesn't even bother to look into default values and just hardcodes 600.
@@ -52,9 +52,7 @@ class Gutenberg
     public static function maybe_add_gutenberg_1($provider, $url, $args)
     {
         if (Utils::stringContains($provider, 'iframe.ly')) {
-            if (!Utils::stringContains($provider, 'iframe=card')) {
-                $provider = add_query_arg('iframe', '1', $provider);
-            }
+            $provider = add_query_arg('iframe', '1', $provider);
             $provider = add_query_arg('gutenberg', '2', $provider);
         }
         return $provider;
