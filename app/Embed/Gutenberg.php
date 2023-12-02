@@ -15,6 +15,10 @@ class Gutenberg
 
     public static function init(): void
     {
+        # Always extract &iframely={serialized options} that we append to URLs 
+        # and add these options into the oEmbed endpoint's query-string parameters
+        add_filter('oembed_fetch_url', [self::class, 'maybe_add_iframely_url_options'], 20, 3);
+
         if (!current_user_can('edit_posts')) {
             return;
         }
@@ -54,6 +58,29 @@ class Gutenberg
         if (Utils::stringContains($provider, 'iframe.ly')) {
             $provider = add_query_arg('iframe', '1', $provider);
             $provider = add_query_arg('gutenberg', '2', $provider);
+        }
+        return $provider;
+    }
+
+    public static function maybe_add_iframely_url_options($provider, $url, $args)
+    {
+        # Options are added to URL the URL in utils.js this way:
+        # 'iframely=' + encodeURIComponent(window.btoa(JSON.stringify(query)));
+        if (Utils::stringContains($provider, 'iframe.ly') && Utils::stringContains($url, 'iframely=')) {
+            $parsed_url = parse_url($url);
+            if (isset($parsed_url['query'])) {
+                $params = array();
+                parse_str($parsed_url['query'], $params);
+
+                if (isset($params['iframely'])) {
+                    $options_str = base64_decode(urldecode($params['iframely']));
+                    $options_query = json_decode($options_str);
+
+                    foreach($options_query as $key => $value) {
+                        $provider = add_query_arg($key, $value, $provider);
+                    }
+                }
+            }
         }
         return $provider;
     }
