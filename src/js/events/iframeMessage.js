@@ -26,8 +26,6 @@ export function iframeMessage(e) {
     return;
   }
 
-  // console.log('messageReceived');
-
   // Store the current state of options form in the iframe
   jQuery(iframe).data(data);
 

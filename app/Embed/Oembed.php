@@ -53,14 +53,8 @@ class Oembed
             } else {
                 $provider = add_query_arg('card', '1', $provider);
             }
-            $provider = add_query_arg('iframe', '1', $provider);            
+            $provider = add_query_arg('iframe', '1', $provider);
         }
         return $provider;
-    }    
+    }
 }
-
-
-
-
-
-

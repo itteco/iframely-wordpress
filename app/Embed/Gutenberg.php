@@ -15,7 +15,7 @@ class Gutenberg
 
     public static function init(): void
     {
-        # Always extract &iframely={serialized options} that we append to URLs 
+        # Always extract &iframely={serialized options} that we append to URLs
         # and add these options into the oEmbed endpoint's query-string parameters
         add_filter('oembed_fetch_url', [self::class, 'maybe_add_iframely_url_options'], 20, 3);
 
@@ -27,7 +27,6 @@ class Gutenberg
         # i.e in the editor and self-oEmbed discovery
         add_filter('oembed_default_width', [self::class, 'iframely_flag_ajax_oembed']);
         add_filter('oembed_request_post_id', [self::class, 'maybe_remove_wp_self_embeds_in_guttenberg'], 10, 2);
-        add_filter('embed_oembed_html', [self::class, 'filter_oembed_result'], 20, 3);
 
         # load assets
         add_action('enqueue_block_editor_assets', [self::class, 'iframely_gutenberg_loader']);
@@ -76,7 +75,7 @@ class Gutenberg
                     $options_str = base64_decode(urldecode($params['iframely']));
                     $options_query = json_decode($options_str);
 
-                    foreach($options_query as $key => $value) {
+                    foreach ($options_query as $key => $value) {
                         $provider = add_query_arg($key, $value, $provider);
                     }
                 }
@@ -90,17 +89,11 @@ class Gutenberg
         $html = str_replace('"//cdn.iframe.ly', '"https://cdn.iframe.ly', $html);
 
         if (!empty(trim($html))) { // != trims $html
-            return $html . '<script type="text/javascript">window.addEventListener("message",function(e){window.top.postMessage(e.data,"*");},false);</script>';
+            return $html .
+                '<style>body{overflow: hidden}</style>' .
+                '<script type="text/javascript">window.addEventListener("message",function(e){window.top.postMessage(e.data,"*");},false);</script>';
         }
         return $html;
-    }
-
-    public static function filter_oembed_result($cache) {
-        $cache = str_replace(
-           ['"//cdn.iframe.ly', 'window.parent.postMessage(e.data,"*")'],
-           ['"https://cdn.iframe.ly', 'window.top.postMessage(e.data,"*")'],
-         $cache);
-        return $cache;
     }
 
     public static function maybe_remove_wp_self_embeds_in_guttenberg($post_id, $url)
