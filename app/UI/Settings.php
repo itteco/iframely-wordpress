@@ -27,7 +27,7 @@ class Settings
     public static function register(): void
     {
         if (is_multisite()) {
-            add_submenu_page('settings.php', __('Iframely', 'iframely'), __('Iframely', 'iframely'), 'install_plugins', 'iframely', [self::class, 'render']);
+            add_submenu_page('settings.php', __('Iframely', 'iframely'), __('Iframely', 'iframely'), 'manage_network_options', 'iframely', [self::class, 'render']);
         } else {
             add_options_page(__('Iframely', 'iframely'), __('Iframely', 'iframely'), 'manage_options', 'iframely', [self::class, 'render']);
         }
