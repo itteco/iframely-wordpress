@@ -1,34 +1,6 @@
 import { getBlockId, getEmbedIframe, getBlockIframe, getBlockWindow, getEditorDocument } from '../utils';
 import { dispatch } from '@wordpress/data';
 
-function maybeFixIframe(window) {
-  setTimeout(() => {
-    if (window.document.getElementById('iframely-styles')) {
-      return;
-    }
-    let style = window.document.createElement('style');
-    style.textContent = `.iframely-responsive {
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 0;
-      position: relative;
-      padding-bottom: 56.25%;
-      box-sizing: border-box;
-    }
-    .iframely-responsive > * {
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      border: 0;
-      box-sizing: border-box;
-    }`;
-    window.document.head.appendChild(style);
-  }, 50);
-}
-
 export function optionsChanged(id, formContainer, query) {
   const blockId = getBlockId();
   const blockIframe = getBlockIframe(blockId);
@@ -53,8 +25,6 @@ export function optionsChanged(id, formContainer, query) {
   Object.keys(query).forEach(function (key) {
     src += (src.indexOf('?') > -1 ? '&' : '?') + key + '=' + query[key];
   });
-
-  maybeFixIframe(getBlockWindow(getBlockId()));
 
   embedIframe.src = src;
 
