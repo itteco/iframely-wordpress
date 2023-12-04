@@ -88,9 +88,7 @@ class Gutenberg
 
     public static function inject_events_proxy_to_gutenberg($html, $url, $args)
     {
-        $html = str_replace('"//cdn.iframe.ly', '"https://cdn.iframe.ly', $html);
-
-        if (!empty(trim($html))) { // != trims $html
+        if (!empty(trim($html))) {
             return $html .
                 '<style>body{overflow: hidden}</style>' .
                 '<script type="text/javascript">window.addEventListener("message",function(e){window.top.postMessage(e.data,"*");},false);</script>';
