@@ -22,6 +22,7 @@ class Settings
 
         // Load assets
         add_action('admin_enqueue_scripts', [self::class, 'enqueue']);
+        add_action('enqueue_block_editor_assets', [self::class, 'enqueueEditor']);
     }
 
     public static function register(): void
@@ -36,11 +37,16 @@ class Settings
     public static function enqueue(): void
     {
         $screen = get_current_screen();
-        $screens = ['post', 'settings_page_iframely-network', 'settings_page_iframely'];
+        $screens = ['settings_page_iframely-network', 'settings_page_iframely'];
         if (!($screen !== null && in_array($screen->id, $screens))) {
             return;
         }
-        wp_enqueue_style('iframely-admin', Plugin::asset('index.css'), [], IFRAMELY_VERSION);
+        wp_enqueue_style('iframely-admin', Plugin::asset('admin.css'), [], IFRAMELY_VERSION);
+    }
+
+    public static function enqueueEditor(): void
+    {
+        wp_enqueue_style('iframely-options', Plugin::asset('index.css'), [], IFRAMELY_VERSION);
     }
 
     public static function render(): void
