@@ -56,6 +56,8 @@ class Gutenberg
     {
         if (Utils::stringContains($provider, 'iframe.ly')) {
             $provider = add_query_arg('iframe', '1', $provider);
+            $provider = add_query_arg('import', '0', $provider);
+            $provider = add_query_arg('ssl', '1', $provider);
             $provider = add_query_arg('gutenberg', '2', $provider);
         }
         return $provider;
