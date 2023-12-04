@@ -15,6 +15,10 @@ class Gutenberg
 
     public static function init(): void
     {
+        # Always extract &iframely={serialized options} that we append to URLs
+        # and add these options into the oEmbed endpoint's query-string parameters
+        add_filter('oembed_fetch_url', [self::class, 'maybe_add_iframely_url_options'], 20, 3);
+
         if (!current_user_can('edit_posts')) {
             return;
         }
@@ -31,7 +35,7 @@ class Gutenberg
     public static function iframely_flag_ajax_oembed($width)
     {
         add_filter('embed_defaults', [self::class, 'iframely_bust_gutenberg_cache'], 10, 1);
-        add_filter('oembed_fetch_url', [self::class, 'maybe_add_gutenberg_1'], 10, 3);
+        add_filter('oembed_fetch_url', [self::class, 'maybe_add_gutenberg_1'], 20, 3);
         add_filter('oembed_result', [self::class, 'inject_events_proxy_to_gutenberg'], 10, 3);
 
         # The core's code doesn't even bother to look into default values and just hardcodes 600.
@@ -44,25 +48,50 @@ class Gutenberg
 
     public static function iframely_bust_gutenberg_cache($args)
     {
-        $args['gutenberg'] = 1;
+        $args['gutenberg'] = 2;
         return $args;
     }
 
-    public static function maybe_add_gutenberg_1($provider, $args, $url)
+    public static function maybe_add_gutenberg_1($provider, $url, $args)
     {
         if (Utils::stringContains($provider, 'iframe.ly')) {
-            if (!Utils::stringContains($provider, 'iframe=card')) {
-                $provider = add_query_arg('iframe', '1', $provider);
+            $provider = add_query_arg('iframe', '1', $provider);
+            $provider = add_query_arg('import', '0', $provider);
+            $provider = add_query_arg('ssl', '1', $provider);
+            $provider = add_query_arg('gutenberg', '2', $provider);
+        }
+        return $provider;
+    }
+
+    public static function maybe_add_iframely_url_options($provider, $url, $args)
+    {
+        # Options are added to URL the URL in utils.js this way:
+        # 'iframely=' + encodeURIComponent(window.btoa(JSON.stringify(query)));
+        if (Utils::stringContains($provider, 'iframe.ly') && Utils::stringContains($url, 'iframely=')) {
+            $parsed_url = parse_url($url);
+            if (isset($parsed_url['query'])) {
+                $params = array();
+                parse_str($parsed_url['query'], $params);
+
+                if (isset($params['iframely'])) {
+                    $options_str = base64_decode(urldecode($params['iframely']));
+                    $options_query = json_decode($options_str);
+
+                    foreach ($options_query as $key => $value) {
+                        $provider = add_query_arg($key, $value, $provider);
+                    }
+                }
             }
-            $provider = add_query_arg('gutenberg', '1', $provider);
         }
         return $provider;
     }
 
     public static function inject_events_proxy_to_gutenberg($html, $url, $args)
     {
-        if (!empty(trim($html))) { // != trims $html
-            return $html . '<script type="text/javascript">window.addEventListener("message",function(e){window.parent.postMessage(e.data,"*");},false);</script>';
+        if (!empty(trim($html))) {
+            return $html .
+                '<style>body{overflow: hidden}</style>' .
+                '<script type="text/javascript">window.addEventListener("message",function(e){window.top.postMessage(e.data,"*");},false);</script>';
         }
         return $html;
     }

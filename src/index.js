@@ -5,6 +5,6 @@ select('core').canUser('create', 'users');
 
 import './js/attributes';
 import './js/options';
-import './js/iframely';
+import './js/events';
 
 import './index.scss';

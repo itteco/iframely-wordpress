@@ -4,6 +4,7 @@ namespace Iframely\Embed;
 
 use Iframely\Embed;
 use Iframely\Options;
+use Iframely\Utils;
 
 class Oembed
 {
@@ -23,6 +24,9 @@ class Oembed
 
         # Always add iframely as oembed provider for any iframe.ly short link
         wp_oembed_add_provider('#https?://iframe\.ly/.+#i', Embed::createApiLink(), true);
+
+        # Fix URL query-string settings by replacing &iframe=card into &iframe=1&card=1
+        add_filter('oembed_fetch_url', [self::class, 'maybe_replace_iframe_card'], 10, 3);
     }
 
     public static function maybe_remove_wp_self_embeds($result, $url, $args)
@@ -40,10 +44,17 @@ class Oembed
 
         return $providers;
     }
+
+    public static function maybe_replace_iframe_card($provider, $url, $args)
+    {
+        if (Utils::stringContains($provider, 'iframe.ly') && Utils::stringContains($provider, 'iframe=card')) {
+            if (Utils::stringContains($provider, 'iframe=card-small')) {
+                $provider = add_query_arg('card', 'small', $provider);
+            } else {
+                $provider = add_query_arg('card', '1', $provider);
+            }
+            $provider = add_query_arg('iframe', '1', $provider);
+        }
+        return $provider;
+    }
 }
-
-
-
-
-
-
