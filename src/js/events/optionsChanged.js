@@ -1,23 +1,13 @@
-import { getBlockId, getEmbedIframe, getBlockIframe, getBlockWindow } from '../utils';
+import { getBlockId, getEmbedIframe, getBlockIframe, getBlockWindow, getEditorDocument } from '../utils';
 import { dispatch } from '@wordpress/data';
 
-function loadIframelyEmbedJs(window) {
-  console.log('embed.js loaded?');
-  if (window.iframely) {
-    console.log('yep');
-    return;
-  }
-  console.log('nope, loading');
-
-  let script = window.document.createElement('script');
-  script.type = 'text/javascript';
-  script.async = true;
-  script.src = ('https:' === document.location.protocol ? 'https:' : 'http:') + '//if-cdn.com/embed.js';
-  window.document.head.appendChild(script);
-
-  /*
-  let style = window.document.createElement('style');
-  style.textContent = `.iframely-responsive {
+function maybeFixIframe(window) {
+  setTimeout(() => {
+    if (window.document.getElementById('iframely-styles')) {
+      return;
+    }
+    let style = window.document.createElement('style');
+    style.textContent = `.iframely-responsive {
       top: 0;
       left: 0;
       width: 100%;
@@ -25,8 +15,8 @@ function loadIframelyEmbedJs(window) {
       position: relative;
       padding-bottom: 56.25%;
       box-sizing: border-box;
-  }
-  .iframely-responsive > * {
+    }
+    .iframely-responsive > * {
       top: 0;
       left: 0;
       width: 100%;
@@ -34,9 +24,9 @@ function loadIframelyEmbedJs(window) {
       position: absolute;
       border: 0;
       box-sizing: border-box;
-  }`;
-  window.document.head.appendChild(style);
-  */
+    }`;
+    window.document.head.appendChild(style);
+  }, 50);
 }
 
 export function optionsChanged(id, formContainer, query) {
@@ -50,7 +40,7 @@ export function optionsChanged(id, formContainer, query) {
     return;
   }
 
-  // wipe out old query completely
+  // wipe out the old query completely
   if (data.data.query && data.data.query.length > 0) {
     data.data.query.forEach(function (key) {
       if (src.indexOf(key) > -1) {
@@ -59,13 +49,12 @@ export function optionsChanged(id, formContainer, query) {
     });
   }
 
-  // and add entire new query instead
+  // and add an entire new query instead
   Object.keys(query).forEach(function (key) {
     src += (src.indexOf('?') > -1 ? '&' : '?') + key + '=' + query[key];
   });
 
-  // load embed.js if it was missing to catch changing sizes
-  loadIframelyEmbedJs(getBlockWindow(blockId));
+  maybeFixIframe(getBlockWindow(getBlockId()));
 
   embedIframe.src = src;
 
