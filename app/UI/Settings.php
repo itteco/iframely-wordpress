@@ -68,7 +68,7 @@ class Settings
         }
 
         if (is_multisite()) {
-            if (!current_user_can('install_plugins')) {
+            if (!current_user_can('manage_network_options')) {
                 wp_die('You don’t have permission to access this resource.');
             }
         } else if (!current_user_can('manage_options')) {

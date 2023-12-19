@@ -122,6 +122,10 @@ You can change every aspect of Iframely embeds via your account settings at [ifr
 
 == Changelog ==
 
+= 1.1.1 =
+
+* Fix multisite option management capability requirements
+
 = 1.1.0 =
 
 * WordPress 6.3 compatibility
