@@ -1,9 +1,9 @@
 === Iframely – WP media embeds, cards and blocks ===
-Contributors: yellowby, garmoncheg, ivanp, psergeev
+Contributors: yellowby, ivanp, garmoncheg, psergeev
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: gutenberg, facebook, instagram, twitter, youtube, tiktok, twitch
-Tested up to: 6.4.1
+Tested up to: 6.4.2
 Stable tag: 1.1.0
 Requires at least: 3.8
 Requires PHP: 7.2
