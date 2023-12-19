@@ -1,9 +1,9 @@
 === Iframely – WP media embeds, cards and blocks ===
-Contributors: yellowby, garmoncheg, ivanp, psergeev
+Contributors: yellowby, ivanp, garmoncheg, psergeev
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: gutenberg, facebook, instagram, twitter, youtube, tiktok, twitch
-Tested up to: 6.4.1
+Tested up to: 6.4.2
 Stable tag: 1.1.0
 Requires at least: 3.8
 Requires PHP: 7.2
@@ -121,6 +121,10 @@ You can change every aspect of Iframely embeds via your account settings at [ifr
 
 
 == Changelog ==
+
+= 1.1.1 =
+
+* Fix multisite option management capability requirements
 
 = 1.1.0 =
 
