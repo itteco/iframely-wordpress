@@ -4,7 +4,7 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: gutenberg, facebook, instagram, twitter, youtube, tiktok, twitch
 Tested up to: 6.4.2
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 Requires at least: 3.8
 Requires PHP: 7.2
 
