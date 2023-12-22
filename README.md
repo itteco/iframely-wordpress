@@ -27,3 +27,23 @@ Alternatively, add specific version to `tags` directory:
 Clean `release` folder:
 
     gulp clean
+
+
+## Update WordPress SVN
+
+Rebase to latest revision
+
+    svn up
+
+Add new files to source control:
+
+    svn add tags/* 
+    svn add trunk/*
+
+List the updates:
+
+    svn stat
+
+Commit to SVN:
+
+    svn ci -m "version 1.1.1"
