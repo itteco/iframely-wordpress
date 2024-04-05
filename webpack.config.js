@@ -6,6 +6,7 @@ module.exports = {
   ...defaultConfig,
   entry: {
     ...getWebpackEntryPoints(),
+    index: './src/index.js',
     admin: './src/admin.js',
   },
 };
