@@ -77,8 +77,11 @@ class Gutenberg
                     $options_str = base64_decode(urldecode($params['iframely']));
                     $options_query = json_decode($options_str);
 
-                    foreach ($options_query as $key => $value) {
-                        $provider = add_query_arg($key, $value, $provider);
+                    # Some WPs have our legacy values &iframely=less in their posts
+                    if ($options_query) {
+                        foreach ($options_query as $key => $value) {
+                            $provider = add_query_arg($key, $value, $provider);
+                        }
                     }
                 }
             }
