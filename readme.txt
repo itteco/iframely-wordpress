@@ -3,8 +3,8 @@ Contributors: yellowby, ivanp, garmoncheg, psergeev
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: gutenberg, facebook, instagram, twitter, youtube, tiktok, twitch
-Tested up to: 6.5
-Stable tag: 1.1.2
+Tested up to: 6.6.1
+Stable tag: 1.1.3
 Requires at least: 3.8
 Requires PHP: 7.2
 
@@ -121,6 +121,10 @@ You can change every aspect of Iframely embeds via your account settings at [ifr
 
 
 == Changelog ==
+
+= 1.1.3 =
+
+* WordPress 6.6 compatibility
 
 = 1.1.2 =
 
