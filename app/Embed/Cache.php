@@ -71,7 +71,7 @@ class Cache
     public static function getTtlPresets(): array
     {
         return [
-            MONTH_IN_SECONDS * 30 => __('1 month', 'iframely'),
+            DAY_IN_SECONDS * 30 => __('1 month', 'iframely'),
             WEEK_IN_SECONDS * 3 => __('3 weeks', 'iframely'),
             WEEK_IN_SECONDS * 2 => __('2 weeks', 'iframely'),
             WEEK_IN_SECONDS => __('1 week', 'iframely'),
