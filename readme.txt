@@ -3,8 +3,8 @@ Contributors: yellowby, ivanp, garmoncheg, psergeev
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: gutenberg, facebook, instagram, twitter, youtube, tiktok, twitch
-Tested up to: 6.8.0
-Stable tag: 1.1.4
+Tested up to: 6.8.1
+Stable tag: 1.1.5
 Requires at least: 3.8
 Requires PHP: 7.2
 
@@ -24,11 +24,11 @@ Following the existing flow of WordPress embeds, Iframely will detect URLs on a 
 
 Many media publishers offer various embedding options, and Iframely helps you apply it to each block, right in the Gutenberg editor. Think YouTube start/stop time, Twitter parent message and replies, included media preview or dark theme, Instagram author's caption and the like.
 
-###  Fine-tune and white‑label
+### Fine-tune and white‑label
 
 Optimize Iframely via your cloud account settings. Enable and match preview cards, consents and click-to-play to your branding via our WYSIWYG editors.
 
-###  Circulate links to your own site
+### Circulate links to your own site
 
 Increase session length and boost content strategy by promoting your content. Engage your users with URL preview cards instead of plain text links.
 
@@ -121,6 +121,10 @@ You can change every aspect of Iframely embeds via your account settings at [ifr
 
 
 == Changelog ==
+
+= 1.1.5 =
+
+* Fix TTL preset for 1 month (@aurooba https://github.com/itteco/iframely-wordpress/pull/53)
 
 = 1.1.4 =
 
