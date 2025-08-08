@@ -59,7 +59,6 @@ class Cache
         $cacheTime = get_post_meta($post_ID, $time, true);
 
         if (!$cacheTime || (time() - $cacheTime > $cacheTtl)) {
-            $wp_embed->usecache = false;
             delete_post_meta($post_ID, $time);
             delete_post_meta($post_ID, $key);
             return $cacheTtl;
