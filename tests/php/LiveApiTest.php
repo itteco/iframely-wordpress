@@ -65,7 +65,10 @@ class LiveApiTest extends WP_UnitTestCase
         $output = $this->submitKey($this->key);
 
         $this->assertSame($this->key, Options::getApiKey(), 'The Iframely API did not accept the key.');
-        $this->assertStringContainsString('iframely-onboarding', $output);
+        $this->assertSame('', $output);
+        ob_start();
+        do_action(is_multisite() ? 'network_admin_notices' : 'admin_notices');
+        $this->assertStringContainsString('iframely-onboarding', (string)ob_get_clean());
     }
 
     public function test_the_real_api_rejects_an_unknown_key_on_activation(): void

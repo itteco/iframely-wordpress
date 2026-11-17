@@ -42,9 +42,12 @@ test.describe('Iframely settings', () => {
     test('a valid API key activates the plugin and shows the onboarding', async ({ admin, page, requestUtils }) => {
       await admin.visitAdminPage(...SETTINGS_PAGE);
       await page.locator('#iframely_api_key').fill(VALID_KEY);
+      const saved = page.waitForResponse((response) => response.request().method() === 'POST');
       await page.getByRole('button', { name: 'Connect with API key' }).click();
 
-      await expect(page.locator('.iframely-onboarding')).toContainText('Enjoy your new embeds!');
+      // The onboarding is part of the page, not printed in front of it.
+      expect((await (await saved).text()).trimStart()).toMatch(/^<!DOCTYPE html>/i);
+      await expect(page.locator('#wpbody-content .iframely-onboarding')).toContainText('Enjoy your new embeds!');
       await expect(page.getByRole('heading', { level: 1, name: 'Iframely – media embed blocks' })).toBeVisible();
       await expect(page.locator('#iframely_api_key')).toHaveValue(VALID_KEY);
       await expect(page.locator('#iframely_api_key')).toBeDisabled();

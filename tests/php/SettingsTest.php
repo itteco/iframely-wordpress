@@ -299,7 +299,10 @@ class SettingsTest extends TestCase
         $output = $this->save();
 
         $this->assertSame('abc123', Options::getApiKey());
-        $this->assertStringContainsString('iframely-onboarding', $output);
+        // Saving happens before the page is started, so nothing is printed yet. The
+        // onboarding comes with the notices of the page.
+        $this->assertSame('', $output);
+        $this->assertStringContainsString('iframely-onboarding', $this->notices());
     }
 
     public function test_the_api_key_is_trimmed_and_lowercased(): void
@@ -373,7 +376,7 @@ class SettingsTest extends TestCase
         $output = $this->save();
 
         $this->assertSame('', Options::getApiKey());
-        $this->assertStringNotContainsString('iframely-onboarding', $output);
+        $this->assertSame('', $output);
         $this->assertStringContainsString($expected, $this->notices());
         $this->assertStringNotContainsString($unexpected, $this->notices());
     }

@@ -137,7 +137,15 @@ class Settings
             return;
         }
 
-        Plugin::view('partials/onboarding');
+        # This runs on admin_init, before the page is started: nothing may be printed yet
+        add_action(self::noticesAction(), static function (): void {
+            Plugin::view('partials/onboarding');
+        });
+    }
+
+    private static function noticesAction(): string
+    {
+        return is_multisite() ? 'network_admin_notices' : 'admin_notices';
     }
 
     public static function update(): void
@@ -175,8 +183,7 @@ class Settings
 
     public static function notify(string $message = '', $status = 'success'): void
     {
-        $action = is_multisite() ? 'network_admin_notices' : 'admin_notices';
-        add_action($action, function () use ($message, $status) {
+        add_action(self::noticesAction(), function () use ($message, $status) {
             Plugin::notice($message, $status);
         });
     }
