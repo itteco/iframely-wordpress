@@ -44,6 +44,33 @@ class EmbedTest extends TestCase
         $this->assertSame(self::API_KEY, $query['api_key']);
     }
 
+    public function test_api_link_encodes_the_values_of_the_extra_query_string(): void
+    {
+        // As the settings form stores it, and as older versions may have left it.
+        foreach (['title=a%26b%3Dc&x=1%232&t=Hello%20World', 'title=a%26b%3Dc&x=1%232&t=Hello World'] as $stored) {
+            Options::setApiParams($stored);
+
+            $link = Embed::createApiLink();
+
+            $this->assertStringEndsWith('&title=a%26b%3Dc&x=1%232&t=Hello%20World', $link);
+            $query = self::queryOf($link);
+            $this->assertSame('a&b=c', $query['title']);
+            $this->assertSame('1#2', $query['x']);
+            $this->assertSame(self::API_KEY, $query['api_key']);
+        }
+    }
+
+    public function test_the_extra_query_string_goes_from_the_form_to_the_api_request_unchanged(): void
+    {
+        Options::setApiParams(\Iframely\UI\Settings::sanitizeApiParams('title=Hello%20World&callback=a%2Fb&iframe=card-small'));
+
+        $query = self::queryOf(Embed::createApiLink());
+
+        $this->assertSame('Hello World', $query['title']);
+        $this->assertSame('a/b', $query['callback']);
+        $this->assertSame('card-small', $query['iframe']);
+    }
+
     public function test_both_endpoint_definitions_agree(): void
     {
         $this->assertSame(IFRAMELY_API_ENDPOINT, Embed::IFRAMELY_ENDPOINT_URL);

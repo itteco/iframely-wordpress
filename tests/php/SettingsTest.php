@@ -2,6 +2,7 @@
 
 namespace Iframely\Tests;
 
+use Iframely\Embed\Cache;
 use Iframely\Options;
 use Iframely\UI\Settings;
 use WPDieException;
@@ -167,14 +168,62 @@ class SettingsTest extends TestCase
         $this->assertSame('', Options::getApiParams());
     }
 
-    public function test_the_extra_query_string_is_unslashed_and_stripped_of_markup(): void
+    /**
+     * @dataProvider queryStringProvider
+     */
+    public function test_the_extra_query_string_is_kept_as_names_with_encoded_values(string $entered, string $stored): void
     {
         $this->actAsSettingsManager();
-        $this->submit(['iframely_api_params' => "title=it's&theme=dark<script>alert(1)</script>"]);
+        $this->submit(['iframely_api_params' => $entered]);
 
         $this->save();
 
-        $this->assertSame("title=it's&theme=dark", Options::getApiParams());
+        $this->assertSame($stored, Options::getApiParams());
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public function queryStringProvider(): array
+    {
+        return [
+            'plain parameters stay as they are' => ['iframe=card-small&theme=dark&maxheight=300', 'iframe=card-small&theme=dark&maxheight=300'],
+            'encoded values keep their meaning' => ['title=Hello%20World&lang=fr', 'title=Hello%20World&lang=fr'],
+            'an encoded slash' => ['callback=a%2Fb', 'callback=a%2Fb'],
+            'a space is encoded' => ['title=Hello World', 'title=Hello%20World'],
+            'an encoded ampersand stays inside its value' => ['title=a%26b%3Dc&x=1', 'title=a%26b%3Dc&x=1'],
+            'quotes are unslashed, markup is removed' => ["title=it's&theme=dark<script>alert(1)</script>", 'title=it%27s&theme=dark'],
+            'a leading question mark and spaces around' => [' ?theme=dark ', 'theme=dark'],
+            'a parameter without a value' => ['omit_script', 'omit_script='],
+            'names that are not plain names are dropped' => ['a[b]=1&c%26d=2&theme=dark', 'theme=dark'],
+            'PHP reads a space in a name as an underscore' => ['c d=2', 'c_d=2'],
+            'nothing' => ['', ''],
+        ];
+    }
+
+    public function test_a_cache_lifetime_that_is_not_offered_is_replaced_by_the_default(): void
+    {
+        $this->actAsSettingsManager();
+
+        foreach (['5', '-1', 'abc', (string)(8 * DAY_IN_SECONDS)] as $value) {
+            Options::setCacheTtl(DAY_IN_SECONDS);
+            $this->submit(['iframely_cache_refresh' => 'on', 'iframely_cache_ttl' => $value]);
+            $this->save();
+
+            $this->assertSame(WEEK_IN_SECONDS, Options::getCacheTtl(), "Lifetime entered: {$value}");
+        }
+    }
+
+    public function test_every_offered_cache_lifetime_can_be_saved(): void
+    {
+        $this->actAsSettingsManager();
+
+        foreach (array_keys(Cache::getTtlPresets()) as $value) {
+            $this->submit(['iframely_cache_refresh' => 'on', 'iframely_cache_ttl' => (string)$value]);
+            $this->save();
+
+            $this->assertSame($value, Options::getCacheTtl());
+        }
     }
 
     public function test_the_api_key_cannot_be_changed_through_the_settings_form(): void

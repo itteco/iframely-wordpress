@@ -113,6 +113,27 @@ class UpgradeTest extends TestCase
         ];
     }
 
+    public function test_the_migration_does_not_use_translations(): void
+    {
+        // It runs while plugins are loaded. WordPress 6.7 and later log a notice when
+        // the translations of a plugin are asked for that early.
+        $translated = [];
+        $record = static function ($translation, $text, $domain) use (&$translated) {
+            if ($domain === 'iframely') {
+                $translated[] = $text;
+            }
+            return $translation;
+        };
+        add_filter('gettext', $record, 10, 3);
+        Options::update('iframely_cache_ttl', 10);
+
+        Upgrade::run();
+
+        remove_filter('gettext', $record, 10);
+        $this->assertSame([], $translated);
+        $this->assertSame(WEEK_IN_SECONDS, Options::getCacheTtl());
+    }
+
     public function test_a_zero_cache_lifetime_switches_cache_refresh_off(): void
     {
         Options::setCacheRefresh(true);

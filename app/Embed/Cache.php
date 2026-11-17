@@ -167,6 +167,31 @@ class Cache
         self::$refresh = null;
     }
 
+    /**
+     * The lifetimes that can be chosen, in seconds, longest first.
+     *
+     * @return int[]
+     */
+    public static function getTtlValues(): array
+    {
+        return [
+            MONTH_IN_SECONDS,
+            WEEK_IN_SECONDS * 3,
+            WEEK_IN_SECONDS * 2,
+            WEEK_IN_SECONDS,
+            DAY_IN_SECONDS * 6,
+            DAY_IN_SECONDS * 5,
+            DAY_IN_SECONDS * 4,
+            DAY_IN_SECONDS * 3,
+            DAY_IN_SECONDS * 2,
+            DAY_IN_SECONDS,
+        ];
+    }
+
+    /**
+     * The lifetimes with their names, for the settings form. The names are translated,
+     * so this is for use once WordPress has loaded the translations (from init on).
+     */
     public static function getTtlPresets(): array
     {
         return [

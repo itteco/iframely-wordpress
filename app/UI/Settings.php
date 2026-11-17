@@ -145,8 +145,32 @@ class Settings
         Options::setBuiltinsReplace((bool)($_POST['iframely_builtins_replace'] ?? false));
         Options::setPreviewsEnhance((bool)($_POST['iframely_previews_enhance'] ?? false));
         Options::setCacheRefresh((bool)($_POST['iframely_cache_refresh'] ?? false));
-        Options::setCacheTtl((int)($_POST['iframely_cache_ttl'] ?? 0));
-        Options::setApiParams(sanitize_text_field(stripcslashes($_POST['iframely_api_params'] ?? '')));
+
+        $ttl = (int)($_POST['iframely_cache_ttl'] ?? 0);
+        Options::setCacheTtl(in_array($ttl, Cache::getTtlValues(), true) ? $ttl : Cache::getDefaultTtlValue());
+
+        $params = $_POST['iframely_api_params'] ?? '';
+        Options::setApiParams(self::sanitizeApiParams(is_string($params) ? wp_unslash($params) : ''));
+    }
+
+    /**
+     * The extra parameters for the API, as the admin typed them, in the form they are
+     * kept in: name=value pairs with encoded values.
+     */
+    public static function sanitizeApiParams(string $query): string
+    {
+        $params = [];
+        wp_parse_str(ltrim(trim($query), '?&'), $params);
+
+        $clean = [];
+        foreach ($params as $name => $value) {
+            # The values are decoded here. sanitize_text_field() would take "%20" for an encoded byte and drop it
+            if (is_string($value) && preg_match('/^[\w.-]+$/', (string)$name)) {
+                $clean[$name] = sanitize_text_field($value);
+            }
+        }
+
+        return http_build_query($clean, '', '&', PHP_QUERY_RFC3986);
     }
 
     public static function notify(string $message = '', $status = 'success'): void

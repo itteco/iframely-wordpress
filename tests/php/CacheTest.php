@@ -386,6 +386,11 @@ class CacheTest extends TestCase
 
     // Presets.
 
+    public function test_the_lifetimes_and_their_names_are_the_same_list(): void
+    {
+        $this->assertSame(Cache::getTtlValues(), array_keys(Cache::getTtlPresets()));
+    }
+
     public function test_default_lifetime_is_one_of_the_presets(): void
     {
         $presets = Cache::getTtlPresets();
