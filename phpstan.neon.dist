@@ -1,0 +1,17 @@
+# WordPress stubs and rules are loaded automatically through
+# phpstan/extension-installer (szepeviktor/phpstan-wordpress).
+parameters:
+    # Level 6 and up mostly ask for type declarations on every hook callback;
+    # raise the level once those are added.
+    level: 5
+    phpVersion:
+        min: 70400
+        max: 80599
+    paths:
+        - iframely.php
+        - app
+    # views/ is left out: templates receive their variables through
+    # Plugin::view(), which PHPStan cannot follow. PHPCS checks them instead.
+    bootstrapFiles:
+        - tests/phpstan/constants.php
+    treatPhpDocTypesAsCertain: false

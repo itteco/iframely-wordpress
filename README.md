@@ -1,13 +1,69 @@
 # Iframely WordPress plugin
 
+## Requirements
+
+- Node.js 22.13 or newer and npm
+- Docker (Docker Engine with the Compose plugin is enough; Docker Desktop is not required)
+
+PHP, Composer, MySQL, WP-CLI and PHPUnit are not needed on your machine. They run inside the
+[`wp-env`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/) containers.
+
 ## Installation
+
     npm install
+    npm run env:start
+    npm run composer install
+
+`npm run env:start` starts two independent WordPress sites with the plugin mounted and activated:
+
+| Site  | URL                   | Config file          | Purpose                               |
+|-------|-----------------------|----------------------|---------------------------------------|
+| dev   | http://localhost:8888 | `.wp-env.json`       | Manual development and testing        |
+| tests | http://localhost:8889 | `.wp-env.tests.json` | PHPUnit, end-to-end tests and linters |
+
+Log in at `/wp-admin` with `admin` / `password`. Both sites pin the WordPress and PHP versions in their config
+file. To try other versions, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` and restart with `--update`, for example:
+
+    WP_ENV_CORE=WordPress/WordPress#6.6 WP_ENV_PHP_VERSION=7.4 npx wp-env --config=.wp-env.tests.json start --update
+
+Other environment commands:
+
+    npm run env:stop       # stop both sites
+    npm run env:reset      # reset both databases
+    npm run env:destroy    # remove containers, volumes and downloaded files
+    npm run wp -- <cmd>    # WP-CLI on the dev site, e.g. npm run wp -- plugin list
+    npm run wp:tests -- <cmd>
 
 ### Gutenberg build
     npm run build
 
 ### Gutenberg watch
     npm run start
+
+## Tests
+
+    npm test                      # everything below
+    npm run test:js               # Jest unit tests (tests/js)
+    npm run test:php              # PHPUnit integration tests (tests/php), single site
+    npm run test:php:multisite    # the same tests on multisite
+    npm run test:e2e              # Playwright end-to-end tests (tests/e2e) against the tests site
+
+Arguments after `--` are passed through, e.g. `npm run test:php -- --filter SmokeTest`.
+
+The end-to-end tests need a browser once per machine (this installs system packages with `sudo`):
+
+    npm run test:e2e:install
+
+PHPUnit uses its own database tables (prefix `wptests_`), so running it does not touch the content of the
+tests site.
+
+## Linting
+
+    npm run lint            # everything below
+    npm run lint:js         # ESLint (@wordpress/eslint-plugin)
+    npm run lint:css        # stylelint
+    npm run lint:php        # PHP_CodeSniffer: PSR-12, WordPress security/i18n rules, PHPCompatibilityWP
+    npm run lint:phpstan    # PHPStan with the WordPress extension
 
 ### Update POT file
     gulp clean

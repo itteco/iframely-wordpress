@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Iframely" xsi:noNamespaceSchemaLocation="vendor/squizlabs/php_codesniffer/phpcs.xsd">
+    <description>Coding standards for the Iframely WordPress plugin.</description>
+
+    <file>iframely.php</file>
+    <file>index.php</file>
+    <file>app</file>
+    <file>views</file>
+    <file>tests/php</file>
+
+    <arg name="extensions" value="php"/>
+    <arg name="basepath" value="."/>
+    <arg name="parallel" value="8"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <!-- The oldest versions the plugin supports. -->
+    <config name="minimum_wp_version" value="6.6"/>
+    <config name="testVersion" value="7.4-"/>
+
+    <!-- PHP cross-version compatibility, aware of the polyfills WordPress ships. -->
+    <rule ref="PHPCompatibilityWP"/>
+
+    <!--
+        Formatting: the code base follows PSR-12 (4 spaces, camelCase, short arrays),
+        not the WordPress formatting rules, so the WordPress whitespace, array and
+        naming sniffs are deliberately left out.
+    -->
+    <rule ref="PSR12">
+        <!-- Hook callbacks in app/Embed keep their historic snake_case names. -->
+        <exclude name="PSR1.Methods.CamelCapsMethodName"/>
+        <!-- Long translatable strings and view markup make a line limit impractical. -->
+        <exclude name="Generic.Files.LineLength"/>
+    </rule>
+
+    <!-- WordPress rules that are about behaviour rather than formatting. -->
+    <rule ref="WordPress.Security"/>
+    <rule ref="WordPress.DB"/>
+    <rule ref="WordPress.DateTime"/>
+    <rule ref="WordPress.CodeAnalysis"/>
+    <rule ref="WordPress.WP">
+        <!-- Formatting only. -->
+        <exclude name="WordPress.WP.CapitalPDangit"/>
+    </rule>
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="iframely"/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="WordPress.PHP">
+        <!-- Style preferences the code base does not follow. -->
+        <exclude name="WordPress.PHP.YodaConditions"/>
+        <!-- Deprecated in WordPressCS 3.3; PHPCompatibility covers it. -->
+        <exclude name="WordPress.PHP.POSIXFunctions"/>
+    </rule>
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="iframely"/>
+                <element value="Iframely"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Views are templates: PSR-12 file-structure rules do not fit mixed HTML/PHP. -->
+    <rule ref="PSR12.Files.FileHeader">
+        <exclude-pattern>views/*</exclude-pattern>
+    </rule>
+    <rule ref="PSR1.Files.SideEffects">
+        <exclude-pattern>iframely.php</exclude-pattern>
+        <exclude-pattern>tests/php/bootstrap.php</exclude-pattern>
+    </rule>
+
+    <!-- Test code: no output escaping or global-prefix requirements. -->
+    <rule ref="WordPress.Security.EscapeOutput">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.WP.AlternativeFunctions">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.PHP.DiscouragedPHPFunctions">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+</ruleset>

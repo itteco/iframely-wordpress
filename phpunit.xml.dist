@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+    bootstrap="tests/php/bootstrap.php"
+    backupGlobals="false"
+    colors="true"
+    beStrictAboutOutputDuringTests="true"
+    beStrictAboutTestsThatDoNotTestAnything="true"
+    convertDeprecationsToExceptions="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    failOnRisky="true"
+    failOnWarning="true"
+>
+    <testsuites>
+        <testsuite name="iframely">
+            <directory suffix="Test.php">tests/php</directory>
+        </testsuite>
+    </testsuites>
+    <groups>
+        <exclude>
+            <!-- Calls the real Iframely API, so it is opt-in and never part of a normal run. -->
+            <group>live</group>
+        </exclude>
+    </groups>
+    <coverage>
+        <include>
+            <directory suffix=".php">app</directory>
+            <file>iframely.php</file>
+        </include>
+    </coverage>
+</phpunit>
