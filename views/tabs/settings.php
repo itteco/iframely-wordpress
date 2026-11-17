@@ -108,7 +108,7 @@ use Iframely\UI\Links;
       </th>
       <td>
         <select name="iframely_cache_ttl" id="iframely_cache_ttl">
-          <?php foreach ($cache_ttl_presets as $iframely_ttl => $iframely_ttl_name): ?>
+          <?php foreach ($cache_ttl_presets as $iframely_ttl => $iframely_ttl_name) : ?>
             <option value="<?php echo esc_attr($iframely_ttl); ?>" <?php selected($cache_ttl, $iframely_ttl); ?>><?php echo esc_html($iframely_ttl_name); ?></option>
           <?php endforeach; ?>
         </select>

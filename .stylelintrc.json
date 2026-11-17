@@ -1,7 +1,21 @@
 {
   "extends": "@wordpress/stylelint-config/scss",
   "rules": {
-    "@stylistic/indentation": 2,
+    "at-rule-empty-line-before": [
+      "always",
+      {
+        "except": ["blockless-after-blockless", "first-nested"],
+        "ignore": ["after-comment"],
+        "ignoreAtRules": ["else"]
+      }
+    ],
+    "rule-empty-line-before": [
+      "always",
+      {
+        "except": ["first-nested"],
+        "ignore": ["after-comment"]
+      }
+    ],
     "selector-class-pattern": null
   }
 }

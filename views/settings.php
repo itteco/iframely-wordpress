@@ -12,16 +12,13 @@ use Iframely\Reactivation;
   <?php Plugin::view('partials/tabs', $data); ?>
   <?php
     if ($tab === 'help') {
-      Plugin::view('tabs/help', $data);
+        Plugin::view('tabs/help', $data);
+    } elseif ($tab === 'customize') {
+        Plugin::view('tabs/customize', $data);
+    } elseif (Reactivation::isTab()) {
+        Plugin::view('tabs/reactivate', $data);
+    } else {
+        Plugin::view('tabs/settings', $data);
     }
-    elseif ($tab === 'customize') {
-      Plugin::view('tabs/customize', $data);
-    }
-    elseif (Reactivation::isTab()) {
-      Plugin::view('tabs/reactivate', $data);
-    }
-    else {
-      Plugin::view('tabs/settings', $data);
-    }
-  ?>
+    ?>
 </div>

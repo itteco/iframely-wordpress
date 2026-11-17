@@ -56,7 +56,7 @@ $iframely_cards = [
 ?></p>
 
 <div class="iframely-customize">
-  <?php foreach ($iframely_cards as $iframely_card): ?>
+  <?php foreach ($iframely_cards as $iframely_card) : ?>
     <div class="card iframely-card">
       <div class="iframely-card__body">
         <h2><?php echo esc_html($iframely_card['title']); ?></h2>

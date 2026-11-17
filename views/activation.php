@@ -11,7 +11,7 @@ use Iframely\UI\Links;
 
   <h1><?php esc_html_e('Activate Iframely', 'iframely'); ?></h1>
 
-  <?php if (!$submitted): ?>
+  <?php if (!$submitted) : ?>
     <p class="iframely-mb-15em"><?php
       /* translators: %s: address of the Iframely website */
       echo wp_kses_post(sprintf(__('In order to use Iframely service, you need an API key from <a href="%s" target="_blank">iframely.com</a>.', 'iframely'), esc_url(Links::link())));
@@ -29,7 +29,7 @@ use Iframely\UI\Links;
         <?php wp_nonce_field('iframely_nonce', 'iframely_nonce'); ?>
       </div>
       <div class="iframely-activation__form">
-        <?php if (Reactivation::isRequest() || Reactivation::inProgress()): ?>
+        <?php if (Reactivation::isRequest() || Reactivation::inProgress()) : ?>
           <input type="hidden" name="iframely_reactivation" id="iframely_reactivation" value="1">
         <?php endif; ?>
         <input type="text" name="iframely_api_key" id="iframely_api_key" class="iframely-activation__input" placeholder="<?php esc_attr_e('Enter your API key', 'iframely'); ?>" required>

@@ -1,7 +1,7 @@
 import { select } from '@wordpress/data';
 
 function getEditorDocument() {
-  let iframe = document.querySelector('[name=editor-canvas]');
+  const iframe = document.querySelector('[name=editor-canvas]');
   return iframe ? iframe.contentWindow.document : document;
 }
 
@@ -10,18 +10,18 @@ function getBlockId() {
 }
 
 function getBlockIframe(id) {
-  let document = getEditorDocument();
+  const document = getEditorDocument();
   return document.querySelector(`#block-${id} iframe`);
 }
 
 function getBlockWindow(id) {
-  let block = getBlockIframe(id);
+  const block = getBlockIframe(id);
   return block.contentWindow;
 }
 
 function getEmbedIframe(id) {
-  let block = getBlockIframe(id);
-  let document = block.contentWindow.document;
+  const block = getBlockIframe(id);
+  const document = block.contentWindow.document;
   return document.querySelector('iframe');
 }
 

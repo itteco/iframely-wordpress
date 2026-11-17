@@ -33,7 +33,7 @@ $iframely_links = [
   <?php esc_html_e('If you run into any difficulties, there are several places you can find help.', 'iframely'); ?><br>
 </p>
 
-<?php foreach ($iframely_links as $iframely_link): ?>
+<?php foreach ($iframely_links as $iframely_link) : ?>
   <h4 class="iframely-mb-05em"><a href="<?php echo esc_url($iframely_link['url']); ?>" target="_blank"><?php echo esc_html($iframely_link['title']); ?></a></h4>
   <p class="iframely-mt-05em iframely-mb-15em"><?php echo esc_html($iframely_link['tagline']); ?></p>
 <?php endforeach; ?>
