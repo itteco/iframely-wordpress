@@ -153,12 +153,13 @@ class Gutenberg
         }
 
         $params = [];
-        parse_str((string)parse_url($url, PHP_URL_QUERY), $params);
+        parse_str((string)wp_parse_url($url, PHP_URL_QUERY), $params);
         if (!isset($params['iframely']) || !is_string($params['iframely'])) {
             return [];
         }
 
         # parse_str() has decoded the value. It also turns a "+" that was not encoded into a space
+        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- the options of an embed are kept in its URL as base64 of JSON
         $decoded = json_decode((string)base64_decode(str_replace(' ', '+', $params['iframely'])));
 
         # Some WPs have our legacy values &iframely=less in their posts
@@ -220,8 +221,8 @@ class Gutenberg
             $asset = array_merge($asset, (array)require $assetFile);
         }
 
-        wp_enqueue_script('iframely-embed', 'https://if-cdn.com/embed.js', ['jquery'], IFRAMELY_VERSION);
-        wp_enqueue_script('iframely-options', 'https://if-cdn.com/options.js', ['jquery'], IFRAMELY_VERSION);
+        wp_enqueue_script('iframely-embed', 'https://if-cdn.com/embed.js', ['jquery'], IFRAMELY_VERSION, false);
+        wp_enqueue_script('iframely-options', 'https://if-cdn.com/options.js', ['jquery'], IFRAMELY_VERSION, false);
 
         $dependencies = array_merge($asset['dependencies'], ['jquery', 'iframely-embed', 'iframely-options']);
         wp_register_script('iframely-gutenberg', Plugin::asset('index.js'), $dependencies, $asset['version'], true);

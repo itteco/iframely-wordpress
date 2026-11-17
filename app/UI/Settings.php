@@ -38,7 +38,7 @@ class Settings
     {
         $screen = get_current_screen();
         $screens = ['settings_page_iframely-network', 'settings_page_iframely'];
-        if (!($screen !== null && in_array($screen->id, $screens))) {
+        if (!($screen !== null && in_array($screen->id, $screens, true))) {
             return;
         }
         wp_enqueue_style('iframely-admin', Plugin::asset('admin.css'), [], IFRAMELY_VERSION);
@@ -52,7 +52,8 @@ class Settings
     public static function render(): void
     {
         if (!Plugin::isActivated() || Reactivation::isRequest() || Reactivation::inProgress()) {
-            Plugin::view('activation');
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- only tells whether the form was sent; save() has verified it by now
+            Plugin::view('activation', ['submitted' => !empty($_POST['iframely_nonce'])]);
             return;
         }
         Plugin::view('settings', self::data());
@@ -63,7 +64,7 @@ class Settings
         if (empty($_POST['iframely_nonce'])) {
             return;
         }
-        if (!wp_verify_nonce($_POST['iframely_nonce'], 'iframely_nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['iframely_nonce'])), 'iframely_nonce')) {
             wp_die('Your nonce could not be verified.');
         }
 
@@ -71,7 +72,7 @@ class Settings
             if (!current_user_can('manage_network_options')) {
                 wp_die('You don’t have permission to access this resource.');
             }
-        } else if (!current_user_can('manage_options')) {
+        } elseif (!current_user_can('manage_options')) {
             wp_die('You don’t have permission to access this resource.');
         }
 
@@ -82,20 +83,31 @@ class Settings
         }
 
         if (Plugin::isActivated() && !Reactivation::inProgress()) {
-            self::update();
+            self::update([
+                'builtins_replace' => !empty($_POST['iframely_builtins_replace']),
+                'previews_enhance' => !empty($_POST['iframely_previews_enhance']),
+                'cache_refresh' => !empty($_POST['iframely_cache_refresh']),
+                'cache_ttl' => isset($_POST['iframely_cache_ttl']) ? (int)$_POST['iframely_cache_ttl'] : 0,
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitizeApiParams() cleans the names and the values
+                'api_params' => isset($_POST['iframely_api_params']) ? wp_unslash($_POST['iframely_api_params']) : '',
+            ]);
             self::notify(__('Settings saved.', 'iframely'));
             return;
         }
 
-        self::activate();
+        self::activate(isset($_POST['iframely_api_key']) ? sanitize_text_field(wp_unslash($_POST['iframely_api_key'])) : '');
     }
 
-    public static function activate(): void
+    /**
+     * Verifies an API key with Iframely and stores it. For a form that save() has checked.
+     */
+    public static function activate(string $key): void
     {
-        $key = strtolower(trim(sanitize_text_field($_POST['iframely_api_key'] ?? '')));
+        $key = strtolower(trim($key));
 
         if (!preg_match('/^[a-z0-9]+$/', $key)) {
-            self::notify(sprintf(__('Invalid API key. Please check <a href="%s" target="_blank">your keys</a> and try again.', 'iframely'), Links::link('keys')), 'error');
+            /* translators: %s: address of the list of API keys at iframely.com */
+            self::notify(sprintf(__('Invalid API key. Please check <a href="%s" target="_blank">your keys</a> and try again.', 'iframely'), esc_url(Links::link('keys'))), 'error');
             return;
         }
 
@@ -120,10 +132,11 @@ class Settings
         $succeeded = $code >= 200 && $code < 300;
 
         if (!$succeeded || !is_array($data) || !empty($data['error'])) {
-            $status = is_array($data) && !empty($data['status']) ? $data['status'] : ($succeeded || !$code ? '' : $code);
+            $status = is_array($data) && !empty($data['status']) && is_scalar($data['status']) ? $data['status'] : ($succeeded || !$code ? '' : $code);
             $message = __('Sorry, your API key can\'t be verified.', 'iframely');
             if (!empty($status)) {
-                $message = sprintf(__('Sorry, your API key can\'t be verified (error code %s). <a href="%s" target="_blank">Learn more</a>', 'iframely'), $status, Links::link('/docs/result-codes'));
+                /* translators: 1: error code, 2: address of the documentation on error codes */
+                $message = sprintf(__('Sorry, your API key can\'t be verified (error code %1$s). <a href="%2$s" target="_blank">Learn more</a>', 'iframely'), esc_html((string)$status), esc_url(Links::link('/docs/result-codes')));
             }
             self::notify($message, 'error');
             return;
@@ -148,17 +161,22 @@ class Settings
         return is_multisite() ? 'network_admin_notices' : 'admin_notices';
     }
 
-    public static function update(): void
+    /**
+     * Stores the settings. For a form that save() has checked.
+     *
+     * @param array{builtins_replace?: bool, previews_enhance?: bool, cache_refresh?: bool, cache_ttl?: int, api_params?: mixed} $input
+     */
+    public static function update(array $input): void
     {
-        Options::setBuiltinsReplace((bool)($_POST['iframely_builtins_replace'] ?? false));
-        Options::setPreviewsEnhance((bool)($_POST['iframely_previews_enhance'] ?? false));
-        Options::setCacheRefresh((bool)($_POST['iframely_cache_refresh'] ?? false));
+        Options::setBuiltinsReplace(!empty($input['builtins_replace']));
+        Options::setPreviewsEnhance(!empty($input['previews_enhance']));
+        Options::setCacheRefresh(!empty($input['cache_refresh']));
 
-        $ttl = (int)($_POST['iframely_cache_ttl'] ?? 0);
+        $ttl = (int)($input['cache_ttl'] ?? 0);
         Options::setCacheTtl(in_array($ttl, Cache::getTtlValues(), true) ? $ttl : Cache::getDefaultTtlValue());
 
-        $params = $_POST['iframely_api_params'] ?? '';
-        Options::setApiParams(self::sanitizeApiParams(is_string($params) ? wp_unslash($params) : ''));
+        $params = $input['api_params'] ?? '';
+        Options::setApiParams(self::sanitizeApiParams(is_string($params) ? $params : ''));
     }
 
     /**
@@ -192,8 +210,10 @@ class Settings
     {
         $data = Options::collect();
         $data['cache_ttl_presets'] = Cache::getTtlPresets();
-        $data['tab'] = $_GET['tab'] ?? '';
-        $data['action'] = $_GET['action'] ?? '';
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- these say which tab to show, nothing is changed
+        $data['tab'] = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
+        $data['action'] = isset($_GET['action']) ? sanitize_key(wp_unslash($_GET['action'])) : '';
+        // phpcs:enable WordPress.Security.NonceVerification.Recommended
         return $data;
     }
 }

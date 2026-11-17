@@ -155,4 +155,26 @@ class PluginTest extends TestCase
         $this->assertStringContainsString('notice-success', $fixed);
         $this->assertStringNotContainsString('is-dismissible', $fixed);
     }
+
+    public function test_a_notice_keeps_links_and_drops_scripts(): void
+    {
+        ob_start();
+        Plugin::notice('Saved. <a href="https://iframely.com/keys" target="_blank">Your keys</a><script>alert(1)</script>', 'error"><script>alert(2)</script>');
+        $html = (string)ob_get_clean();
+
+        $this->assertStringContainsString('<a href="https://iframely.com/keys" target="_blank">Your keys</a>', $html);
+        $this->assertStringNotContainsString('<script', $html);
+        $this->assertSame(1, substr_count($html, '<div'));
+    }
+
+    public function test_every_view_refuses_to_run_outside_of_wordpress(): void
+    {
+        $views = array_merge(glob(IFRAMELY_PLUGIN_DIR . 'views/*.php'), glob(IFRAMELY_PLUGIN_DIR . 'views/*/*.php'));
+
+        $this->assertCount(10, $views);
+        foreach ($views as $view) {
+            $start = substr((string)file_get_contents($view), 0, 60);
+            $this->assertMatchesRegularExpression('/^<\?php\s+defined\(\'ABSPATH\'\) \|\| exit;/', $start, basename($view));
+        }
+    }
 }

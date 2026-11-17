@@ -486,7 +486,134 @@ class SettingsTest extends TestCase
         $this->assertMatchesRegularExpression('/<option value="' . (2 * WEEK_IN_SECONDS) . '"\s+selected/', $html);
         $this->assertStringContainsString('value="theme=dark"', $html);
         $this->assertStringContainsString('value="' . self::API_KEY . '"', $html);
-        $this->assertStringContainsString('page=iframely&action=reactivate', $html);
+        $this->assertStringContainsString('page=iframely&#038;action=reactivate', $html);
+    }
+
+    public function test_the_settings_form_prints_stored_values_escaped_and_as_they_are(): void
+    {
+        Options::setApiParams('title=%22%3E%3Cb%3E&theme=dark');
+        $this->actAsSettingsManager();
+        Settings::register();
+        // Values are not texts of the plugin: they must not go through the translations.
+        $translated = [];
+        $record = static function ($translation, $text) use (&$translated) {
+            $translated[] = $text;
+            return $translation;
+        };
+        add_filter('gettext', $record, 10, 2);
+
+        ob_start();
+        Settings::render();
+        $html = (string)ob_get_clean();
+        remove_filter('gettext', $record, 10);
+
+        $this->assertStringContainsString('value="title=%22%3E%3Cb%3E&amp;theme=dark"', $html);
+        $this->assertStringContainsString('value="' . self::API_KEY . '"', $html);
+        $this->assertNotContains(self::API_KEY, $translated);
+        $this->assertNotContains('title=%22%3E%3Cb%3E&theme=dark', $translated);
+        $this->assertNotContains((string)WEEK_IN_SECONDS, array_map('strval', $translated));
+    }
+
+    public function test_texts_of_the_pages_are_escaped_when_printed(): void
+    {
+        $this->actAsSettingsManager();
+        Settings::register();
+        // What a translation could bring in.
+        $spoil = static function ($translation, $text, $domain) {
+            return $domain === 'iframely' ? $translation . '<script>alert(1)</script><b>!</b>' : $translation;
+        };
+        add_filter('gettext', $spoil, 10, 3);
+
+        $pages = [];
+        foreach (['', 'customize', 'help'] as $tab) {
+            $_GET['tab'] = $tab;
+            ob_start();
+            Settings::render();
+            $pages[] = (string)ob_get_clean();
+        }
+        unset($_GET['tab']);
+        $_GET['action'] = 'reactivate';
+        ob_start();
+        Settings::render();
+        $pages[] = (string)ob_get_clean();
+        unset($_GET['action']);
+        Options::delete('iframely_api_key');
+        ob_start();
+        Settings::render();
+        $pages[] = (string)ob_get_clean();
+        ob_start();
+        \Iframely\Plugin::view('partials/onboarding');
+        $pages[] = (string)ob_get_clean();
+        remove_filter('gettext', $spoil, 10);
+
+        foreach ($pages as $html) {
+            $this->assertNotSame('', $html);
+            $this->assertStringNotContainsString('<script', $html);
+        }
+        // Texts with a link keep their link.
+        $this->assertStringContainsString('<a href="https://iframely.com/docs/options?utm_source=wordpress-plugin" target="_blank">per-URL options</a>', $pages[0]);
+        $this->assertStringContainsString('<a href="https://iframely.com/?utm_source=wordpress-plugin" target="_blank">iframely.com</a>', $pages[4]);
+    }
+
+    public function test_the_activation_form_drops_its_introduction_once_it_was_sent(): void
+    {
+        Options::delete('iframely_api_key');
+        $this->actAsSettingsManager();
+
+        ob_start();
+        Settings::render();
+        $first = (string)ob_get_clean();
+        $this->submit(['iframely_api_key' => 'not a key']);
+        $this->save();
+        ob_start();
+        Settings::render();
+        $sent = (string)ob_get_clean();
+
+        $this->assertStringContainsString('In order to use Iframely service', $first);
+        $this->assertStringNotContainsString('In order to use Iframely service', $sent);
+        $this->assertStringContainsString('name="iframely_api_key"', $sent);
+    }
+
+    public function test_an_error_code_of_the_api_is_printed_escaped(): void
+    {
+        Options::delete('iframely_api_key');
+        $this->actAsSettingsManager();
+        $this->submit(['iframely_api_key' => 'abc123']);
+        $this->respondWithJson(['status' => '<b>403</b><script>alert(1)</script>', 'error' => 'Invalid API key'], 403);
+
+        $this->save();
+        $notices = $this->notices();
+
+        $this->assertStringContainsString('(error code &lt;b&gt;403&lt;/b&gt;&lt;script&gt;alert(1)&lt;/script&gt;)', $notices);
+        $this->assertStringContainsString('target="_blank">Learn more</a>', $notices);
+        $this->assertSame('', Options::getApiKey());
+    }
+
+    public function test_an_error_code_that_is_not_a_value_is_left_out(): void
+    {
+        Options::delete('iframely_api_key');
+        $this->actAsSettingsManager();
+        $this->submit(['iframely_api_key' => 'abc123']);
+        $this->respondWithJson(['status' => ['a' => 1], 'error' => 'Invalid API key'], 200);
+
+        $this->save();
+
+        $this->assertStringContainsString('be verified.', $this->notices());
+        $this->assertSame('', Options::getApiKey());
+    }
+
+    public function test_a_nonce_that_is_not_text_is_refused(): void
+    {
+        $this->actAsSettingsManager();
+        $_POST = ['iframely_nonce' => [wp_create_nonce('iframely_nonce')], 'iframely_api_params' => 'theme=dark'];
+
+        try {
+            $this->save();
+            $this->fail('The form was accepted.');
+        } catch (\WPDieException $e) {
+            $this->assertStringContainsString('nonce', $e->getMessage());
+        }
+        $this->assertSame('', Options::getApiParams());
     }
 
     public function test_changing_the_api_key_asks_for_confirmation_first(): void
@@ -543,7 +670,7 @@ class SettingsTest extends TestCase
             'default tab' => ['', 'name="iframely_cache_refresh"', 'class="iframely-customize"'],
             'unknown tab falls back to the default' => ['nope', 'name="iframely_cache_refresh"', 'class="iframely-customize"'],
             'customize tab' => ['customize', 'class="iframely-customize"', 'name="iframely_cache_refresh"'],
-            'help tab' => ['help', '&tab=help" class="nav-tab nav-tab-active"', 'name="iframely_cache_refresh"'],
+            'help tab' => ['help', '&#038;tab=help" class="nav-tab nav-tab-active"', 'name="iframely_cache_refresh"'],
         ];
     }
 

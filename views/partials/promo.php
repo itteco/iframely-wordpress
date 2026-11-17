@@ -1,4 +1,10 @@
-<?php use Iframely\UI\Links; ?>
+<?php
+
+defined('ABSPATH') || exit;
+
+use Iframely\UI\Links;
+
+?>
 
 <div class="card iframely-promo">
   <div class="iframely-promo__body">
@@ -11,53 +17,56 @@
       </svg>
     </a>
 
-    <h2 class="title"><?php _e('Rich media embeds from 1900+ publishers', 'iframely'); ?></h2>
-    <p class="iframely-promo__tagline"><?php printf(__('<a href="%s" target="_blank">Iframely</a> extends WordPress default embeds and adds customizable rich media blocks from over <a href="%s" target="_blank">1900 rich media publishers</a>. For the rest of the Web, Iframely cloud serves a summary card preview.', 'iframely'), Links::link(), Links::link('/domains')); ?></p>
+    <h2 class="title"><?php esc_html_e('Rich media embeds from 1900+ publishers', 'iframely'); ?></h2>
+    <p class="iframely-promo__tagline"><?php
+      /* translators: 1: address of the Iframely website, 2: address of the list of publishers */
+      echo wp_kses_post(sprintf(__('<a href="%1$s" target="_blank">Iframely</a> extends WordPress default embeds and adds customizable rich media blocks from over <a href="%2$s" target="_blank">1900 rich media publishers</a>. For the rest of the Web, Iframely cloud serves a summary card preview.', 'iframely'), esc_url(Links::link()), esc_url(Links::link('/domains'))));
+    ?></p>
 
     <ul class="iframely-promo__list">
       <li class="iframely-promo__item">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="20" height="20" class="wp-ui-highlight iframely-promo__icon">
           <path d="M11.6 6.42 13 7l.58 1.4.07.07a.19.19 0 0 0 .1 0 .17.17 0 0 0 .1 0l.07-.07.58-1.4 1.4-.58.1-.07a.18.18 0 0 0 0-.2l-.07-.07-1.43-.58-.58-1.4a.23.23 0 0 0-.07-.1.17.17 0 0 0-.1 0 .19.19 0 0 0-.1 0 .23.23 0 0 0-.07.07L13 5.5l-1.4.58-.07.07a.18.18 0 0 0 0 .2l.07.07zm4.3 7.16L14.5 13l-.58-1.4-.07-.07a.17.17 0 0 0-.1 0 .19.19 0 0 0-.1 0l-.07.07L13 13l-1.4.58-.07.07a.18.18 0 0 0 0 .2l.07.07 1.4.58.58 1.4.07.07a.19.19 0 0 0 .1 0 .17.17 0 0 0 .1 0l.07-.07.58-1.4 1.4-.58.07-.07a.18.18 0 0 0 0-.2l-.07-.07zM13 10a.36.36 0 0 0-.06-.2.32.32 0 0 0-.15-.13l-2.64-1.34-1.31-2.64a.4.4 0 0 0-.68 0L6.85 8.33 4.21 9.66a.28.28 0 0 0-.15.13.36.36 0 0 0 0 .4.29.29 0 0 0 .15.14l2.64 1.32 1.31 2.64a.41.41 0 0 0 .14.15.36.36 0 0 0 .4 0 .41.41 0 0 0 .14-.15l1.31-2.64 2.64-1.32a.29.29 0 0 0 .15-.14A.36.36 0 0 0 13 10z"/>
         </svg>
-        <?php _e('Per-URL embed options', 'iframely'); ?>
+        <?php esc_html_e('Per-URL embed options', 'iframely'); ?>
       </li>
       <li class="iframely-promo__item">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="20" height="20" class="wp-ui-highlight iframely-promo__icon">
           <path d="M7.67 7.71a1.33 1.33 0 0 0-.53.3 1.42 1.42 0 0 0-.32.51L5 14l.29.29 2.93-2.93a.91.91 0 0 1-.1-.4.94.94 0 1 1 .94.94.91.91 0 0 1-.4-.1l-2.93 2.91L6 15l5.46-1.82a1.24 1.24 0 0 0 .81-.85l.83-2.95-2.5-2.5zm7.06-1.26-1.18-1.18a.94.94 0 0 0-1.32 0l-1.11 1.11 2.5 2.5 1.11-1.1a1 1 0 0 0 0-1.33z"/>
         </svg>
-        <?php _e('Custom cards design', 'iframely'); ?>
+        <?php esc_html_e('Custom cards design', 'iframely'); ?>
       </li>
       <li class="iframely-promo__item">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="20" height="20" class="wp-ui-highlight iframely-promo__icon">
           <path d="M6.23 11.32a.74.74 0 0 0-.74-.74.75.75 0 0 0-.75.74v3.19a.76.76 0 0 0 .75.75h3.19a.73.73 0 0 0 .51-.26.85.85 0 0 0 .22-.51.76.76 0 0 0-.75-.75h-1.4l6.51-6.51v1.45a.74.74 0 0 0 .74.74.75.75 0 0 0 .75-.74V5.49a.76.76 0 0 0-.75-.75h-3.17a.75.75 0 0 0-.73.74.74.74 0 0 0 .74.74h1.41l-6.5 6.5z"/>
         </svg>
-        <?php _e('Natively responsive', 'iframely'); ?>
+        <?php esc_html_e('Natively responsive', 'iframely'); ?>
       </li>
       <li class="iframely-promo__item">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="20" height="20" class="wp-ui-highlight wp-ui-highlight iframely-promo__icon">
           <path d="M5.62 12.12a2.11 2.11 0 0 0 1.47-.6l4.19 2.1a2.28 2.28 0 0 0 0 .26 2.13 2.13 0 1 0 .65-1.52l-4.19-2.1a1.7 1.7 0 0 0 0-.52l4.19-2.1a2.11 2.11 0 1 0-.65-1.52 2.28 2.28 0 0 0 0 .26l-4.19 2.1a2.12 2.12 0 1 0-1.47 3.64z"/>
         </svg>
-        <?php _e('Content recirculation', 'iframely'); ?>
+        <?php esc_html_e('Content recirculation', 'iframely'); ?>
       </li>
       <li class="iframely-promo__item">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="20" height="20" class="wp-ui-highlight iframely-promo__icon">
           <path d="M10 4.5a5.49 5.49 0 0 1 3.88 1.6.75.75 0 0 1 0 1.06.75.75 0 0 1-1.06 0 4 4 0 0 0-6.45 1.17l.89-.45a.75.75 0 0 1 .68 1.34l-2.36 1.2a.81.81 0 0 1-.34.08.59.59 0 0 1-.23 0 .73.73 0 0 1-.44-.37l-1.2-2.4a.75.75 0 0 1 .33-1 .74.74 0 0 1 1 .33l.3.61a5.54 5.54 0 0 1 5-3.17zm4.7 5a.7.7 0 0 1 .29 0 .73.73 0 0 1 .44.37l1.2 2.36a.75.75 0 0 1-.33 1 .81.81 0 0 1-.34.08.76.76 0 0 1-.67-.41l-.29-.57a5.5 5.5 0 0 1-8.88 1.57.75.75 0 0 1 0-1.06.75.75 0 0 1 1.06 0 4 4 0 0 0 6.45-1.17l-.89.45a.75.75 0 1 1-.68-1.34l2.36-1.2a.9.9 0 0 1 .28-.08z"/>
         </svg>
-        <?php _e('Evergreen cache', 'iframely'); ?>
+        <?php esc_html_e('Evergreen cache', 'iframely'); ?>
       </li>
       <li class="iframely-promo__item">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="20" height="20" class="wp-ui-highlight iframely-promo__icon">
           <path d="M9.23 16.07h-.76l.76-4.55H6.87a.37.37 0 0 1-.27-.11.39.39 0 0 1-.11-.27.71.71 0 0 1 .08-.24l4.18-7h.77l-.77 4.55h2.38a.38.38 0 0 1 .38.38.33.33 0 0 1-.08.22z"/>
         </svg>
-        <?php _e('AMP, lazy-loading, consents and more', 'iframely'); ?>
+        <?php esc_html_e('AMP, lazy-loading, consents and more', 'iframely'); ?>
       </li>
     </ul>
 
   </div>
   <div class="iframely-promo__footer">
 
-    <p><a href="<?php echo Links::link('/features'); ?>" target="_blank" class="button"><?php _e('Explore all features', 'iframely'); ?></a></p>
-    <p><a href="<?php echo Links::link('/embed'); ?>" target="_blank" class="button"><?php _e('Test your URL', 'iframely'); ?></a></p>
+    <p><a href="<?php echo esc_url(Links::link('/features')); ?>" target="_blank" class="button"><?php esc_html_e('Explore all features', 'iframely'); ?></a></p>
+    <p><a href="<?php echo esc_url(Links::link('/embed')); ?>" target="_blank" class="button"><?php esc_html_e('Test your URL', 'iframely'); ?></a></p>
 
   </div>
 </div>

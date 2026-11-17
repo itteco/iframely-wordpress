@@ -83,6 +83,7 @@ class Cache
         }
 
         # Copy keys from wp-embed
+        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- WordPress names its cache entries this way, see WP_Embed::shortcode()
         $suffix = md5($url . serialize($attr));
         $time = '_oembed_time_' . $suffix;
         $key = '_oembed_' . $suffix;

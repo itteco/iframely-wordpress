@@ -1,10 +1,14 @@
 <?php
+
+defined('ABSPATH') || exit;
+
 use Iframely\Plugin;
 use Iframely\Reactivation;
+
 ?>
 
 <div class="wrap">
-  <h1 class="iframely-heading"><?php _e('Iframely – media embed blocks', 'iframely'); ?></h1>
+  <h1 class="iframely-heading"><?php esc_html_e('Iframely – media embed blocks', 'iframely'); ?></h1>
   <?php Plugin::view('partials/tabs', $data); ?>
   <?php
     if ($tab === 'help') {
