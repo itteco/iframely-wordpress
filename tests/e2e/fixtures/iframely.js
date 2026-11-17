@@ -127,6 +127,35 @@ async function apiRequests(requestUtils) {
 }
 
 /**
+ * The WordPress version of the tests site, for the few tests whose outcome depends on it.
+ *
+ * @param {import('@wordpress/e2e-test-utils-playwright').RequestUtils} requestUtils
+ */
+async function wordpressVersion(requestUtils) {
+  return (await requestUtils.rest({ path: '/iframely-e2e/v1/env' })).wordpress;
+}
+
+/**
+ * Makes the next calls to the (stubbed) Iframely API fail, as if the API timed out.
+ *
+ * @param {import('@wordpress/e2e-test-utils-playwright').RequestUtils} requestUtils
+ * @param {number}                                                      count
+ */
+async function failNextApiRequests(requestUtils, count = 1) {
+  return requestUtils.rest({ method: 'POST', path: '/iframely-e2e/v1/fail-next', data: { count } });
+}
+
+/**
+ * Makes the next call to the (stubbed) Iframely API take the given time.
+ *
+ * @param {import('@wordpress/e2e-test-utils-playwright').RequestUtils} requestUtils
+ * @param {number}                                                      ms
+ */
+async function delayNextApiRequest(requestUtils, ms) {
+  return requestUtils.rest({ method: 'POST', path: '/iframely-e2e/v1/delay-next', data: { ms } });
+}
+
+/**
  * Inserts an embed block and returns locators for it and for its preview.
  *
  * @param {import('@wordpress/e2e-test-utils-playwright').Editor} editor
@@ -182,6 +211,9 @@ module.exports = {
   stubIframelyCdn,
   resetPlugin,
   apiRequests,
+  wordpressVersion,
+  failNextApiRequests,
+  delayNextApiRequest,
   insertEmbed,
   changeOption,
   iframelyParam,

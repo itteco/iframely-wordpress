@@ -70,7 +70,8 @@ None of these tests talks to the real Iframely API:
   API key starting with `e2evalid`. The two scripts the editor loads from `if-cdn.com` are replaced in the browser.
 - The stub answers the way the real API does: a player with player options ("Closed captions", "Start from") for
   YouTube and Vimeo URLs, and a summary card with the "Make it a small card" option for any other page. The formats
-  were taken from the real API, and the live test below checks that they still hold.
+  were taken from the real API, and the live test below checks that they still hold. A test can make the next API
+  call slow or make it fail (`delayNextApiRequest`, `failNextApiRequests` in `tests/e2e/fixtures/iframely.js`).
 - PHPUnit uses its own database tables (prefix `wptests_`), so it does not touch the content of the tests site.
 
 Tests named `known_issue` / `known issue:` record current behaviour that is considered a defect. They are expected

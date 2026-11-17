@@ -95,6 +95,20 @@ add_filter('pre_http_request', static function ($preempt, $args, $url) {
         return $respond(['status' => 403, 'error' => 'Invalid API key (stub)'], 403);
     }
 
+    // A test can ask for the next request to take its time, or for the next
+    // requests to fail the way the real API does when it is too slow: WordPress
+    // gives up after five seconds.
+    $delay = (int)get_option('iframely_e2e_delay_next', 0);
+    if ($delay > 0) {
+        delete_option('iframely_e2e_delay_next');
+        usleep($delay * 1000);
+    }
+    $failures = (int)get_option('iframely_e2e_fail_next', 0);
+    if ($failures > 0) {
+        update_option('iframely_e2e_fail_next', $failures - 1, false);
+        return new WP_Error('http_request_failed', 'Operation timed out (stub)');
+    }
+
     // Like the real API, embed the page itself: the options the plugin appends
     // to the URL arrive as separate parameters.
     $target = remove_query_arg('iframely', (string)($query['url'] ?? ''));
@@ -168,7 +182,8 @@ add_action('init', static function () {
 });
 
 /**
- * Helpers for the tests: put the plugin into a known state, read the API calls.
+ * Helpers for the tests: put the plugin into a known state, make API calls slow
+ * or fail, read the API calls.
  */
 add_action('rest_api_init', static function () {
     $permission = static function () {
@@ -184,6 +199,8 @@ add_action('rest_api_init', static function () {
             // Back to the state right after the plugin was activated for the first time.
             \Iframely\Options::reset();
             delete_option('iframely_e2e_requests');
+            delete_option('iframely_e2e_fail_next');
+            delete_option('iframely_e2e_delay_next');
 
             // Forget cached embeds, so every test sees its own API calls: editor
             // previews are kept in transients, rendered embeds in post meta and in
@@ -204,6 +221,32 @@ add_action('rest_api_init', static function () {
             }
 
             return \Iframely\Options::collect();
+        },
+    ]);
+
+    register_rest_route('iframely-e2e/v1', '/fail-next', [
+        'methods' => 'POST',
+        'permission_callback' => $permission,
+        'callback' => static function (WP_REST_Request $request) {
+            update_option('iframely_e2e_fail_next', (int)$request->get_param('count'), false);
+            return ['count' => (int)get_option('iframely_e2e_fail_next')];
+        },
+    ]);
+
+    register_rest_route('iframely-e2e/v1', '/delay-next', [
+        'methods' => 'POST',
+        'permission_callback' => $permission,
+        'callback' => static function (WP_REST_Request $request) {
+            update_option('iframely_e2e_delay_next', min(4000, (int)$request->get_param('ms')), false);
+            return ['ms' => (int)get_option('iframely_e2e_delay_next')];
+        },
+    ]);
+
+    register_rest_route('iframely-e2e/v1', '/env', [
+        'methods' => 'GET',
+        'permission_callback' => $permission,
+        'callback' => static function () {
+            return ['wordpress' => get_bloginfo('version'), 'php' => PHP_VERSION];
         },
     ]);
 

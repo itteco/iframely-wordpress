@@ -4,6 +4,9 @@ const {
   stubIframelyCdn,
   resetPlugin,
   apiRequests,
+  wordpressVersion,
+  failNextApiRequests,
+  delayNextApiRequest,
   insertEmbed,
   changeOption,
   iframelyParam,
@@ -13,6 +16,8 @@ const {
 // the real API does, and with the one option the real card has.
 const CARD_URL = 'https://en.wikipedia.org/wiki/Tiramisu';
 const SMALL_CARD = /[?&]card=small/;
+const REGULAR_CARD = /^(?!.*[?&]card=)/;
+const SMALL_CARD_URL = `${CARD_URL}?${iframelyParam({ card: 'small' })}`;
 
 test.describe('Iframely cards', () => {
   test.beforeEach(async ({ context, requestUtils }) => {
@@ -101,7 +106,7 @@ test.describe('Iframely cards', () => {
     await changeOption(page, preview, SMALL_CARD, () => page.getByLabel('Make it a small card').check());
     await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-size', 'small');
 
-    await changeOption(page, preview, /^(?!.*[?&]card=)/, () => page.getByLabel('Make it a small card').uncheck());
+    await changeOption(page, preview, REGULAR_CARD, () => page.getByLabel('Make it a small card').uncheck());
 
     await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-size', 'regular');
     await expect(page.getByLabel('Make it a small card')).not.toBeChecked();
@@ -119,6 +124,170 @@ test.describe('Iframely cards', () => {
     await expect(rendered).toHaveAttribute('data-size', 'regular');
     await expect(rendered.locator('iframe')).toHaveCSS('height', '320px');
     expect(JSON.parse(await rendered.getAttribute('data-query'))).not.toHaveProperty('card');
+  });
+
+  test('a card can be switched between small and regular again and again', async ({ admin, editor, page }) => {
+    const { preview } = await startPostWithCard({ admin, editor }, 'Card switched back and forth');
+    const option = page.getByLabel('Make it a small card');
+    const card = preview.locator('.iframely-e2e-embed');
+    const blockUrl = async () => (await editor.getBlocks())[0].attributes.url;
+
+    for (let round = 1; round <= 4; round++) {
+      await changeOption(page, preview, SMALL_CARD, () => option.check());
+      await expect(card, `round ${round}`).toHaveAttribute('data-size', 'small');
+      await expect(option, `round ${round}`).toBeChecked();
+      expect(await blockUrl(), `round ${round}`).toBe(SMALL_CARD_URL);
+
+      await changeOption(page, preview, REGULAR_CARD, () => option.uncheck());
+      await expect(card, `round ${round}`).toHaveAttribute('data-size', 'regular');
+      await expect(option, `round ${round}`).not.toBeChecked();
+      expect(await blockUrl(), `round ${round}`).toBe(CARD_URL);
+    }
+
+    // The block is still in order after all that.
+    await expect(editor.canvas.locator('.block-editor-warning')).toHaveCount(0);
+    await changeOption(page, preview, SMALL_CARD, () => option.check());
+    await editor.publishPost();
+    expect(await editor.getEditedPostContent()).toContain(SMALL_CARD_URL);
+  });
+
+  for (const clicks of [5, 6]) {
+    test(`${clicks} quick clicks on the option end in the state of the last click`, async ({ admin, editor, page }) => {
+      const { preview } = await startPostWithCard({ admin, editor }, 'Card option clicked quickly');
+      const option = page.getByLabel('Make it a small card');
+      const errors = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+
+      // Once the editor has shown both forms of the card...
+      await changeOption(page, preview, SMALL_CARD, () => option.check());
+      await changeOption(page, preview, REGULAR_CARD, () => option.uncheck());
+
+      // ...it keeps up with clicks that do not wait for the preview.
+      for (let click = 1; click <= clicks; click++) {
+        await option.click();
+      }
+
+      const small = clicks % 2 === 1;
+      await expect(async () => {
+        await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-size', small ? 'small' : 'regular');
+        await expect(option).toBeChecked({ checked: small });
+        const [embed] = await editor.getBlocks();
+        expect(embed.attributes.url).toBe(small ? SMALL_CARD_URL : CARD_URL);
+        expect(embed.attributes.iquery).toEqual(small ? { card: 'small' } : {});
+      }).toPass();
+      await expect(editor.canvas.locator('.block-editor-warning')).toHaveCount(0);
+      expect(errors).toEqual([]);
+
+      // And the panel still works.
+      await changeOption(page, preview, small ? REGULAR_CARD : SMALL_CARD, () => option.click());
+      await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-size', small ? 'regular' : 'small');
+    });
+  }
+
+  /*
+   * Known issue, kept as a record of current behaviour (see the review report).
+   * The first time an option is used, the editor has to load a new preview. Until
+   * that preview has reported its options, the panel is still shown but whatever
+   * is clicked in it is lost. Seen with the real API: a second click 150 ms after
+   * the first was ignored, and the checkbox jumped back a second later.
+   */
+  test('known issue: a click made while a new preview loads is lost', async ({ admin, editor, page, requestUtils }) => {
+    const { preview } = await startPostWithCard({ admin, editor }, 'Card option clicked twice');
+    const option = page.getByLabel('Make it a small card');
+
+    await delayNextApiRequest(requestUtils, 1500);
+    await option.click();
+    // The user changes their mind before the small card is there.
+    await option.click();
+    await expect(option).not.toBeChecked();
+
+    // The second click did not count: the card is small, and the checkbox follows.
+    await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-size', 'small');
+    await expect(option).toBeChecked();
+    const [embed] = await editor.getBlocks();
+    expect(embed.attributes.url).toBe(SMALL_CARD_URL);
+    expect(embed.attributes.iquery).toEqual({ card: 'small' });
+  });
+
+  /*
+   * Known issues, kept as a record of current behaviour (see the review report).
+   * Seen with the real API: one preview request took longer than the five seconds
+   * WordPress waits, and the block said "Sorry, this content could not be embedded".
+   */
+  test.describe('when the preview fails after an option change', () => {
+    async function startWithFailedSmallCard({ admin, editor, page, requestUtils }) {
+      const { block } = await startPostWithCard({ admin, editor }, 'Card whose small preview fails');
+      await failNextApiRequests(requestUtils, 1);
+      await page.getByLabel('Make it a small card').check();
+      await expect(block.getByText('Sorry, this content could not be embedded.')).toBeVisible();
+      return block;
+    }
+
+    // The options panel is still there, but its changes are lost.
+    test('known issue: the options panel is still offered and fails when used', async ({
+      admin,
+      editor,
+      page,
+      requestUtils,
+    }) => {
+      const errors = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      await startWithFailedSmallCard({ admin, editor, page, requestUtils });
+
+      await page.getByLabel('Make it a small card').click();
+      await expect.poll(() => errors).toEqual([expect.stringContaining("reading 'contentWindow'")]);
+      const [embed] = await editor.getBlocks();
+      expect(embed.attributes.url).toBe(SMALL_CARD_URL);
+
+      // The choice made before the failure is not lost: it is saved, and opening
+      // the post again shows the small card.
+      const postId = await editor.publishPost();
+      await admin.editPost(postId);
+      const reopened = editor.canvas.locator('[data-type="core/embed"]');
+      await expect(reopened.locator('iframe').contentFrame().locator('.iframely-e2e-embed')).toHaveAttribute(
+        'data-size',
+        'small',
+      );
+    });
+
+    // The plugin changes the URL of the block behind the editor's back. Current
+    // WordPress retries the URL the block itself remembers, the one without the
+    // options, so the failed preview is never asked for again.
+    test('known issue: "Try again" does not ask for the failed preview again', async ({
+      admin,
+      editor,
+      page,
+      requestUtils,
+    }) => {
+      // eslint-disable-next-line playwright/no-skipped-test -- the outcome depends on the WordPress version
+      test.skip(
+        /^6\.6(\.|$)/.test(await wordpressVersion(requestUtils)),
+        'WordPress 6.6 retries the current URL of the block, so "Try again" works there.',
+      );
+      const block = await startWithFailedSmallCard({ admin, editor, page, requestUtils });
+
+      const before = (await apiRequests(requestUtils)).length;
+      await block.getByRole('button', { name: 'Try again' }).click();
+
+      await expect(block.getByText('Sorry, this content could not be embedded.')).toBeVisible();
+      expect(await apiRequests(requestUtils)).toHaveLength(before);
+    });
+
+    test('"Try again" brings the preview back on WordPress 6.6', async ({ admin, editor, page, requestUtils }) => {
+      // eslint-disable-next-line playwright/no-skipped-test -- the outcome depends on the WordPress version
+      test.skip(
+        !/^6\.6(\.|$)/.test(await wordpressVersion(requestUtils)),
+        'Newer WordPress does not retry the changed URL, see the known issue above.',
+      );
+      const block = await startWithFailedSmallCard({ admin, editor, page, requestUtils });
+
+      await block.getByRole('button', { name: 'Try again' }).click();
+
+      await expect(block.locator('iframe').contentFrame().locator('.iframely-e2e-embed')).toHaveAttribute(
+        'data-size',
+        'small',
+      );
+    });
   });
 
   test('a small card is still small and valid when the post is opened again', async ({ admin, editor, page }) => {

@@ -74,6 +74,52 @@ test.describe('Iframely rich media embeds', () => {
     await expect(page.getByLabel('Start from')).toHaveValue('');
   });
 
+  test('options of a video can be changed again and again', async ({ admin, editor, page }) => {
+    await admin.createNewPost({ title: 'Video with changing options' });
+    const { block, preview } = await insertEmbed(editor, VIDEO_URL);
+    await expect(preview.locator('.iframely-e2e-embed')).toBeVisible();
+    await editor.selectBlocks(block);
+    await editor.openDocumentSettingsSidebar();
+
+    const captions = page.getByLabel('Closed captions');
+    const start = page.getByLabel('Start from');
+    const startFrom = (value) => async () => {
+      await start.fill(value);
+      await start.blur();
+    };
+    // What the user does, what the address of the embed then looks like, and the
+    // options the block should hold (in the order of the form). The last steps
+    // return to combinations that were used before.
+    const steps = [
+      [() => captions.check(), /^(?=.*_cc_load_policy=1)(?!.*_start=)/, { _cc_load_policy: true }],
+      [startFrom('1m10s'), /^(?=.*_cc_load_policy=1)(?=.*_start=1m10s)/, { _start: '1m10s', _cc_load_policy: true }],
+      [() => captions.uncheck(), /^(?!.*_cc_load_policy)(?=.*_start=1m10s)/, { _start: '1m10s' }],
+      [startFrom('30'), /^(?!.*_cc_load_policy)(?=.*_start=30)/, { _start: '30' }],
+      [() => captions.check(), /^(?=.*_cc_load_policy=1)(?=.*_start=30)/, { _start: '30', _cc_load_policy: true }],
+      [startFrom(''), /^(?=.*_cc_load_policy=1)(?!.*_start=)/, { _cc_load_policy: true }],
+      [() => captions.uncheck(), /^(?!.*_cc_load_policy)(?!.*_start=)/, {}],
+      [() => captions.check(), /^(?=.*_cc_load_policy=1)(?!.*_start=)/, { _cc_load_policy: true }],
+      [startFrom('1m10s'), /^(?=.*_cc_load_policy=1)(?=.*_start=1m10s)/, { _start: '1m10s', _cc_load_policy: true }],
+    ];
+
+    for (const [index, [change, src, options]] of steps.entries()) {
+      const step = `step ${index + 1}`;
+      await changeOption(page, preview, src, change);
+
+      await expect(captions, step).toBeChecked({ checked: Boolean(options._cc_load_policy) });
+      await expect(start, step).toHaveValue(options._start || '');
+      const [embed] = await editor.getBlocks();
+      expect(embed.attributes.iquery, step).toEqual(options);
+      expect(embed.attributes.url, step).toBe(
+        Object.keys(options).length ? `${VIDEO_URL}&${iframelyParam(options)}` : VIDEO_URL,
+      );
+    }
+
+    await expect(editor.canvas.locator('.block-editor-warning')).toHaveCount(0);
+    await editor.publishPost();
+    expect(await editor.getEditedPostContent()).toContain(`${VIDEO_URL}&${iframelyParam(VIDEO_OPTIONS)}`);
+  });
+
   test('options chosen in the panel are applied, saved and used on the front end', async ({
     admin,
     editor,
