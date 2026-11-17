@@ -1,7 +1,7 @@
 import { select } from '@wordpress/data';
 import { Component } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
-import { getBlockIframe, getBlockId } from '../utils';
+import { getBlockIframe, getBlockId, getIframely } from '../utils';
 
 class IframelyOptions extends Component {
   constructor(props) {
@@ -52,7 +52,8 @@ function updateForm() {
   const data = jQuery(iframe).data();
   let $options = jQuery('#iframely-options');
   let options = $options.length === 2 ? $options.get(1) : $options.get(0);
-  if (iframe && data) {
+  const iframely = getIframely();
+  if (iframe && data && iframely && typeof iframely.buildOptionsForm === 'function') {
     iframely.buildOptionsForm(blockId, options, data.data);
   }
 }

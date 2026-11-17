@@ -13,6 +13,9 @@ const message = {
   data: { query: ['theme'], theme: { value: 'dark' } },
 };
 
+// The frame of an embed in the editor has the origin of the editor.
+const ORIGIN = window.location.origin;
+
 let sandbox;
 let selectedBlock;
 
@@ -36,14 +39,14 @@ afterEach(() => {
 
 describe('iframeMessage', () => {
   it('stores the options sent as a JSON string on the iframe they came from', () => {
-    iframeMessage({ data: JSON.stringify(message), source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: JSON.stringify(message), source: sandbox.contentWindow });
 
     expect(jQuery(sandbox).data()).toEqual(message);
     expect(jQuery(document.querySelector('iframe.other')).data()).toEqual({});
   });
 
   it('accepts options sent as an object', () => {
-    iframeMessage({ data: message, source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: message, source: sandbox.contentWindow });
 
     expect(jQuery(sandbox).data()).toEqual(message);
   });
@@ -57,7 +60,7 @@ describe('iframeMessage', () => {
       url: 'https://en.wikipedia.org/wiki/Tiramisu',
     };
 
-    iframeMessage({ data: JSON.stringify(card), source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: JSON.stringify(card), source: sandbox.contentWindow });
 
     expect(jQuery(sandbox).data('data')).toEqual({ card: { value: '', values: { small: 'Make it a small card' } } });
     expect(jQuery(sandbox).data('context')).toBe(card.context);
@@ -65,7 +68,7 @@ describe('iframeMessage', () => {
   });
 
   it('rebuilds the options form when the selected block is an embed', () => {
-    iframeMessage({ data: message, source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: message, source: sandbox.contentWindow });
 
     expect(updateForm).toHaveBeenCalledTimes(1);
   });
@@ -73,7 +76,7 @@ describe('iframeMessage', () => {
   it.each([['core-embed/youtube'], ['core/embed']])('treats "%s" as an embed block', (name) => {
     selectedBlock = { name };
 
-    iframeMessage({ data: message, source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: message, source: sandbox.contentWindow });
 
     expect(updateForm).toHaveBeenCalledTimes(1);
   });
@@ -81,7 +84,7 @@ describe('iframeMessage', () => {
   it('stores the options but leaves the form alone when another block is selected', () => {
     selectedBlock = { name: 'core/paragraph' };
 
-    iframeMessage({ data: message, source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: message, source: sandbox.contentWindow });
 
     expect(jQuery(sandbox).data()).toEqual(message);
     expect(updateForm).not.toHaveBeenCalled();
@@ -90,21 +93,21 @@ describe('iframeMessage', () => {
   it('leaves the form alone when no block is selected', () => {
     selectedBlock = null;
 
-    iframeMessage({ data: message, source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: message, source: sandbox.contentWindow });
 
     expect(updateForm).not.toHaveBeenCalled();
   });
 
   it('ignores messages with another method', () => {
-    iframeMessage({ data: { ...message, method: 'resize' }, source: sandbox.contentWindow });
-    iframeMessage({ data: JSON.stringify({ height: 300 }), source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: { ...message, method: 'resize' }, source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: JSON.stringify({ height: 300 }), source: sandbox.contentWindow });
 
     expect(jQuery(sandbox).data()).toEqual({});
     expect(updateForm).not.toHaveBeenCalled();
   });
 
   it('ignores messages that do not come from an iframe of the editor', () => {
-    iframeMessage({ data: message, source: window });
+    iframeMessage({ origin: ORIGIN, data: message, source: window });
 
     expect(jQuery(sandbox).data()).toEqual({});
     expect(updateForm).not.toHaveBeenCalled();
@@ -116,33 +119,39 @@ describe('iframeMessage', () => {
     canvasDocument.body.innerHTML = '<div id="block-abc-123"><iframe class="sandbox"></iframe></div>';
     sandbox = canvasDocument.querySelector('iframe.sandbox');
 
-    iframeMessage({ data: message, source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: message, source: sandbox.contentWindow });
 
     expect(jQuery(sandbox).data()).toEqual(message);
   });
 
   it('ignores JSON messages without a payload', () => {
-    expect(() => iframeMessage({ data: 'null', source: sandbox.contentWindow })).not.toThrow();
+    expect(() => iframeMessage({ origin: ORIGIN, data: 'null', source: sandbox.contentWindow })).not.toThrow();
     expect(jQuery(sandbox).data()).toEqual({});
   });
 
-  /*
-   * Known issue, kept as a record of current behaviour (see the review report):
-   * every "message" event of the editor window is parsed as JSON without a guard,
-   * so any other script that posts a plain string makes the handler throw.
-   */
-  it('known issue: throws on string messages that are not JSON', () => {
-    expect(() => iframeMessage({ data: 'webpackHotUpdate', source: window })).toThrow(SyntaxError);
+  it.each([['webpackHotUpdate'], ['{broken'], [''], [42], [undefined]])(
+    'ignores a message in another format: %s',
+    (data) => {
+      expect(() => iframeMessage({ origin: ORIGIN, data, source: sandbox.contentWindow })).not.toThrow();
+      expect(jQuery(sandbox).data()).toEqual({});
+      expect(updateForm).not.toHaveBeenCalled();
+    },
+  );
+
+  it('ignores options that are not a set of options', () => {
+    iframeMessage({ origin: ORIGIN, data: { ...message, data: 'theme=dark' }, source: sandbox.contentWindow });
+    iframeMessage({ origin: ORIGIN, data: { ...message, data: undefined }, source: sandbox.contentWindow });
+
+    expect(jQuery(sandbox).data()).toEqual({});
+    expect(updateForm).not.toHaveBeenCalled();
   });
 
-  /*
-   * Known issue, kept as a record of current behaviour (see the review report):
-   * the origin of the message is not checked; any window that is embedded in the
-   * editor can set the stored options.
-   */
-  it('known issue: accepts messages regardless of their origin', () => {
+  it('ignores messages of a frame that has left the editor for another site', () => {
     iframeMessage({ data: message, source: sandbox.contentWindow, origin: 'https://attacker.example' });
+    iframeMessage({ data: message, source: sandbox.contentWindow, origin: 'null' });
+    iframeMessage({ data: message, source: sandbox.contentWindow });
 
-    expect(jQuery(sandbox).data()).toEqual(message);
+    expect(jQuery(sandbox).data()).toEqual({});
+    expect(updateForm).not.toHaveBeenCalled();
   });
 });

@@ -25,6 +25,11 @@ function getEmbedIframe(id) {
   return document.querySelector('iframe');
 }
 
+// The global that the scripts of Iframely's CDN define, if they were loaded.
+function getIframely() {
+  return typeof window.iframely === 'object' && window.iframely !== null ? window.iframely : null;
+}
+
 function isObject(val) {
   if (val === null) {
     return false;
@@ -68,6 +73,7 @@ export {
   getEmbedIframe,
   getBlockWindow,
   addIframelyString,
+  getIframely,
   getIframelyString,
   isEmbedBlock,
   isObject,

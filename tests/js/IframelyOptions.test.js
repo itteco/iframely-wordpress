@@ -57,6 +57,21 @@ describe('updateForm', () => {
     expect(global.iframely.buildOptionsForm).toHaveBeenCalledWith('abc-123', panel, options);
   });
 
+  it.each([
+    ['is missing', undefined],
+    ['has no form builder', {}],
+  ])('does nothing when the Iframely script %s', (name, value) => {
+    jQuery(document.querySelector('iframe.sandbox')).data({ data: { theme: { value: 'dark' } } });
+    document.body.insertAdjacentHTML('beforeend', '<div id="iframely-options"></div>');
+    delete global.iframely;
+    if (value) {
+      global.iframely = value;
+    }
+
+    expect(() => updateForm()).not.toThrow();
+    expect(document.getElementById('iframely-options').innerHTML).toBe('');
+  });
+
   it('does nothing when the selected block has no preview iframe', () => {
     document.body.innerHTML = '<div id="iframely-options"></div>';
 

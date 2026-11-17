@@ -234,7 +234,10 @@ class GutenbergTest extends TestCase
         $html = Gutenberg::inject_events_proxy_to_gutenberg(self::EMBED_HTML, self::URL, []);
 
         $this->assertStringStartsWith(self::EMBED_HTML, $html);
-        $this->assertStringContainsString('window.top.postMessage(e.data,"*")', $html);
+        $this->assertStringContainsString('<script type="text/javascript">window.addEventListener("message",', $html);
+        // Messages are passed on from the frames of the embed only, and to the editor only.
+        $this->assertStringContainsString('contentWindow===e.source', $html);
+        $this->assertStringContainsString('window.top.postMessage(e.data,o&&o!=="null"?o:"*")', $html);
 
         $this->assertSame('  ', Gutenberg::inject_events_proxy_to_gutenberg('  ', self::URL, []));
     }
@@ -263,19 +266,26 @@ class GutenbergTest extends TestCase
         $this->assertSame(['jquery'], $scripts['iframely-options']->deps);
     }
 
-    /**
-     * Known issue, kept as a record of current behaviour (see the review report):
-     * the dependency list is hardcoded instead of read from build/index.asset.php,
-     * and has fallen behind what the build needs.
-     */
-    public function test_known_issue_editor_script_misses_a_dependency_of_its_build(): void
+    public function test_the_editor_script_declares_what_its_build_and_its_code_need(): void
     {
         Gutenberg::iframely_gutenberg_loader();
 
-        $declared = wp_scripts()->registered['iframely-gutenberg']->deps;
-        $needed = (require IFRAMELY_PLUGIN_DIR . 'build/index.asset.php')['dependencies'];
+        $script = wp_scripts()->registered['iframely-gutenberg'];
+        $asset = require IFRAMELY_PLUGIN_DIR . 'build/index.asset.php';
 
-        $this->assertSame(['react-jsx-runtime'], array_values(array_diff($needed, $declared)));
+        $this->assertContains('react-jsx-runtime', $asset['dependencies'], 'The build is expected to need the JSX runtime.');
+        $this->assertSame([], array_values(array_diff($asset['dependencies'], $script->deps)));
+        // The code also uses jQuery and the two scripts of Iframely's CDN.
+        $this->assertSame(['jquery', 'iframely-embed', 'iframely-options'], array_values(array_diff($script->deps, $asset['dependencies'])));
+        // A new build gets a new address, so browsers do not keep the old one.
+        $this->assertSame($asset['version'], $script->ver);
+    }
+
+    public function test_the_texts_of_the_editor_script_can_be_translated(): void
+    {
+        Gutenberg::iframely_gutenberg_loader();
+
+        $this->assertSame('iframely', wp_scripts()->registered['iframely-gutenberg']->textdomain);
     }
 
     private function preview(array $params = []): \WP_REST_Response

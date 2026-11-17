@@ -147,6 +147,59 @@ test.describe('Iframely rich media embeds', () => {
     expect(embed.attributes.url).toBe(`${VIDEO_URL}&${iframelyParam(VIDEO_OPTIONS)}`);
   });
 
+  test('the editor works without the scripts of the Iframely CDN', async ({ admin, context, editor, page }) => {
+    // A content blocker or a firewall keeps if-cdn.com away.
+    await context.route('https://if-cdn.com/**', (route) => route.abort());
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+
+    await admin.createNewPost({ title: 'Video without the CDN scripts' });
+    const { block, preview } = await insertEmbed(editor, VIDEO_URL);
+    await expect(preview.locator('.iframely-e2e-embed')).toBeVisible();
+    await editor.selectBlocks(block);
+    await editor.openDocumentSettingsSidebar();
+
+    // There are no options to choose, and nothing is broken.
+    await expect(page.locator('#iframely-options')).toContainText('Iframely will show');
+    await expect(page.getByLabel('Closed captions')).toHaveCount(0);
+    expect(errors).toEqual([]);
+    await editor.publishPost();
+    expect(await editor.getEditedPostContent()).toContain(VIDEO_URL);
+  });
+
+  test('a message that does not come from the embed is not taken for its options', async ({ admin, editor, page }) => {
+    await admin.createNewPost({ title: 'Video and a forged message' });
+    const { block, preview } = await insertEmbed(editor, VIDEO_URL);
+    await expect(preview.locator('.iframely-e2e-embed')).toBeVisible();
+    await editor.selectBlocks(block);
+    await editor.openDocumentSettingsSidebar();
+    await expect(page.getByLabel('Closed captions')).toBeVisible();
+    const builds = await page.locator('#iframely-options').getAttribute('data-builds');
+
+    // A frame inside the embed, as an ad or a player of a third party would be,
+    // posts options to the frame the embed sits in.
+    const forged = JSON.stringify({
+      method: 'setIframelyEmbedOptions',
+      data: { forged: { label: 'Forged option', value: true } },
+    });
+    await preview
+      .locator('iframe[title="Iframely stub embed"]')
+      .contentFrame()
+      .locator('body')
+      .evaluate((body, message) => {
+        const inner = body.ownerDocument.createElement('iframe');
+        body.appendChild(inner);
+        inner.contentWindow.eval(`window.parent.parent.postMessage(${JSON.stringify(message)}, '*')`);
+        inner.contentWindow.eval(`window.top.postMessage(${JSON.stringify(message)}, '*')`);
+      }, forged);
+    // And a script elsewhere on the editor page posts them to the editor itself.
+    await page.evaluate((message) => window.postMessage(message, '*'), forged);
+
+    await expect(page.getByLabel('Closed captions')).toBeVisible();
+    await expect(page.getByLabel('Forged option')).toHaveCount(0);
+    await expect(page.locator('#iframely-options')).toHaveAttribute('data-builds', builds);
+  });
+
   test('options chosen in the panel are applied, saved and used on the front end', async ({
     admin,
     editor,

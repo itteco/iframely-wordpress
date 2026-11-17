@@ -152,12 +152,23 @@ class Gutenberg
         return $options;
     }
 
+    /**
+     * In the editor an embed sits inside a frame of its own, and tells which options it
+     * has with a message to that frame. The script passes the message on to the editor.
+     * Only the frames of the embed itself are listened to, and only the editor gets it.
+     */
+    private const MESSAGE_RELAY = 'window.addEventListener("message",function(e){'
+        . 'var f=document.getElementsByTagName("iframe"),o=window.origin,i;'
+        . 'for(i=0;i<f.length;i++){if(f[i].contentWindow===e.source){'
+        . 'window.top.postMessage(e.data,o&&o!=="null"?o:"*");return;}}'
+        . '},false);';
+
     public static function inject_events_proxy_to_gutenberg($html, $url, $args)
     {
         if (!empty(trim($html))) {
             return $html .
                 '<style>body{overflow: hidden}</style>' .
-                '<script type="text/javascript">window.addEventListener("message",function(e){window.top.postMessage(e.data,"*");},false);</script>';
+                '<script type="text/javascript">' . self::MESSAGE_RELAY . '</script>';
         }
         return $html;
     }
@@ -169,9 +180,20 @@ class Gutenberg
 
     public static function iframely_gutenberg_loader(): void
     {
-        wp_register_script('iframely-gutenberg', Plugin::asset('index.js'), ['wp-block-editor', 'wp-components', 'wp-compose', 'wp-data', 'wp-element', 'wp-hooks', 'wp-i18n'], IFRAMELY_VERSION, true);
+        # What the build needs from WordPress is written down by the build itself
+        $asset = ['dependencies' => ['wp-block-editor', 'wp-components', 'wp-compose', 'wp-data', 'wp-element', 'wp-hooks', 'wp-i18n'], 'version' => IFRAMELY_VERSION];
+        $assetFile = IFRAMELY_PLUGIN_DIR . 'build/index.asset.php';
+        if (is_readable($assetFile)) {
+            // @phpstan-ignore require.fileNotFound (the analyser runs with a made-up plugin directory)
+            $asset = array_merge($asset, (array)require $assetFile);
+        }
+
         wp_enqueue_script('iframely-embed', 'https://if-cdn.com/embed.js', ['jquery'], IFRAMELY_VERSION);
         wp_enqueue_script('iframely-options', 'https://if-cdn.com/options.js', ['jquery'], IFRAMELY_VERSION);
+
+        $dependencies = array_merge($asset['dependencies'], ['jquery', 'iframely-embed', 'iframely-options']);
+        wp_register_script('iframely-gutenberg', Plugin::asset('index.js'), $dependencies, $asset['version'], true);
+        wp_set_script_translations('iframely-gutenberg', 'iframely');
         wp_enqueue_script('iframely-gutenberg');
     }
 }

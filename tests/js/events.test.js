@@ -35,15 +35,21 @@ describe('event wiring', () => {
   });
 
   /*
-   * Known issue, kept as a record of current behaviour (see the review report):
-   * the script from if-cdn.com defines the global "iframely". When that script is
-   * blocked or fails to load, the bare reference throws and the rest of the
-   * plugin's editor script never runs.
+   * The script from if-cdn.com defines the global "iframely". It can be blocked,
+   * or fail to load.
    */
-  it('known issue: throws when the Iframely CDN script did not load', async () => {
+  it.each([
+    ['is missing', undefined],
+    ['is not what is expected', { version: 1 }],
+  ])('still listens for messages when the Iframely script %s', async (name, value) => {
     const addEventListener = vi.spyOn(window, 'addEventListener');
+    if (value) {
+      global.iframely = value;
+    }
 
-    await expect(loadEvents()).rejects.toThrow(ReferenceError);
-    expect(addEventListener).not.toHaveBeenCalledWith('message', expect.anything());
+    await expect(loadEvents()).resolves.toBeUndefined();
+    const { iframeMessage } = await import('../../src/js/events/iframeMessage');
+
+    expect(addEventListener).toHaveBeenCalledWith('message', iframeMessage);
   });
 });
