@@ -511,8 +511,8 @@ msgstr "Пример"
 
 #: build/index.js:1 src/js/components/IframelyOptions.js:21
 msgid ""
-"If your <a href=\"%s\" target=\"_blank\">plan</a> supports it and config "
-"allows, Iframely will show <a href=\"%s\" target=\"_blank\">edit options</a> "
+"If your <a href=\"%1$s\" target=\"_blank\">plan</a> supports it and config "
+"allows, Iframely will show <a href=\"%2$s\" target=\"_blank\">edit options</a> "
 "for selected URL here, whenever available."
 msgstr ""
 

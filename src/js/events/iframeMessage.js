@@ -23,7 +23,7 @@ function parse(message) {
   // Other scripts post messages to the editor as well, in formats of their own
   try {
     return JSON.parse(message);
-  } catch (error) {
+  } catch {
     return null;
   }
 }

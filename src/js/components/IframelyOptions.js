@@ -18,8 +18,9 @@ class IframelyOptions extends Component {
     }
     placeholder.innerHTML = this.state.isAdmin
       ? sprintf(
+          /* translators: 1: address of the Iframely plans, 2: address of the documentation on embed options */
           __(
-            'If your <a href="%s" target="_blank">plan</a> supports it and config allows, Iframely will show <a href="%s" target="_blank">edit options</a> for selected URL here, whenever available.',
+            'If your <a href="%1$s" target="_blank">plan</a> supports it and config allows, Iframely will show <a href="%2$s" target="_blank">edit options</a> for selected URL here, whenever available.',
             'iframely',
           ),
           'https://iframely.com/plans?utm_source=wordpress-plugin',

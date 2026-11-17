@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-17T17:43:42+00:00\n"
+"POT-Creation-Date: 2026-11-17T18:05:37+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: iframely\n"
@@ -474,15 +474,19 @@ msgstr ""
 msgid "Example"
 msgstr ""
 
-#: src/js/components/IframelyOptions.js:21
+#. translators: 1: address of the Iframely plans, 2: address of the documentation on embed options
+#: build/index.js:2
+#: src/js/components/IframelyOptions.js:22
 #, js-format
-msgid "If your <a href=\"%s\" target=\"_blank\">plan</a> supports it and config allows, Iframely will show <a href=\"%s\" target=\"_blank\">edit options</a> for selected URL here, whenever available."
+msgid "If your <a href=\"%1$s\" target=\"_blank\">plan</a> supports it and config allows, Iframely will show <a href=\"%2$s\" target=\"_blank\">edit options</a> for selected URL here, whenever available."
 msgstr ""
 
-#: src/js/components/IframelyOptions.js:28
+#: build/index.js:2
+#: src/js/components/IframelyOptions.js:29
 msgid "Iframely will show edit options for selected URL here, whenever available."
 msgstr ""
 
+#: build/index.js:2
 #: src/js/options.js:24
 msgid "Iframely options"
 msgstr ""
