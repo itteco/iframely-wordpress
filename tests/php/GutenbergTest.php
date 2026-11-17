@@ -171,34 +171,44 @@ class GutenbergTest extends TestCase
         ];
     }
 
-    public function test_url_options_are_always_processed_but_editor_features_need_edit_rights(): void
+    public function test_setting_up_registers_the_same_hooks_for_everyone(): void
     {
+        wp_set_current_user(0);
+        Gutenberg::init();
+
         $this->assertSame(20, has_filter('oembed_fetch_url', [Gutenberg::class, 'maybe_add_iframely_url_options']));
-
-        wp_set_current_user(self::factory()->user->create(['role' => 'subscriber']));
-        Gutenberg::init();
-
-        $this->assertFalse(has_filter('oembed_default_width', [Gutenberg::class, 'iframely_flag_ajax_oembed']));
-        $this->assertFalse(has_action('enqueue_block_editor_assets', [Gutenberg::class, 'iframely_gutenberg_loader']));
-    }
-
-    public function test_editor_features_are_enabled_for_users_who_can_edit_posts(): void
-    {
-        wp_set_current_user(self::factory()->user->create(['role' => 'author']));
-        Gutenberg::init();
-
-        $this->assertSame(10, has_filter('oembed_default_width', [Gutenberg::class, 'iframely_flag_ajax_oembed']));
-        $this->assertSame(10, has_filter('oembed_request_post_id', [Gutenberg::class, 'maybe_remove_wp_self_embeds_in_guttenberg']));
+        $this->assertSame(10, has_filter('rest_request_before_callbacks', [Gutenberg::class, 'startEditorPreview']));
+        $this->assertSame(10, has_filter('rest_request_after_callbacks', [Gutenberg::class, 'endEditorPreview']));
         $this->assertSame(10, has_action('enqueue_block_editor_assets', [Gutenberg::class, 'iframely_gutenberg_loader']));
     }
 
-    public function test_preview_requests_use_the_theme_content_width(): void
+    public function test_setting_up_does_not_ask_who_the_user_is(): void
     {
-        $this->assertSame(600, Gutenberg::iframely_flag_ajax_oembed(600));
+        // Asking on plugins_loaded settles the user before plugins that sign users in
+        // their own way have registered, and leaves their visitors signed out.
+        $asked = 0;
+        $count = static function ($userId) use (&$asked) {
+            $asked++;
+            return $userId;
+        };
+        add_filter('determine_current_user', $count);
+        $GLOBALS['current_user'] = null;
 
-        $GLOBALS['content_width'] = 840;
+        Gutenberg::init();
 
-        $this->assertSame(840, Gutenberg::iframely_flag_ajax_oembed(600));
+        remove_filter('determine_current_user', $count);
+        $this->assertSame(0, $asked);
+        $this->assertNull($GLOBALS['current_user']);
+    }
+
+    public function test_the_preview_mode_is_off_outside_of_a_preview_request(): void
+    {
+        Gutenberg::init();
+
+        $this->assertFalse(has_filter('oembed_result', [Gutenberg::class, 'inject_events_proxy_to_gutenberg']));
+        $this->assertFalse(has_filter('oembed_fetch_url', [Gutenberg::class, 'maybe_add_gutenberg_1']));
+        $this->assertFalse(has_filter('embed_defaults', [Gutenberg::class, 'iframely_bust_gutenberg_cache']));
+        $this->assertFalse(has_filter('oembed_request_post_id', [Gutenberg::class, 'maybe_remove_wp_self_embeds_in_guttenberg']));
     }
 
     public function test_preview_requests_get_their_own_cache_key(): void
@@ -268,18 +278,20 @@ class GutenbergTest extends TestCase
         $this->assertSame(['react-jsx-runtime'], array_values(array_diff($needed, $declared)));
     }
 
+    private function preview(array $params = []): \WP_REST_Response
+    {
+        $request = new WP_REST_Request('GET', '/oembed/1.0/proxy');
+        $request->set_query_params($params + ['url' => self::URL]);
+
+        return rest_get_server()->dispatch($request);
+    }
+
     public function test_an_editor_preview_request_reaches_iframely_marked_as_such(): void
     {
         wp_set_current_user(self::factory()->user->create(['role' => 'editor']));
-        Gutenberg::init();
         $this->respondWithEmbed();
 
-        // Registering the REST routes evaluates the oembed_default_width filter;
-        // that is the signal the plugin uses to recognise an editor request.
-        $GLOBALS['wp_rest_server'] = null;
-        $request = new WP_REST_Request('GET', '/oembed/1.0/proxy');
-        $request->set_param('url', self::URL);
-        $response = rest_get_server()->dispatch($request);
+        $response = $this->preview();
 
         $this->assertSame(200, $response->get_status());
         $html = $response->get_data()->html;
@@ -292,5 +304,71 @@ class GutenbergTest extends TestCase
         $this->assertSame('2', $query['gutenberg']);
         $this->assertSame('1', $query['iframe']);
         $this->assertSame('0', $query['import']);
+
+        // The mode ends with the request.
+        $this->test_the_preview_mode_is_off_outside_of_a_preview_request();
+    }
+
+    public function test_a_preview_is_as_wide_as_the_theme_content_unless_the_editor_asks_for_a_width(): void
+    {
+        wp_set_current_user(self::factory()->user->create(['role' => 'editor']));
+        $this->respondWithEmbed();
+
+        $this->preview();
+        $GLOBALS['content_width'] = 840;
+        $this->preview();
+        $this->preview(['maxwidth' => 320]);
+
+        $widths = array_map(static function ($url) {
+            return self::queryOf($url)['maxwidth'];
+        }, $this->iframelyRequests());
+        $this->assertSame(['600', '840', '320'], $widths);
+    }
+
+    public function test_a_preview_is_refused_to_users_who_cannot_edit_posts(): void
+    {
+        wp_set_current_user(self::factory()->user->create(['role' => 'subscriber']));
+        $this->respondWithEmbed();
+
+        $response = $this->preview();
+
+        $this->assertSame(403, $response->get_status());
+        $this->assertCount(0, $this->iframelyRequests());
+        $this->test_the_preview_mode_is_off_outside_of_a_preview_request();
+    }
+
+    /**
+     * The editor loads posts over REST as well. Their embeds are the ones of the
+     * site, not previews: without the script and the page-wide style, and from the
+     * same cache as the front end.
+     */
+    public function test_a_post_read_over_rest_by_an_editor_has_the_embeds_of_the_site(): void
+    {
+        $postId = self::factory()->post->create(['post_content' => "Before\n\n" . self::URL . "\n\nAfter"]);
+        wp_set_current_user(self::factory()->user->create(['role' => 'editor']));
+        $this->respondWithEmbed();
+        $read = static function () use ($postId) {
+            return rest_get_server()->dispatch(new WP_REST_Request('GET', '/wp/v2/posts/' . $postId))->get_data()['content']['rendered'];
+        };
+
+        $before = $read();
+        $this->assertSame(200, $this->preview()->get_status());
+        $after = $read();
+
+        foreach ([$before, $after] as $content) {
+            $this->assertStringContainsString(self::EMBED_HTML, $content);
+            $this->assertStringNotContainsString('postMessage', $content);
+            $this->assertStringNotContainsString('overflow', $content);
+        }
+
+        // One request for the post, one for the preview, and one cache entry in the post.
+        $requests = array_map([self::class, 'queryOf'], $this->iframelyRequests());
+        $this->assertCount(2, $requests);
+        $this->assertArrayNotHasKey('gutenberg', $requests[0]);
+        $this->assertSame('2', $requests[1]['gutenberg']);
+        $cached = array_filter(array_keys(get_post_meta($postId)), static function ($key) {
+            return strpos($key, '_oembed_') === 0 && strpos($key, '_oembed_time_') !== 0;
+        });
+        $this->assertCount(1, $cached);
     }
 }

@@ -25,31 +25,54 @@ class Gutenberg
         # and add these options into the oEmbed endpoint's query-string parameters
         add_filter('oembed_fetch_url', [self::class, 'maybe_add_iframely_url_options'], 20, 3);
 
-        if (!current_user_can('edit_posts')) {
-            return;
-        }
-
-        # 'oembed_default_width' filter is used only in oembed/1.0/rest
-        # i.e in the editor and self-oEmbed discovery
-        add_filter('oembed_default_width', [self::class, 'iframely_flag_ajax_oembed']);
-        add_filter('oembed_request_post_id', [self::class, 'maybe_remove_wp_self_embeds_in_guttenberg'], 10, 2);
+        # The editor asks for its previews on one REST route, open to users who can edit posts.
+        # Who the user is does not matter here, and is not known yet for sure
+        add_filter('rest_request_before_callbacks', [self::class, 'startEditorPreview'], 10, 3);
+        add_filter('rest_request_after_callbacks', [self::class, 'endEditorPreview'], 10, 3);
 
         # load assets
         add_action('enqueue_block_editor_assets', [self::class, 'iframely_gutenberg_loader']);
     }
 
-    public static function iframely_flag_ajax_oembed($width)
+    /**
+     * Embeds made for a preview in the editor differ from the ones on the site: they
+     * are asked for as iframes, cached apart, and carry a script that passes their
+     * messages on to the editor. None of that may reach other requests.
+     */
+    public static function startEditorPreview($response, $handler, $request)
     {
+        if (!self::isEditorPreview($request)) {
+            return $response;
+        }
+
         add_filter('embed_defaults', [self::class, 'iframely_bust_gutenberg_cache'], 10, 1);
         add_filter('oembed_fetch_url', [self::class, 'maybe_add_gutenberg_1'], 20, 3);
         add_filter('oembed_result', [self::class, 'inject_events_proxy_to_gutenberg'], 10, 3);
+        add_filter('oembed_request_post_id', [self::class, 'maybe_remove_wp_self_embeds_in_guttenberg'], 10, 2);
 
         # The core's code doesn't even bother to look into default values and just hardcodes 600.
-        # since we use the filter anyway - let's fix that
-        if (!empty($GLOBALS['content_width'])) {
-            $width = (int)$GLOBALS['content_width'];
+        if (!empty($GLOBALS['content_width']) && !isset($request->get_query_params()['maxwidth'])) {
+            $request->set_param('maxwidth', (int)$GLOBALS['content_width']);
         }
-        return $width;
+
+        return $response;
+    }
+
+    public static function endEditorPreview($response, $handler, $request)
+    {
+        if (self::isEditorPreview($request)) {
+            remove_filter('embed_defaults', [self::class, 'iframely_bust_gutenberg_cache'], 10);
+            remove_filter('oembed_fetch_url', [self::class, 'maybe_add_gutenberg_1'], 20);
+            remove_filter('oembed_result', [self::class, 'inject_events_proxy_to_gutenberg'], 10);
+            remove_filter('oembed_request_post_id', [self::class, 'maybe_remove_wp_self_embeds_in_guttenberg'], 10);
+        }
+
+        return $response;
+    }
+
+    private static function isEditorPreview($request): bool
+    {
+        return $request instanceof \WP_REST_Request && $request->get_route() === '/oembed/1.0/proxy';
     }
 
     public static function iframely_bust_gutenberg_cache($args)
