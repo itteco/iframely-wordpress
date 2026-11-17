@@ -19,5 +19,11 @@ module.exports = {
       files: ['tests/e2e/**/*.js', 'playwright.config.js'],
       extends: ['plugin:@wordpress/eslint-plugin/test-playwright'],
     },
+    {
+      // Command-line helpers.
+      files: ['tests/bin/**/*.js'],
+      env: { node: true },
+      rules: { 'no-console': 'off' },
+    },
   ],
 };

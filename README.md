@@ -42,20 +42,37 @@ Other environment commands:
 
 ## Tests
 
-    npm test                      # everything below
+    npm test                      # everything below except the live test
     npm run test:js               # Jest unit tests (tests/js)
     npm run test:php              # PHPUnit integration tests (tests/php), single site
     npm run test:php:multisite    # the same tests on multisite
     npm run test:e2e              # Playwright end-to-end tests (tests/e2e) against the tests site
 
-Arguments after `--` are passed through, e.g. `npm run test:php -- --filter SmokeTest`.
+Arguments after `--` are passed through, e.g. `npm run test:php -- --filter SettingsTest`.
+
+None of these tests talks to the real Iframely API:
+
+- PHPUnit intercepts every HTTP request (`tests/php/TestCase.php`); a request without a declared response fails the test.
+- The tests site loads `tests/e2e/mu-plugins/iframely-api-stub.php`, which answers API calls locally. It accepts any
+  API key starting with `e2evalid`. The two scripts the editor loads from `if-cdn.com` are replaced in the browser.
+- PHPUnit uses its own database tables (prefix `wptests_`), so it does not touch the content of the tests site.
+
+Tests named `known_issue` / `known issue:` record current behaviour that is considered a defect. They are expected
+to be inverted when the defect is fixed.
 
 The end-to-end tests need a browser once per machine (this installs system packages with `sudo`):
 
     npm run test:e2e:install
 
-PHPUnit uses its own database tables (prefix `wptests_`), so running it does not touch the content of the
-tests site.
+### Live test
+
+One small test class (`tests/php/LiveApiTest.php`) calls the real API to check that the mocks still match it. It is
+opt-in and needs an API key, either in your shell or in a gitignored `.env` file in the project root:
+
+    IFRAMELY_API_KEY=... npm run test:php:live
+
+Without a key the command does nothing. The key is passed to the container through the environment and is never
+printed.
 
 ## Linting
 
@@ -64,6 +81,11 @@ tests site.
     npm run lint:css        # stylelint
     npm run lint:php        # PHP_CodeSniffer: PSR-12, WordPress security/i18n rules, PHPCompatibilityWP
     npm run lint:phpstan    # PHPStan with the WordPress extension
+
+The official [Plugin Check](https://wordpress.org/plugins/plugin-check/) tool is not part of `npm run lint`, because
+it installs a plugin into the tests site on first use:
+
+    npm run lint:plugin-check    # checks what ships to wordpress.org (everything not in .distignore)
 
 ### Update POT file
     gulp clean

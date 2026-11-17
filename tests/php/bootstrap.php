@@ -35,8 +35,21 @@ define('WP_TESTS_PHPUNIT_POLYFILLS_PATH', $iframely_plugin_dir . '/vendor/yoast/
 
 require_once $iframely_tests_dir . '/includes/functions.php';
 
+// The plugin only registers its embed features when an API key is stored (see
+// Plugin::run()). Store one before loading the plugin, so the tests start from the
+// state of a configured site. No request ever leaves the test suite: see TestCase.
+define('IFRAMELY_TESTS_API_KEY', 'phpunitkey0123456789abcdef');
+
 tests_add_filter('muplugins_loaded', static function () use ($iframely_plugin_dir) {
+    if (is_multisite()) {
+        update_site_option('iframely_api_key', IFRAMELY_TESTS_API_KEY);
+    } else {
+        update_option('iframely_api_key', IFRAMELY_TESTS_API_KEY);
+    }
+
     require $iframely_plugin_dir . '/iframely.php';
 });
 
 require $iframely_tests_dir . '/includes/bootstrap.php';
+
+require __DIR__ . '/TestCase.php';
