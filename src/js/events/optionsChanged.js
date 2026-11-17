@@ -1,32 +1,29 @@
-import { getBlockId, getEmbedIframe, getBlockIframe, getBlockWindow, getEditorDocument } from '../utils';
-import { dispatch } from '@wordpress/data';
+import { dispatch, select } from '@wordpress/data';
+import { addIframelyString, getBlockId, isEmbedBlock } from '../utils';
 
+/**
+ * The author has changed the options of an embed in the form.
+ *
+ * The options go into the URL of the block. The block then asks for the preview
+ * of that URL, which is the embed the published post will show. Nothing here
+ * depends on the preview that is on screen, so a change made while a preview
+ * loads, or after one has failed, is applied like any other.
+ *
+ * @param {string}  id            The block the form was built for.
+ * @param {Element} formContainer The element that holds the form.
+ * @param {Object}  query         All options that differ from their defaults.
+ */
 export function optionsChanged(id, formContainer, query) {
-  const blockId = getBlockId();
-  const blockIframe = getBlockIframe(blockId);
-  const embedIframe = getEmbedIframe(blockId);
-  const data = jQuery(blockIframe)?.data();
-  let src = data?.context;
+  const editor = select('core/block-editor');
+  const blockId = id && editor.getBlock(id) ? id : getBlockId();
+  const block = editor.getBlock(blockId);
 
-  if (!(blockIframe && src && data?.data)) {
+  if (!block || !isEmbedBlock(block.name) || !block.attributes?.url) {
     return;
   }
 
-  // wipe out the old query completely
-  if (data.data.query && data.data.query.length > 0) {
-    data.data.query.forEach(function (key) {
-      if (src.indexOf(key) > -1) {
-        src = src.replace(new RegExp('&?' + key.replace('-', '\\-') + '=[^\\?\\&]+'), ''); // delete old key
-      }
-    });
+  const url = addIframelyString(block.attributes.url, query || {});
+  if (url !== block.attributes.url) {
+    dispatch('core/block-editor').updateBlockAttributes(blockId, { url });
   }
-
-  // and add an entire new query instead
-  Object.keys(query).forEach(function (key) {
-    src += (src.indexOf('?') > -1 ? '&' : '?') + key + '=' + query[key];
-  });
-
-  embedIframe.src = src;
-
-  dispatch('core/block-editor').updateBlockAttributes(blockId, { iquery: query });
 }

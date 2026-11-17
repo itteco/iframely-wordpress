@@ -1,6 +1,6 @@
 import { select } from '@wordpress/data';
 import { updateForm } from '../components/IframelyOptions';
-import { getEditorDocument, getBlockId, isObject } from '../utils';
+import { getEditorDocument, getBlockId, isEmbedBlock, isObject } from '../utils';
 
 const methodName = 'setIframelyEmbedOptions';
 
@@ -32,7 +32,7 @@ export function iframeMessage(e) {
   // update only if the form is open. If not, it will be built on render
   const block = select('core/block-editor').getBlock(getBlockId());
 
-  if (block && /^core-?\/?embed/i.test(block.name)) {
+  if (block && isEmbedBlock(block.name)) {
     updateForm();
   }
 }

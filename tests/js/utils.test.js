@@ -7,6 +7,8 @@ import {
   getBlockWindow,
   getEditorDocument,
   getEmbedIframe,
+  getIframelyString,
+  isEmbedBlock,
   isObject,
 } from '../../src/js/utils';
 
@@ -65,6 +67,14 @@ describe('addIframelyString', () => {
       'https://example.com/video?v=42',
     );
     expect(addIframelyString('https://example.com/video?iframely=b2xk', {})).toBe('https://example.com/video');
+  });
+
+  it('accepts values in any script', () => {
+    const url = addIframelyString('https://example.com/video', { _lang: 'Ελληνικά', title: '日本' });
+
+    // What PHP does with it: base64 to bytes, bytes as UTF-8 JSON.
+    const bytes = Uint8Array.from(window.atob(new URL(url).searchParams.get('iframely')), (c) => c.charCodeAt(0));
+    expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual({ _lang: 'Ελληνικά', title: '日本' });
   });
 
   it('percent-encodes base64 characters that are special in a query string', () => {
@@ -132,5 +142,37 @@ describe('editor DOM helpers', () => {
     sandboxDocument.body.innerHTML = '<div><iframe class="embed"></iframe></div>';
 
     expect(getEmbedIframe('abc-123')).toBe(sandboxDocument.querySelector('iframe.embed'));
+  });
+});
+
+describe('getIframelyString', () => {
+  it.each([
+    ['https://example.com/video?iframely=b25l', 'b25l'],
+    ['https://example.com/video?v=42&iframely=b25l%3D', 'b25l%3D'],
+    ['https://example.com/video?v=42&amp;iframely=b25l', 'b25l'],
+    ['https://example.com/video?v=42', ''],
+    ['https://example.com/video', ''],
+    ['', ''],
+    [undefined, ''],
+  ])('finds the options in %s', (url, expected) => {
+    expect(getIframelyString(url)).toBe(expected);
+  });
+
+  it('returns what addIframelyString has added', () => {
+    const url = addIframelyString('https://example.com/video?v=42', { theme: 'dark' });
+
+    expect(getIframelyString(url)).toBe('eyJ0aGVtZSI6ImRhcmsifQ%3D%3D');
+  });
+});
+
+describe('isEmbedBlock', () => {
+  it.each([
+    ['core/embed', true],
+    ['core-embed/youtube', true],
+    ['core/paragraph', false],
+    ['acme/embed', false],
+    [undefined, false],
+  ])('%s: %s', (name, expected) => {
+    expect(isEmbedBlock(name)).toBe(expected);
   });
 });
