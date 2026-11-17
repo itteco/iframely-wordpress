@@ -2,7 +2,7 @@ import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
-import { parseDistignore, packaged } from '../bin/lib/distignore';
+import { parseDistignore, packaged } from '../../tools/lib/distignore';
 
 const root = path.resolve(__dirname, '..', '..');
 

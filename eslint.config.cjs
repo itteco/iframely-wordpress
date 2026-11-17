@@ -27,7 +27,7 @@ module.exports = [
   ...scoped(wpPlugin.configs['test-playwright'], ['tests/e2e/**/*.js', 'playwright.config.js']),
   {
     // Command-line helpers.
-    files: ['tests/bin/**/*.js'],
+    files: ['tests/bin/**/*.js', 'tools/**/*.js'],
     rules: { 'no-console': 'off' },
   },
 ];

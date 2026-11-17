@@ -1,6 +1,6 @@
 # Files and directories that must not be shipped in the plugin package.
 # Used by `npm run release` and understood by `wp dist-archive` and the wordpress.org
-# deploy GitHub Actions. See tests/bin/lib/distignore.js for the forms an entry can take.
+# deploy GitHub Actions. See tools/lib/distignore.js for the forms an entry can take.
 
 # Version control and editors
 /.git
@@ -40,6 +40,7 @@
 /phpunit.xml
 /phpunit.xml.dist
 /playwright.config.js
+/tools
 
 # Tests and their output
 /tests

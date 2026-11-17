@@ -15,7 +15,7 @@ const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const root = path.resolve(__dirname, '..', '..');
+const root = path.resolve(__dirname, '..');
 const config = '.wp-env.tests.json';
 
 const directories = [];

@@ -48,14 +48,14 @@
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
     "lint": "npm run lint:js && npm run lint:css && npm run lint:php && npm run lint:phpstan",
-    "lint:js": "wp-scripts lint-js src tests",
+    "lint:js": "wp-scripts lint-js src tests tools",
     "lint:css": "wp-scripts lint-style 'src/**/*.scss'",
     "lint:php": "wp-env --config=.wp-env.tests.json run cli --env-cwd=wp-content/plugins/iframely vendor/bin/phpcs",
     "lint:php:fix": "wp-env --config=.wp-env.tests.json run cli --env-cwd=wp-content/plugins/iframely vendor/bin/phpcbf",
     "lint:phpstan": "wp-env --config=.wp-env.tests.json run cli --env-cwd=wp-content/plugins/iframely vendor/bin/phpstan analyse --memory-limit=1G",
-    "lint:plugin-check": "node tests/bin/plugin-check.js",
-    "format": "prettier --write src tests/js tests/e2e tests/bin",
-    "release": "node tests/bin/release.js"
+    "lint:plugin-check": "node tools/plugin-check.js",
+    "format": "prettier --write src tests/js tests/e2e tests/bin tools",
+    "release": "node tools/release.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",

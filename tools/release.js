@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { parseDistignore, packaged } = require('./lib/distignore');
 
-const root = path.resolve(__dirname, '..', '..');
+const root = path.resolve(__dirname, '..');
 const release = path.join(root, 'release');
 
 function fail(message) {
