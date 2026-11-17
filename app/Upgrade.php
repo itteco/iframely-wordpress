@@ -39,7 +39,7 @@ class Upgrade
         // Site previews
         $previews = Options::get('publish_iframely_cards');
         if ($previews !== false) {
-            Options::setPreviewsEnhance((int)$previews);
+            Options::setPreviewsEnhance((bool)(int)$previews);
             Options::delete('publish_iframely_cards');
         }
 

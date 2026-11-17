@@ -22,11 +22,6 @@ class Links
         return is_multisite() ? network_admin_url('settings.php?page=iframely') : menu_page_url('iframely', false);
     }
 
-    public static function activation(): string
-    {
-        return self::settings();
-    }
-
     public static function tab(string $name = '', string $action = ''): string
     {
         $url = self::settings();

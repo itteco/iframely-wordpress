@@ -25,19 +25,17 @@ define('IFRAMELY_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('IFRAMELY_PLUGIN_FILE', plugin_basename(__FILE__));
 define('IFRAMELY_API_ENDPOINT', 'https://iframe.ly/api/oembed');
 
-spl_autoload_register(static function ($class) {
-    if (strpos($class, __NAMESPACE__) !== 0) {
-        return false;
+spl_autoload_register(static function ($class): void {
+    if (strpos($class, __NAMESPACE__ . '\\') !== 0) {
+        return;
     }
-    $path = str_replace(__NAMESPACE__, 'app', $class) . '.php';
+    $path = 'app' . substr($class, strlen(__NAMESPACE__)) . '.php';
     $path = str_replace('\\', DIRECTORY_SEPARATOR, $path);
     $file = __DIR__ . DIRECTORY_SEPARATOR . $path;
 
     if (file_exists($file)) {
         require_once $file;
-        return true;
     }
-    return false;
 });
 
 new Plugin(__FILE__);

@@ -11,7 +11,7 @@ use Iframely\Embed\Shortcode;
 
 class Embed
 {
-    public const IFRAMELY_ENDPOINT_URL = 'https://iframe.ly/api/oembed';
+    public const IFRAMELY_ENDPOINT_URL = IFRAMELY_API_ENDPOINT;
 
     public static function run(): void
     {

@@ -4,12 +4,12 @@ namespace Iframely;
 
 class Reactivation
 {
-    public static function start(bool $state = true): void
+    public static function start(): void
     {
         Options::setReactivationFlag();
     }
 
-    public static function end(bool $state = true): void
+    public static function end(): void
     {
         Options::deleteReactivationFlag();
     }

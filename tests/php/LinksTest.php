@@ -26,7 +26,6 @@ class LinksTest extends TestCase
         $settings = Links::settings();
 
         $this->assertStringContainsString('page=iframely', $settings);
-        $this->assertSame($settings, Links::activation());
         $this->assertSame($settings, Links::tab());
         $this->assertSame($settings . '&tab=customize', Links::tab('customize'));
         $this->assertSame($settings . '&action=reactivate', Links::tab('', 'reactivate'));
