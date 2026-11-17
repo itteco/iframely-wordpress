@@ -54,7 +54,8 @@ class Oembed
 
     public static function maybe_reverse_oembed_providers($providers)
     {
-        // iframely_only_shortcode option is unset in shortcode, so that the filter can work. Then returned back.
+        # WordPress asks for the list once, when it sets up its providers. The [iframely] shortcode
+        # puts Iframely first on its own, see Shortcode::process()
         if (Options::isBuiltinsReplaced()) {
             return array_reverse($providers);
         }
