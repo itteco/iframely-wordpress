@@ -45,15 +45,102 @@ class GutenbergTest extends TestCase
         $this->assertSame('dark', $query['theme']);
     }
 
-    public function test_numbers_and_true_are_sent_as_strings_and_false_is_left_out(): void
+    public function test_numbers_are_sent_as_strings_and_checkboxes_as_true_and_false(): void
     {
-        $url = self::URL . '?iframely=' . self::encodeUrlOptions(['start' => 70, 'captions' => true, 'autoplay' => false]);
+        $url = self::URL . '?iframely=' . self::encodeUrlOptions(['start' => 70, 'ratio' => 1.5, 'captions' => true, '_compact' => false]);
 
         $query = self::queryOf(Gutenberg::maybe_add_iframely_url_options(self::PROVIDER, $url, []));
 
         $this->assertSame('70', $query['start']);
-        $this->assertSame('1', $query['captions']);
-        $this->assertArrayNotHasKey('autoplay', $query);
+        $this->assertSame('1.5', $query['ratio']);
+        $this->assertSame('true', $query['captions']);
+        // An option that is on by default can only be turned off by sending "false".
+        $this->assertSame('false', $query['_compact']);
+    }
+
+    public function test_option_values_are_encoded(): void
+    {
+        $url = self::URL . '?iframely=' . self::encodeUrlOptions(['title' => 'Tom & Jerry #1 = 100%', '_start' => 'a&api_key=other']);
+
+        $provider = Gutenberg::maybe_add_iframely_url_options(self::PROVIDER, $url, []);
+
+        $this->assertSame(
+            self::PROVIDER . '&title=Tom+%26+Jerry+%231+%3D+100%25&_start=a%26api_key%3Dother',
+            $provider
+        );
+        $this->assertSame('k', self::queryOf($provider)['api_key']);
+    }
+
+    public function test_option_values_stay_encoded_when_wordpress_adds_its_own_parameters_later(): void
+    {
+        $url = self::URL . '?iframely=' . self::encodeUrlOptions(['_start' => 'a&api_key=other#x']);
+
+        $provider = Gutenberg::maybe_add_iframely_url_options(self::PROVIDER, $url, []);
+        $query = self::queryOf(add_query_arg('format', 'json', $provider));
+
+        $this->assertSame('a&api_key=other#x', $query['_start']);
+        $this->assertSame('k', $query['api_key']);
+        $this->assertSame('json', $query['format']);
+    }
+
+    public function test_options_cannot_replace_who_asks_for_which_page_and_in_which_format(): void
+    {
+        $url = self::URL . '?iframely=' . self::encodeUrlOptions([
+            'api_key' => 'other',
+            'key' => 'other',
+            'origin' => 'other.example',
+            'url' => 'https://other.example/',
+            'uri' => 'https://other.example/',
+            'format' => 'xml',
+            'callback' => 'alert',
+            'API_KEY' => 'other',
+            'theme' => 'dark',
+        ]);
+
+        $provider = Gutenberg::maybe_add_iframely_url_options(self::PROVIDER . '&url=' . rawurlencode(self::URL), $url, []);
+
+        $this->assertSame(
+            ['origin' => 'example.org', 'api_key' => 'k', 'url' => self::URL, 'theme' => 'dark'],
+            self::queryOf($provider)
+        );
+    }
+
+    public function test_options_with_unusual_names_or_values_that_are_not_plain_are_left_out(): void
+    {
+        $url = self::URL . '?iframely=' . self::encodeUrlOptions([
+            'a&api_key' => 'other',
+            'b=c' => '1',
+            'd[e]' => '1',
+            '' => '1',
+            'list' => ['api_key' => 'other'],
+            'nothing' => null,
+            '_theme' => 'dark',
+            'click-to.play' => '1',
+        ]);
+
+        $provider = Gutenberg::maybe_add_iframely_url_options(self::PROVIDER, $url, []);
+
+        $this->assertSame(self::PROVIDER . '&_theme=dark&click-to.play=1', $provider);
+    }
+
+    public function test_options_whose_base64_form_contains_a_plus_are_added(): void
+    {
+        $encoded = self::encodeUrlOptions(['t' => 'xy>']);
+        $this->assertStringContainsString('%2B', $encoded, 'The sample must produce a "+" in base64.');
+
+        $query = self::queryOf(Gutenberg::maybe_add_iframely_url_options(self::PROVIDER, self::URL . '?iframely=' . $encoded, []));
+
+        $this->assertSame('xy>', $query['t']);
+    }
+
+    public function test_options_are_read_when_the_plus_of_their_base64_form_was_not_encoded(): void
+    {
+        $encoded = str_replace('%2B', '+', self::encodeUrlOptions(['t' => 'xy>']));
+        $this->assertStringContainsString('+', $encoded);
+
+        $query = self::queryOf(Gutenberg::maybe_add_iframely_url_options(self::PROVIDER, self::URL . '?iframely=' . $encoded, []));
+
+        $this->assertSame('xy>', $query['t']);
     }
 
     /**
@@ -76,37 +163,12 @@ class GutenbergTest extends TestCase
             'another oEmbed provider' => ['https://www.youtube.com/oembed', self::URL . '?iframely=' . $options],
             'legacy "iframely=less" marker from old posts' => [self::PROVIDER, self::URL . '?iframely=less'],
             'options that are not valid JSON' => [self::PROVIDER, self::URL . '?iframely=' . rawurlencode(base64_encode('{broken'))],
+            'options that are a number' => [self::PROVIDER, self::URL . '?iframely=' . rawurlencode(base64_encode('5'))],
+            'options that are a text' => [self::PROVIDER, self::URL . '?iframely=' . rawurlencode(base64_encode('"dark"'))],
+            'options that are a list' => [self::PROVIDER, self::URL . '?iframely=' . rawurlencode(base64_encode('["api_key","other"]'))],
+            'options given more than once' => [self::PROVIDER, self::URL . '?iframely[]=' . $options . '&iframely[]=' . $options],
+            'no options at all' => [self::PROVIDER, self::URL . '?iframely='],
         ];
-    }
-
-    /**
-     * Known issue, kept as a record of current behaviour (see the review report):
-     * options come from post content, yet they may replace the site's own API key
-     * and origin in the request.
-     */
-    public function test_known_issue_url_options_can_override_api_key_and_origin(): void
-    {
-        $url = self::URL . '?iframely=' . self::encodeUrlOptions(['api_key' => 'other', 'origin' => 'other.example']);
-
-        $query = self::queryOf(Gutenberg::maybe_add_iframely_url_options(self::PROVIDER, $url, []));
-
-        $this->assertSame('other', $query['api_key']);
-        $this->assertSame('other.example', $query['origin']);
-    }
-
-    /**
-     * Known issue, kept as a record of current behaviour (see the review report):
-     * the value is URL-decoded twice, which turns a "+" of the base64 alphabet into
-     * a space and corrupts the JSON. All options of that embed are then dropped.
-     */
-    public function test_known_issue_options_whose_base64_form_contains_a_plus_are_dropped(): void
-    {
-        $encoded = self::encodeUrlOptions(['t' => 'xy>']);
-        $this->assertStringContainsString('%2B', $encoded, 'The sample must produce a "+" in base64.');
-
-        $result = Gutenberg::maybe_add_iframely_url_options(self::PROVIDER, self::URL . '?iframely=' . $encoded, []);
-
-        $this->assertSame(self::PROVIDER, $result);
     }
 
     public function test_url_options_are_always_processed_but_editor_features_need_edit_rights(): void

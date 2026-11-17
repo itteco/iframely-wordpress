@@ -31,7 +31,7 @@ test.describe('Iframely rich media embeds', () => {
    * @param {import('@playwright/test').FrameLocator} preview
    */
   async function chooseVideoOptions(page, preview) {
-    await changeOption(page, preview, /[?&]_cc_load_policy=1/, () => page.getByLabel('Closed captions').check());
+    await changeOption(page, preview, /[?&]_cc_load_policy=true/, () => page.getByLabel('Closed captions').check());
     await changeOption(page, preview, /[?&]_start=1m10s/, async () => {
       await page.getByLabel('Start from').fill('1m10s');
       await page.getByLabel('Start from').blur();
@@ -91,15 +91,15 @@ test.describe('Iframely rich media embeds', () => {
     // options the block should hold (in the order of the form). The last steps
     // return to combinations that were used before.
     const steps = [
-      [() => captions.check(), /^(?=.*_cc_load_policy=1)(?!.*_start=)/, { _cc_load_policy: true }],
-      [startFrom('1m10s'), /^(?=.*_cc_load_policy=1)(?=.*_start=1m10s)/, { _start: '1m10s', _cc_load_policy: true }],
+      [() => captions.check(), /^(?=.*_cc_load_policy=true)(?!.*_start=)/, { _cc_load_policy: true }],
+      [startFrom('1m10s'), /^(?=.*_cc_load_policy=true)(?=.*_start=1m10s)/, { _start: '1m10s', _cc_load_policy: true }],
       [() => captions.uncheck(), /^(?!.*_cc_load_policy)(?=.*_start=1m10s)/, { _start: '1m10s' }],
       [startFrom('30'), /^(?!.*_cc_load_policy)(?=.*_start=30)/, { _start: '30' }],
-      [() => captions.check(), /^(?=.*_cc_load_policy=1)(?=.*_start=30)/, { _start: '30', _cc_load_policy: true }],
-      [startFrom(''), /^(?=.*_cc_load_policy=1)(?!.*_start=)/, { _cc_load_policy: true }],
+      [() => captions.check(), /^(?=.*_cc_load_policy=true)(?=.*_start=30)/, { _start: '30', _cc_load_policy: true }],
+      [startFrom(''), /^(?=.*_cc_load_policy=true)(?!.*_start=)/, { _cc_load_policy: true }],
       [() => captions.uncheck(), /^(?!.*_cc_load_policy)(?!.*_start=)/, {}],
-      [() => captions.check(), /^(?=.*_cc_load_policy=1)(?!.*_start=)/, { _cc_load_policy: true }],
-      [startFrom('1m10s'), /^(?=.*_cc_load_policy=1)(?=.*_start=1m10s)/, { _start: '1m10s', _cc_load_policy: true }],
+      [() => captions.check(), /^(?=.*_cc_load_policy=true)(?!.*_start=)/, { _cc_load_policy: true }],
+      [startFrom('1m10s'), /^(?=.*_cc_load_policy=true)(?=.*_start=1m10s)/, { _start: '1m10s', _cc_load_policy: true }],
     ];
 
     for (const [index, [change, src, options]] of steps.entries()) {
@@ -137,7 +137,7 @@ test.describe('Iframely rich media embeds', () => {
     // The preview shows the embed with both options, the form shows what the embed
     // reports back, and the block remembers the choice.
     const frame = preview.locator('iframe[title="Iframely stub embed"]');
-    await expect(frame).toHaveAttribute('src', /[?&]_cc_load_policy=1/);
+    await expect(frame).toHaveAttribute('src', /[?&]_cc_load_policy=true/);
     await expect(frame).toHaveAttribute('src', /[?&]_start=1m10s/);
     await expect(page.getByLabel('Closed captions')).toBeChecked();
     await expect(page.getByLabel('Start from')).toHaveValue('1m10s');
@@ -154,7 +154,7 @@ test.describe('Iframely rich media embeds', () => {
     const rendered = page.locator('.iframely-e2e-embed');
     await expect(rendered).toBeVisible();
     const query = JSON.parse(await rendered.getAttribute('data-query'));
-    expect(query).toMatchObject({ _cc_load_policy: '1', _start: '1m10s', api_key: VALID_KEY });
+    expect(query).toMatchObject({ _cc_load_policy: 'true', _start: '1m10s', api_key: VALID_KEY });
     expect(query.url.startsWith(VIDEO_URL)).toBe(true);
     expect(query).not.toHaveProperty('gutenberg');
 

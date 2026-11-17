@@ -8,6 +8,12 @@ use Iframely\Options;
 
 class Gutenberg
 {
+    /**
+     * Parameters of the API request that say who asks, for which page and in which
+     * format. The options of an embed cannot set them.
+     */
+    private const RESERVED_URL_OPTIONS = ['api_key', 'key', 'origin', 'url', 'uri', 'format', 'callback'];
+
     public static function run(): void
     {
         add_action('plugins_loaded', [self::class, 'init']);
@@ -65,28 +71,62 @@ class Gutenberg
 
     public static function maybe_add_iframely_url_options($provider, $url, $args)
     {
-        # Options are added to URL the URL in utils.js this way:
+        if (!Utils::stringContains($provider, 'iframe.ly')) {
+            return $provider;
+        }
+
+        foreach (self::getUrlOptions($url) as $key => $value) {
+            # add_query_arg() does not encode what it adds
+            $provider = add_query_arg($key, rawurlencode($value), $provider);
+        }
+
+        return $provider;
+    }
+
+    /**
+     * The options an author has chosen for one embed, as they go into the API request.
+     * Anyone who can write a post can write them, so they are checked.
+     *
+     * @return array<string, string>
+     */
+    public static function getUrlOptions($url): array
+    {
+        # Options are added to the URL in utils.js this way:
         # 'iframely=' + encodeURIComponent(window.btoa(JSON.stringify(query)));
-        if (Utils::stringContains($provider, 'iframe.ly') && Utils::stringContains($url, 'iframely=')) {
-            $parsed_url = parse_url($url);
-            if (isset($parsed_url['query'])) {
-                $params = array();
-                parse_str($parsed_url['query'], $params);
+        if (!is_string($url) || !Utils::stringContains($url, 'iframely=')) {
+            return [];
+        }
 
-                if (isset($params['iframely'])) {
-                    $options_str = base64_decode(urldecode($params['iframely']));
-                    $options_query = json_decode($options_str);
+        $params = [];
+        parse_str((string)parse_url($url, PHP_URL_QUERY), $params);
+        if (!isset($params['iframely']) || !is_string($params['iframely'])) {
+            return [];
+        }
 
-                    # Some WPs have our legacy values &iframely=less in their posts
-                    if ($options_query) {
-                        foreach ($options_query as $key => $value) {
-                            $provider = add_query_arg($key, $value, $provider);
-                        }
-                    }
-                }
+        # parse_str() has decoded the value. It also turns a "+" that was not encoded into a space
+        $decoded = json_decode((string)base64_decode(str_replace(' ', '+', $params['iframely'])));
+
+        # Some WPs have our legacy values &iframely=less in their posts
+        if (!is_object($decoded)) {
+            return [];
+        }
+
+        $options = [];
+        foreach (get_object_vars($decoded) as $key => $value) {
+            $key = (string)$key;
+            if (!preg_match('/^[\w.-]+$/', $key) || in_array(strtolower($key), self::RESERVED_URL_OPTIONS, true)) {
+                continue;
+            }
+
+            if (is_bool($value)) {
+                # The API reads "false" as off. It takes "0" for on, and so does it a missing option that is on by default
+                $options[$key] = $value ? 'true' : 'false';
+            } elseif (is_string($value) || is_int($value) || is_float($value)) {
+                $options[$key] = (string)$value;
             }
         }
-        return $provider;
+
+        return $options;
     }
 
     public static function inject_events_proxy_to_gutenberg($html, $url, $args)

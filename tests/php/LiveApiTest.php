@@ -129,4 +129,23 @@ class LiveApiTest extends WP_UnitTestCase
         $this->assertStringContainsString('card=small', $data->html);
         $this->assertSame('small', $data->options->card->value);
     }
+
+    public function test_the_real_api_turns_off_an_option_that_is_on_by_default(): void
+    {
+        Options::setApiKey($this->key);
+        $track = 'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT';
+
+        $default = _wp_oembed_get_object()->fetch(Embed::createApiLink(), $track, ['width' => 600, 'height' => 400]);
+        // The URL the editor saves when "Slimmer horizontal player" is unchecked.
+        $changed = _wp_oembed_get_object()->fetch(
+            Embed::createApiLink(),
+            $track . '?iframely=' . rawurlencode(base64_encode('{"_compact":false}')),
+            ['width' => 600, 'height' => 400]
+        );
+
+        $this->assertIsObject($default, 'The Iframely API returned no oEmbed data.');
+        $this->assertIsObject($changed, 'The Iframely API returned no oEmbed data.');
+        $this->assertTrue($default->options->_compact->value);
+        $this->assertFalse($changed->options->_compact->value);
+    }
 }
