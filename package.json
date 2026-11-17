@@ -54,7 +54,8 @@
     "lint:php:fix": "wp-env --config=.wp-env.tests.json run cli --env-cwd=wp-content/plugins/iframely vendor/bin/phpcbf",
     "lint:phpstan": "wp-env --config=.wp-env.tests.json run cli --env-cwd=wp-content/plugins/iframely vendor/bin/phpstan analyse --memory-limit=1G",
     "lint:plugin-check": "node tests/bin/plugin-check.js",
-    "format": "prettier --write src tests/js tests/e2e tests/bin"
+    "format": "prettier --write src tests/js tests/e2e tests/bin",
+    "release": "node tests/bin/release.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",
@@ -62,10 +63,8 @@
     "@wordpress/e2e-test-utils-playwright": "^3.2.0",
     "@wordpress/env": "^12.1.0",
     "@wordpress/scripts": "^37.1.0",
-    "gulp": "^5.0.1",
     "jquery": "^3.7.1",
     "jsdom": "^26.1.0",
-    "mri": "^1.2.0",
     "prettier": "^3.10.1",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"

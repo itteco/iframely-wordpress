@@ -1,6 +1,6 @@
 # Files and directories that must not be shipped in the plugin package.
-# Used by `wp dist-archive` and by the wordpress.org deploy GitHub Actions.
-# `gulp release` uses its own allow-list in gulpfile.js; keep the two in sync.
+# Used by `npm run release` and understood by `wp dist-archive` and the wordpress.org
+# deploy GitHub Actions. See tests/bin/lib/distignore.js for the forms an entry can take.
 
 # Version control and editors
 /.git
@@ -30,7 +30,6 @@
 /.wp-env.tests.override.json
 /composer.json
 /composer.lock
-/gulpfile.js
 /vitest.config.mjs
 /package.json
 /package-lock.json

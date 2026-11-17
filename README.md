@@ -105,26 +105,35 @@ it installs a plugin into the tests site on first use:
     npm run lint:plugin-check    # checks what ships to wordpress.org (everything not in .distignore)
 
 ### Update POT file
-    gulp clean
-    wp i18n make-pot . lang/iframely.pot  --headers="{\"Project-Id-Version\": \"Iframely\", \"Report-Msgid-Bugs-To\": \"https://wordpress.org/support/plugin/iframely/\", \"Last-Translator\": \"Iframely.com\", \"Language-Team\": \"Iframely.com\"}"
+    wp i18n make-pot . lang/iframely.pot --exclude=tests,vendor,node_modules,svn,artifacts,release --headers="{\"Report-Msgid-Bugs-To\": \"https://wordpress.org/support/plugin/iframely/\", \"Last-Translator\": \"Iframely.com\", \"Language-Team\": \"Iframely.com\"}"
     wp i18n make-json lang --no-purge
 
 ## Release
 
-Copy plugin files to `release` folder with proper SVN structure:
+    npm run release
 
-    gulp release
+builds the scripts and styles and puts together what goes to wordpress.org, in the layout of its SVN repository:
 
-Alternatively, add specific version to `tags` directory:
+| Folder           | Content                                                                               |
+|------------------|---------------------------------------------------------------------------------------|
+| `release/trunk`  | The plugin package: every file under version control that `.distignore` does not list |
+| `release/assets` | Banners, icons and screenshots of the plugin page, from `svn/assets`                  |
 
-    gulp release --tag=1.0
+To add a copy of the package for the version being released:
 
-Clean `release` folder:
+    npm run release -- --tag=1.2.0    # also fills release/tag/1.2.0
 
-    gulp clean
+The tag has to be the `Version` of `iframely.php`. A release is made from committed files: the command stops when
+files differ from what is committed, which after a build includes `build/`. Use `-- --allow-dirty` to package the
+files as they are.
+
+To leave a file out of the package, add it to `.distignore`.
 
 
 ## Update WordPress SVN
+
+Copy `release/trunk`, `release/assets` and `release/tag/<version>` (as `tags/<version>`) into a checkout of the
+plugin's SVN repository, then:
 
 Rebase to latest revision
 

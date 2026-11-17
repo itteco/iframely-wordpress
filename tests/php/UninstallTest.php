@@ -91,7 +91,7 @@ class UninstallTest extends TestCase
         $source = (string)file_get_contents(IFRAMELY_PLUGIN_DIR . 'uninstall.php');
         $this->assertMatchesRegularExpression("/if \(!defined\('WP_UNINSTALL_PLUGIN'\)\) \{\s+exit;/", $source);
 
-        $this->assertStringContainsString("'uninstall.php'", (string)file_get_contents(IFRAMELY_PLUGIN_DIR . 'gulpfile.js'));
+        // The package is everything that .distignore does not list, see tests/js/distignore.test.js.
         $this->assertStringNotContainsString('uninstall.php', (string)file_get_contents(IFRAMELY_PLUGIN_DIR . '.distignore'));
     }
 
