@@ -161,4 +161,53 @@ class OembedTest extends TestCase
         $this->assertCount(1, $this->iframelyRequests());
         $this->assertSame($permalink, self::queryOf($this->iframelyRequests()[0])['url']);
     }
+
+    /**
+     * @dataProvider prioritiesProvider
+     */
+    public function test_an_answer_of_another_plugin_is_used_whatever_the_setting(int $priority, bool $enhanced): void
+    {
+        Options::setPreviewsEnhance($enhanced);
+        $answer = static function ($result, $url) {
+            return $url === self::UNKNOWN_URL ? '<b>from another plugin</b>' : $result;
+        };
+        add_filter('pre_oembed_result', $answer, $priority, 2);
+
+        $html = wp_oembed_get(self::UNKNOWN_URL);
+
+        remove_filter('pre_oembed_result', $answer, $priority);
+        $this->assertSame('<b>from another plugin</b>', $html);
+        $this->assertSame([], $this->requestedUrls());
+    }
+
+    /**
+     * @return array<string, array{0: int, 1: bool}>
+     */
+    public function prioritiesProvider(): array
+    {
+        return [
+            'before WordPress, previews enhanced' => [5, true],
+            'after WordPress, previews enhanced' => [20, true],
+            'before WordPress, previews not enhanced' => [5, false],
+            'after WordPress, previews not enhanced' => [20, false],
+        ];
+    }
+
+    public function test_other_sites_can_still_embed_the_posts_of_this_site_when_previews_are_enhanced(): void
+    {
+        // WordPress asks which post a link belongs to in two places. Only its answer
+        // to the site's own links is switched off, not the endpoint for other sites.
+        Options::setPreviewsEnhance(true);
+        $permalink = get_permalink(self::factory()->post->create(['post_title' => 'Own post']));
+        $this->respondWithEmbed();
+        wp_oembed_get($permalink);
+
+        $this->assertFalse(has_filter('oembed_request_post_id', [Oembed::class, 'noOwnPost']));
+        $request = new \WP_REST_Request('GET', '/oembed/1.0/embed');
+        $request->set_query_params(['url' => $permalink]);
+        $response = rest_get_server()->dispatch($request);
+
+        $this->assertSame(200, $response->get_status());
+        $this->assertSame('Own post', $response->get_data()['title']);
+    }
 }

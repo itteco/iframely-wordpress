@@ -46,27 +46,53 @@ class FeedTest extends TestCase
         $this->assertSame(['width' => 500, 'feed' => 1], Feed::iframely_add_feed_arg(['width' => 500]));
     }
 
-    /**
-     * Known issue, kept as a record of current behaviour (see the review report):
-     * the_content_feed runs after the_content has already rendered the embeds of
-     * the current item, so Iframely is only switched off from the second feed item
-     * on. The first item of every feed still gets an Iframely embed.
-     */
-    public function test_known_issue_only_items_after_the_first_are_left_without_iframely_embeds(): void
+    public function test_no_item_of_a_feed_gets_an_iframely_embed(): void
     {
         $content = "Intro\n\n" . self::URL . "\n\nOutro";
         $first = self::factory()->post->create(['post_content' => $content]);
         $second = self::factory()->post->create(['post_content' => $content]);
         $this->respondWithEmbed();
+        $this->go_to('/?feed=rss2');
+        $this->assertTrue(is_feed());
 
         $this->enterPost($first);
         $firstItem = get_the_content_feed('rss2');
         $this->enterPost($second);
         $secondItem = get_the_content_feed('rss2');
 
-        $this->assertStringContainsString(self::EMBED_HTML, $firstItem);
-        $this->assertStringNotContainsString(self::EMBED_HTML, $secondItem);
-        $this->assertStringContainsString(self::URL, $secondItem);
+        foreach ([$firstItem, $secondItem] as $item) {
+            $this->assertStringNotContainsString(self::EMBED_HTML, $item);
+            $this->assertStringContainsString(self::URL, $item);
+        }
+        $this->assertCount(0, $this->iframelyRequests());
+    }
+
+    public function test_the_excerpt_of_a_feed_item_gets_no_iframely_embed_either(): void
+    {
+        $post = self::factory()->post->create(['post_content' => "Intro\n\n" . self::URL . "\n\nOutro", 'post_excerpt' => '']);
+        $this->respondWithEmbed();
+        $this->go_to('/?feed=rss2');
+
+        $this->enterPost($post);
+        ob_start();
+        the_excerpt_rss();
+        $excerpt = (string)ob_get_clean();
+
+        $this->assertStringContainsString('Intro', $excerpt);
+        $this->assertCount(0, $this->iframelyRequests());
+    }
+
+    public function test_posts_outside_of_a_feed_keep_their_iframely_embeds(): void
+    {
+        $post = self::factory()->post->create(['post_content' => "Intro\n\n" . self::URL . "\n\nOutro"]);
+        $this->respondWithEmbed();
+        $this->go_to(get_permalink($post));
+        $this->assertFalse(is_feed());
+
+        $this->enterPost($post);
+        $html = apply_filters('the_content', get_the_content());
+
+        $this->assertStringContainsString(self::EMBED_HTML, $html);
         $this->assertCount(1, $this->iframelyRequests());
     }
 }

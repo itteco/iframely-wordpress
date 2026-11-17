@@ -68,13 +68,15 @@ class PluginTest extends TestCase
     {
         $this->assertTrue(shortcode_exists('iframely'));
         $this->assertSame(10, has_filter('oembed_providers', [Oembed::class, 'maybe_reverse_oembed_providers']));
-        $this->assertSame(PHP_INT_MAX, has_filter('pre_oembed_result', [Oembed::class, 'maybe_remove_wp_self_embeds']));
+        $this->assertSame(9, has_filter('pre_oembed_result', [Oembed::class, 'beforeOwnPostLookup']));
+        $this->assertSame(11, has_filter('pre_oembed_result', [Oembed::class, 'afterOwnPostLookup']));
         $this->assertSame(10, has_filter('oembed_fetch_url', [Oembed::class, 'maybe_replace_iframe_card']));
         $this->assertSame(20, has_filter('oembed_fetch_url', [Gutenberg::class, 'maybe_add_iframely_url_options']));
         $this->assertSame(10, has_filter('oembed_fetch_url', [Amp::class, 'maybe_add_iframe_amp']));
         $this->assertSame(10, has_filter('embed_oembed_html', [Amp::class, 'iframely_filter_oembed_result']));
         $this->assertSame(10, has_filter('embed_defaults', [Cache::class, 'iframely_embed_defaults']));
         $this->assertSame(99, has_filter('oembed_ttl', [Cache::class, 'updateCacheTtl']));
+        $this->assertSame(1, has_filter('the_content', [Feed::class, 'disableInFeeds']));
         $this->assertSame(1, has_filter('the_content_feed', [Feed::class, 'iframely_disable_on_feed']));
     }
 
