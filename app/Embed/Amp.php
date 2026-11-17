@@ -52,9 +52,9 @@ class Amp
 
             foreach ($chunks as $chunk) {
                 $start = strpos($chunk, '<amp-iframe');
-                // Malformed html?
+                // What follows the last amp-iframe
                 if ($start === false) {
-                    $content .= $chunk;
+                    $content .= wpautop($chunk);
                     continue;
                 }
 
@@ -79,16 +79,3 @@ class Amp
         return $embed_handler_classes;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

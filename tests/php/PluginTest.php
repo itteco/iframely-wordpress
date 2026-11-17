@@ -93,12 +93,45 @@ class PluginTest extends TestCase
     {
         $this->assertSame(10, has_filter('plugin_action_links_iframely/iframely.php', [Plugin::class, 'addSettingsLink']));
         $this->assertSame(10, has_filter('network_admin_plugin_action_links_iframely/iframely.php', [Plugin::class, 'addSettingsLink']));
+        $userId = self::factory()->user->create(['role' => 'administrator']);
+        if (is_multisite()) {
+            grant_super_admin($userId);
+        }
+        wp_set_current_user($userId);
+        Settings::register();
 
         $actions = Plugin::addSettingsLink(['deactivate' => '<a href="#">Deactivate</a>']);
 
         $this->assertCount(2, $actions);
         $this->assertSame('<a href="#">Deactivate</a>', $actions['deactivate']);
-        $this->assertMatchesRegularExpression('#^<a href="[^"]*">Settings</a>$#', end($actions));
+        $this->assertMatchesRegularExpression('#^<a href="http[^"]*page=iframely">Settings</a>$#', end($actions));
+    }
+
+    public function test_on_a_network_the_settings_link_goes_to_the_network_admin_from_any_plugins_screen(): void
+    {
+        if (!is_multisite()) {
+            $this->markTestSkipped('Only relevant on a network.');
+        }
+        $userId = self::factory()->user->create(['role' => 'administrator']);
+        grant_super_admin($userId);
+        wp_set_current_user($userId);
+        // The plugins screen of one site: the settings page does not exist there.
+        $this->assertFalse(is_network_admin());
+
+        $actions = Plugin::addSettingsLink([]);
+
+        $this->assertSame(['<a href="' . esc_url(network_admin_url('settings.php?page=iframely')) . '">Settings</a>'], $actions);
+    }
+
+    public function test_on_a_network_site_administrators_get_no_settings_link(): void
+    {
+        if (!is_multisite()) {
+            $this->markTestSkipped('Only relevant on a network.');
+        }
+        // They cannot open the settings of the network.
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+
+        $this->assertSame([], Plugin::addSettingsLink([]));
     }
 
     public function test_asset_urls_point_into_the_build_directory(): void

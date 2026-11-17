@@ -69,19 +69,24 @@ class AmpTest extends TestCase
         $this->assertStringNotContainsString('<p><amp-iframe', $result);
     }
 
-    /**
-     * Known issue, kept as a record of current behaviour (see the review report):
-     * whatever follows the last amp-iframe is treated as malformed markup and is
-     * returned without paragraph tags.
-     */
-    public function test_known_issue_text_after_the_last_amp_iframe_gets_no_paragraphs(): void
+    public function test_text_after_the_last_amp_iframe_gets_paragraphs_too(): void
     {
         $content = "Before.\n\n" . self::AMP_IFRAME . "\n\nAfter one.\n\nAfter two.";
 
         $result = Amp::iframely_autop_on_amp($content);
 
         $this->assertStringContainsString('<p>Before.</p>', $result);
-        $this->assertStringEndsWith(self::AMP_IFRAME . "\n\nAfter one.\n\nAfter two.", $result);
+        $this->assertStringContainsString(self::AMP_IFRAME, $result);
+        $this->assertStringContainsString('<p>After one.</p>', $result);
+        $this->assertStringContainsString('<p>After two.</p>', $result);
+        $this->assertSame(1, substr_count($result, '<amp-iframe'));
+    }
+
+    public function test_content_that_ends_with_an_amp_iframe_gets_nothing_added(): void
+    {
+        $result = Amp::iframely_autop_on_amp("Before.\n\n" . self::AMP_IFRAME);
+
+        $this->assertStringEndsWith(self::AMP_IFRAME, $result);
     }
 
     public function test_amp_aware_autop_keeps_every_amp_iframe_of_the_content(): void

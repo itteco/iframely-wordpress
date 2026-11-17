@@ -44,7 +44,12 @@ class Plugin
 
     public static function addSettingsLink(array $actions): array
     {
-        $settings = sprintf('<a href="%s">%s</a>', Links::settings(), __('Settings', 'iframely'));
+        # On a network only its administrators can open the settings
+        if (is_multisite() && !current_user_can('manage_network_options')) {
+            return $actions;
+        }
+
+        $settings = sprintf('<a href="%s">%s</a>', esc_url(Links::settings()), esc_html__('Settings', 'iframely'));
         $actions[] = $settings;
         return $actions;
     }
