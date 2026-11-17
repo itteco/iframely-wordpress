@@ -22,7 +22,7 @@ $iframely_links = [
   ],
   [
     'title' => __('Support', 'iframely'),
-    'tagline' => __('Email or website chat, we are just one message away and arehere to help along the way.', 'iframely'),
+    'tagline' => __('Email or website chat, we are just one message away and are here to help along the way.', 'iframely'),
     'url' => Links::link(),
   ],
 ];

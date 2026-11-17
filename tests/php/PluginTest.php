@@ -177,4 +177,22 @@ class PluginTest extends TestCase
             $this->assertMatchesRegularExpression('/^<\?php\s+defined\(\'ABSPATH\'\) \|\| exit;/', $start, basename($view));
         }
     }
+
+    public function test_the_images_of_the_onboarding_exist_under_plain_names(): void
+    {
+        ob_start();
+        Plugin::view('partials/onboarding');
+        $html = (string)ob_get_clean();
+
+        preg_match_all('#' . preg_quote(IFRAMELY_PLUGIN_URL, '#') . '(assets/[^\s"]+)#', $html, $matches);
+        $images = array_values(array_unique($matches[1]));
+        sort($images);
+
+        $this->assertSame(['assets/onboarding-2x.avif', 'assets/onboarding-2x.png', 'assets/onboarding.avif', 'assets/onboarding.png'], $images);
+        foreach ($images as $image) {
+            $this->assertFileExists(IFRAMELY_PLUGIN_DIR . $image);
+            // wordpress.org accepts letters, digits, dots, hyphens and underscores in file names.
+            $this->assertMatchesRegularExpression('#^[\w./-]+$#', $image);
+        }
+    }
 }

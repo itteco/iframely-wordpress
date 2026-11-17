@@ -17,7 +17,6 @@ class Plugin
 
     public function init(): void
     {
-        load_plugin_textdomain('iframely', false, plugin_basename(IFRAMELY_PLUGIN_DIR) . '/lang/');
         add_filter('network_admin_plugin_action_links_' . IFRAMELY_PLUGIN_FILE, [self::class, 'addSettingsLink']);
         add_filter('plugin_action_links_' . IFRAMELY_PLUGIN_FILE, [self::class, 'addSettingsLink']);
     }

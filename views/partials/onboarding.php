@@ -19,8 +19,8 @@
 
       <div class="iframely-onboarding__embed">
         <picture>
-          <source srcset="<?php echo esc_url(IFRAMELY_PLUGIN_URL . 'assets/onboarding.avif'); ?> 1x, <?php echo esc_url(IFRAMELY_PLUGIN_URL . 'assets/onboarding@2x.avif'); ?> 1.5x" type="image/avif">
-          <source srcset="<?php echo esc_url(IFRAMELY_PLUGIN_URL . 'assets/onboarding.png'); ?> 1x, <?php echo esc_url(IFRAMELY_PLUGIN_URL . 'assets/onboarding.png'); ?> 1.5x">
+          <source srcset="<?php echo esc_url(IFRAMELY_PLUGIN_URL . 'assets/onboarding.avif'); ?> 1x, <?php echo esc_url(IFRAMELY_PLUGIN_URL . 'assets/onboarding-2x.avif'); ?> 1.5x" type="image/avif">
+          <source srcset="<?php echo esc_url(IFRAMELY_PLUGIN_URL . 'assets/onboarding.png'); ?> 1x, <?php echo esc_url(IFRAMELY_PLUGIN_URL . 'assets/onboarding-2x.png'); ?> 1.5x">
           <img src="<?php echo esc_url(IFRAMELY_PLUGIN_URL . 'assets/onboarding.png'); ?>" width="676" height="420" class="iframely-onboarding__img" alt="<?php esc_attr_e('Enjoy your new embeds!', 'iframely'); ?>">
         </picture>
       </div>

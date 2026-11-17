@@ -10,7 +10,7 @@ use Iframely\UI\Links;
   <?php wp_nonce_field('iframely_nonce', 'iframely_nonce'); ?>
   <input type="hidden" name="iframely_reactivation_request" id="iframely_reactivation_request" value="1">
   <p class="iframely-mb-intro">
-    <?php esc_html_e('When you change your API key, the media cache in your posts is cleared. You will need a new valid key to reinstate the embedded content. Are you sure?', 'iframely'); ?>
+    <?php esc_html_e('Your current API key stays in use until a new one is verified. Embeds in your posts switch to the new key the next time they are refreshed.', 'iframely'); ?>
   </p>
   <?php submit_button(__('Change API key', 'iframely')); ?>
 </form>
