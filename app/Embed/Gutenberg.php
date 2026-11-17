@@ -25,6 +25,9 @@ class Gutenberg
         # and add these options into the oEmbed endpoint's query-string parameters
         add_filter('oembed_fetch_url', [self::class, 'maybe_add_iframely_url_options'], 20, 3);
 
+        # When there is no embed, WordPress shows the URL as a link. Visitors get it without our options
+        add_filter('embed_maybe_make_link', [self::class, 'removeUrlOptionsFromLink'], 20, 2);
+
         # The editor asks for its previews on one REST route, open to users who can edit posts.
         # Who the user is does not matter here, and is not known yet for sure
         add_filter('rest_request_before_callbacks', [self::class, 'startEditorPreview'], 10, 3);
@@ -32,6 +35,35 @@ class Gutenberg
 
         # load assets
         add_action('enqueue_block_editor_assets', [self::class, 'iframely_gutenberg_loader']);
+    }
+
+    public static function removeUrlOptionsFromLink($output, $url)
+    {
+        if (!is_string($output) || !is_string($url) || !Utils::stringContains($url, 'iframely=')) {
+            return $output;
+        }
+
+        # Only what WordPress makes of the URL is replaced: a link, or the URL as it is
+        $clean = self::removeUrlOptions($url);
+        if ($output === $url) {
+            return $clean;
+        }
+        if ($output === '<a href="' . esc_url($url) . '">' . esc_html($url) . '</a>') {
+            return '<a href="' . esc_url($clean) . '">' . esc_html($clean) . '</a>';
+        }
+
+        return $output;
+    }
+
+    /**
+     * The URL as it was before the options of the embed were added to it.
+     */
+    public static function removeUrlOptions(string $url): string
+    {
+        $clean = preg_replace('/([?&])iframely=[^&#]*(?:&|(?=#|$))/', '$1', $url);
+        $clean = preg_replace('/[?&](?=#|$)/', '', (string)$clean);
+
+        return is_string($clean) ? $clean : $url;
     }
 
     /**

@@ -171,12 +171,62 @@ class GutenbergTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider urlWithoutOptionsProvider
+     */
+    public function test_the_options_can_be_taken_out_of_a_url(string $url, string $expected): void
+    {
+        $this->assertSame($expected, Gutenberg::removeUrlOptions($url));
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public function urlWithoutOptionsProvider(): array
+    {
+        return [
+            'the only parameter' => ['https://example.com/video?iframely=eyJ0IjoxfQ%3D%3D', 'https://example.com/video'],
+            'the last parameter' => ['https://example.com/watch?v=42&iframely=eyJ0IjoxfQ%3D%3D', 'https://example.com/watch?v=42'],
+            'the first parameter' => ['https://example.com/watch?iframely=eyJ0IjoxfQ%3D%3D&v=42', 'https://example.com/watch?v=42'],
+            'in the middle' => ['https://example.com/watch?a=1&iframely=eyJ0IjoxfQ%3D%3D&v=4%202', 'https://example.com/watch?a=1&v=4%202'],
+            'before a fragment' => ['https://example.com/watch?v=42&iframely=eyJ0IjoxfQ%3D%3D#t=10', 'https://example.com/watch?v=42#t=10'],
+            'the only parameter, before a fragment' => ['https://example.com/video?iframely=eyJ0IjoxfQ%3D%3D#top', 'https://example.com/video#top'],
+            'no options' => ['https://example.com/watch?v=42&myiframely=1', 'https://example.com/watch?v=42&myiframely=1'],
+            'no parameters' => ['https://example.com/video', 'https://example.com/video'],
+        ];
+    }
+
+    public function test_a_url_that_cannot_be_embedded_is_shown_as_a_link_without_the_options(): void
+    {
+        $this->respondWithError();
+        $url = 'https://example.com/watch?v=42&iframely=' . self::encodeUrlOptions(['card' => 'small']);
+
+        $html = $GLOBALS['wp_embed']->run_shortcode('[embed]' . $url . '[/embed]');
+
+        $this->assertSame('<a href="https://example.com/watch?v=42">https://example.com/watch?v=42</a>', $html);
+        // The request itself was made with the options.
+        $this->assertSame('small', self::queryOf($this->iframelyRequests()[0])['card']);
+    }
+
+    public function test_only_the_link_that_wordpress_makes_is_changed(): void
+    {
+        $url = self::URL . '?iframely=' . self::encodeUrlOptions(['card' => 'small']);
+        $embed = '<iframe src="https://cdn.example/?u=' . esc_attr($url) . '"></iframe>';
+
+        $this->assertSame(self::URL, Gutenberg::removeUrlOptionsFromLink($url, $url));
+        $this->assertSame($embed, Gutenberg::removeUrlOptionsFromLink($embed, $url));
+        $this->assertFalse(Gutenberg::removeUrlOptionsFromLink(false, $url));
+        $link = '<a href="' . self::URL . '">' . self::URL . '</a>';
+        $this->assertSame($link, Gutenberg::removeUrlOptionsFromLink($link, self::URL));
+    }
+
     public function test_setting_up_registers_the_same_hooks_for_everyone(): void
     {
         wp_set_current_user(0);
         Gutenberg::init();
 
         $this->assertSame(20, has_filter('oembed_fetch_url', [Gutenberg::class, 'maybe_add_iframely_url_options']));
+        $this->assertSame(20, has_filter('embed_maybe_make_link', [Gutenberg::class, 'removeUrlOptionsFromLink']));
         $this->assertSame(10, has_filter('rest_request_before_callbacks', [Gutenberg::class, 'startEditorPreview']));
         $this->assertSame(10, has_filter('rest_request_after_callbacks', [Gutenberg::class, 'endEditorPreview']));
         $this->assertSame(10, has_action('enqueue_block_editor_assets', [Gutenberg::class, 'iframely_gutenberg_loader']));
