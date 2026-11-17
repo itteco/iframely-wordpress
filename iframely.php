@@ -4,7 +4,7 @@
  * Plugin URI: https://iframely.com/wordpress
  * Description: WP media embeds, cards and blocks.
  * Version: 1.1.6
- * Requires at least: 5.8
+ * Requires at least: 6.6
  * Requires PHP: 7.4
  * Author: Iframely.com
  * Author URI: https://iframely.com/

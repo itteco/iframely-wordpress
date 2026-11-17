@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Node.js 22.13 or newer and npm
+- Node.js 22.22.2 or newer on the 22 line, 24.15 or newer on the 24 line, or 26 and later, with npm
 - Docker (Docker Engine with the Compose plugin is enough; Docker Desktop is not required)
 
 PHP, Composer, MySQL, WP-CLI and PHPUnit are not needed on your machine. They run inside the
@@ -22,9 +22,12 @@ PHP, Composer, MySQL, WP-CLI and PHPUnit are not needed on your machine. They ru
 | tests | http://localhost:8889 | `.wp-env.tests.json` | PHPUnit, end-to-end tests and linters |
 
 Log in at `/wp-admin` with `admin` / `password`. Both sites pin the WordPress and PHP versions in their config
-file. To try other versions, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` and restart with `--update`, for example:
+file. To try other versions, set `WP_ENV_CORE` and `WP_ENV_PHP_VERSION` and restart, for example:
 
-    WP_ENV_CORE=WordPress/WordPress#6.6 WP_ENV_PHP_VERSION=7.4 npx wp-env --config=.wp-env.tests.json start --update
+    WP_ENV_CORE=WordPress/WordPress#6.6 WP_ENV_PHP_VERSION=7.4 npx wp-env --config=.wp-env.tests.json start
+
+The plugin supports WordPress 6.6 and later on PHP 7.4 and later. `npm run test:matrix` runs the tests on both ends
+of that range (see [Tests](#tests)).
 
 Other environment commands:
 
@@ -43,12 +46,22 @@ Other environment commands:
 ## Tests
 
     npm test                      # everything below except the live test
-    npm run test:js               # Jest unit tests (tests/js)
+    npm run test:js               # Vitest unit tests (tests/js)
     npm run test:php              # PHPUnit integration tests (tests/php), single site
     npm run test:php:multisite    # the same tests on multisite
     npm run test:e2e              # Playwright end-to-end tests (tests/e2e) against the tests site
 
-Arguments after `--` are passed through, e.g. `npm run test:php -- --filter SettingsTest`.
+Arguments after `--` are passed through, e.g. `npm run test:php -- --filter SettingsTest` or
+`npm run test:js -- --coverage`.
+
+The PHPUnit and end-to-end tests run on the WordPress and PHP versions of the tests site. To run them on the minimum
+supported versions (WordPress 6.6, PHP 7.4) and on the latest WordPress with the newest PHP in one go:
+
+    npm run test:matrix             # both combinations
+    npm run test:matrix -- floor    # only the minimum versions ("latest" for the other one)
+
+This restarts the tests site for each combination, resets its database, and returns it to its default versions at
+the end. The versions are listed at the top of `tests/bin/matrix.js`.
 
 None of these tests talks to the real Iframely API:
 

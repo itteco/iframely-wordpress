@@ -21,6 +21,7 @@ let config = {
       'iframely.php',
       'index.php',
       'readme.txt',
+      'LICENSE',
     ],
   },
 };

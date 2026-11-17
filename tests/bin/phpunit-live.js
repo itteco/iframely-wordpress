@@ -46,7 +46,7 @@ try {
     stdio: ['ignore', 'pipe', 'ignore'],
   });
   status = JSON.parse(output);
-} catch (error) {
+} catch {
   status = null;
 }
 

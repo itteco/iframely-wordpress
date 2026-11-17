@@ -22,7 +22,7 @@
 
 # Tooling and configuration
 /.distignore
-/.eslintrc.js
+/eslint.config.cjs
 /.stylelintrc.json
 /.wp-env.json
 /.wp-env.tests.json
@@ -31,7 +31,7 @@
 /composer.json
 /composer.lock
 /gulpfile.js
-/jest.config.js
+/vitest.config.mjs
 /package.json
 /package-lock.json
 /phpcs.xml

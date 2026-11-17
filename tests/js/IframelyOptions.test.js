@@ -1,9 +1,10 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import jQuery from 'jquery';
 import { select } from '@wordpress/data';
 import { createElement, createRoot, flushSync } from '@wordpress/element';
 import { IframelyOptions, updateForm } from '../../src/js/components/IframelyOptions';
 
-jest.mock('@wordpress/data', () => ({ select: jest.fn() }));
+vi.mock('@wordpress/data', () => ({ select: vi.fn() }));
 
 let canCreateUsers;
 let container;
@@ -17,13 +18,13 @@ function mount() {
     root.render(createElement(IframelyOptions));
   });
   // The component fills the panel shortly after mounting.
-  jest.advanceTimersByTime(20);
+  vi.advanceTimersByTime(20);
 }
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
   global.jQuery = jQuery;
-  global.iframely = { buildOptionsForm: jest.fn() };
+  global.iframely = { buildOptionsForm: vi.fn() };
   canCreateUsers = false;
   select.mockImplementation((store) =>
     store === 'core' ? { canUser: () => canCreateUsers } : { getBlockSelectionStart: () => 'abc-123' },
@@ -36,8 +37,8 @@ afterEach(() => {
     flushSync(() => root.unmount());
     root = null;
   }
-  jest.useRealTimers();
-  jest.clearAllMocks();
+  vi.useRealTimers();
+  vi.clearAllMocks();
   document.body.innerHTML = '';
   delete global.jQuery;
   delete global.iframely;

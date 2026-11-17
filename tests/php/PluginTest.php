@@ -33,6 +33,28 @@ class PluginTest extends TestCase
         $this->assertMatchesRegularExpression('/^Stable tag: ' . preg_quote(IFRAMELY_VERSION, '/') . '$/m', $readme);
     }
 
+    public function test_readme_and_plugin_header_state_the_same_requirements(): void
+    {
+        $fields = ['RequiresWP' => 'Requires at least', 'RequiresPHP' => 'Requires PHP'];
+        $header = get_file_data(IFRAMELY_PLUGIN_DIR . 'iframely.php', $fields);
+        $readme = get_file_data(IFRAMELY_PLUGIN_DIR . 'readme.txt', $fields);
+
+        $this->assertSame('6.6', $header['RequiresWP']);
+        $this->assertSame('7.4', $header['RequiresPHP']);
+        $this->assertSame($header, $readme);
+    }
+
+    public function test_readme_and_plugin_header_state_the_same_license(): void
+    {
+        $fields = ['License' => 'License', 'LicenseURI' => 'License URI'];
+        $header = get_file_data(IFRAMELY_PLUGIN_DIR . 'iframely.php', $fields);
+        $readme = get_file_data(IFRAMELY_PLUGIN_DIR . 'readme.txt', $fields);
+
+        $this->assertSame('GPLv2 or later', $header['License']);
+        $this->assertSame($header, $readme);
+        $this->assertFileExists(IFRAMELY_PLUGIN_DIR . 'LICENSE');
+    }
+
     public function test_plugin_counts_as_activated_only_with_an_api_key(): void
     {
         $this->assertTrue(Plugin::isActivated());

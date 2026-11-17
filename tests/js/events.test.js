@@ -1,34 +1,35 @@
-jest.mock('@wordpress/data', () => ({ select: jest.fn(), dispatch: jest.fn() }));
-jest.mock('../../src/js/events/iframeMessage', () => ({ iframeMessage: jest.fn() }));
-jest.mock('../../src/js/events/optionsChanged', () => ({ optionsChanged: jest.fn() }));
+import { afterEach, describe, expect, it, vi } from 'vitest';
+vi.mock('@wordpress/data', () => ({ select: vi.fn(), dispatch: vi.fn() }));
+vi.mock('../../src/js/events/iframeMessage', () => ({ iframeMessage: vi.fn() }));
+vi.mock('../../src/js/events/optionsChanged', () => ({ optionsChanged: vi.fn() }));
 
-function loadEvents() {
-  jest.isolateModules(() => {
-    require('../../src/js/events');
-  });
+// The module wires its listeners while it loads, so every test loads a fresh copy.
+async function loadEvents() {
+  vi.resetModules();
+  await import('../../src/js/events');
 }
 
 afterEach(() => {
   delete global.iframely;
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('event wiring', () => {
-  it('listens for option changes reported by the Iframely options form', () => {
-    const { optionsChanged } = require('../../src/js/events/optionsChanged');
-    global.iframely = { on: jest.fn() };
+  it('listens for option changes reported by the Iframely options form', async () => {
+    global.iframely = { on: vi.fn() };
 
-    loadEvents();
+    await loadEvents();
+    const { optionsChanged } = await import('../../src/js/events/optionsChanged');
 
     expect(global.iframely.on).toHaveBeenCalledWith('options-changed', optionsChanged);
   });
 
-  it('listens for messages posted by embed iframes', () => {
-    const { iframeMessage } = require('../../src/js/events/iframeMessage');
-    const addEventListener = jest.spyOn(window, 'addEventListener');
-    global.iframely = { on: jest.fn() };
+  it('listens for messages posted by embed iframes', async () => {
+    const addEventListener = vi.spyOn(window, 'addEventListener');
+    global.iframely = { on: vi.fn() };
 
-    loadEvents();
+    await loadEvents();
+    const { iframeMessage } = await import('../../src/js/events/iframeMessage');
 
     expect(addEventListener).toHaveBeenCalledWith('message', iframeMessage);
   });
@@ -39,10 +40,10 @@ describe('event wiring', () => {
    * blocked or fails to load, the bare reference throws and the rest of the
    * plugin's editor script never runs.
    */
-  it('known issue: throws when the Iframely CDN script did not load', () => {
-    const addEventListener = jest.spyOn(window, 'addEventListener');
+  it('known issue: throws when the Iframely CDN script did not load', async () => {
+    const addEventListener = vi.spyOn(window, 'addEventListener');
 
-    expect(loadEvents).toThrow(ReferenceError);
+    await expect(loadEvents()).rejects.toThrow(ReferenceError);
     expect(addEventListener).not.toHaveBeenCalledWith('message', expect.anything());
   });
 });

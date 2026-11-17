@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { select } from '@wordpress/data';
 import {
   addIframelyString,
@@ -9,7 +10,7 @@ import {
   isObject,
 } from '../../src/js/utils';
 
-jest.mock('@wordpress/data', () => ({ select: jest.fn() }));
+vi.mock('@wordpress/data', () => ({ select: vi.fn() }));
 
 function decodeOptions(url) {
   const encoded = new URL(url).searchParams.get('iframely');

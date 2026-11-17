@@ -1,10 +1,11 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import jQuery from 'jquery';
 import { select } from '@wordpress/data';
 import { updateForm } from '../../src/js/components/IframelyOptions';
 import { iframeMessage } from '../../src/js/events/iframeMessage';
 
-jest.mock('@wordpress/data', () => ({ select: jest.fn() }));
-jest.mock('../../src/js/components/IframelyOptions', () => ({ updateForm: jest.fn() }));
+vi.mock('@wordpress/data', () => ({ select: vi.fn() }));
+vi.mock('../../src/js/components/IframelyOptions', () => ({ updateForm: vi.fn() }));
 
 const message = {
   method: 'setIframelyEmbedOptions',
@@ -28,7 +29,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   document.body.innerHTML = '';
   delete global.jQuery;
 });

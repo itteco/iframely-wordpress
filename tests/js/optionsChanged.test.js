@@ -1,8 +1,9 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import jQuery from 'jquery';
 import { dispatch, select } from '@wordpress/data';
 import { optionsChanged } from '../../src/js/events/optionsChanged';
 
-jest.mock('@wordpress/data', () => ({ select: jest.fn(), dispatch: jest.fn() }));
+vi.mock('@wordpress/data', () => ({ select: vi.fn(), dispatch: vi.fn() }));
 
 const BASE = 'https://cdn.iframe.ly/api/iframe?url=https%3A%2F%2Fexample.com&key=abc';
 
@@ -22,13 +23,13 @@ beforeEach(() => {
   embed = sandbox.contentWindow.document.querySelector('iframe.embed');
   embed.src = BASE;
 
-  updateBlockAttributes = jest.fn();
+  updateBlockAttributes = vi.fn();
   select.mockReturnValue({ getBlockSelectionStart: () => 'abc-123' });
   dispatch.mockReturnValue({ updateBlockAttributes });
 });
 
 afterEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   document.body.innerHTML = '';
   delete global.jQuery;
 });

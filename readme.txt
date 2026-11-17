@@ -1,12 +1,12 @@
 === Iframely – WP media embeds, cards and blocks ===
 Contributors: yellowby, ivanp, garmoncheg, psergeev
-License: GPLv3
-License URI: http://www.gnu.org/licenses/gpl.html
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: gutenberg, facebook, instagram, twitter, youtube, tiktok, twitch
-Tested up to: 6.8.2
+Tested up to: 7.1
 Stable tag: 1.1.6
-Requires at least: 3.8
-Requires PHP: 7.2
+Requires at least: 6.6
+Requires PHP: 7.4
 
 Iframely cloud extends WordPress embeds with customizable embed blocks for over 1900 rich media publishers. For the rest of the Internet, Iframely shows a summary card preview.
 

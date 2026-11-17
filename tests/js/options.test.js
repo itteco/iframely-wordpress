@@ -1,17 +1,18 @@
+import { describe, expect, it, vi } from 'vitest';
 import { createElement, renderToString } from '@wordpress/element';
 import { applyFilters } from '@wordpress/hooks';
 
 // Registers the editor.BlockEdit filter as a side effect.
 import '../../src/js/options';
 
-jest.mock('@wordpress/data', () => ({ select: jest.fn() }));
-jest.mock('@wordpress/block-editor', () => ({
+vi.mock('@wordpress/data', () => ({ select: vi.fn() }));
+vi.mock('@wordpress/block-editor', () => ({
   InspectorControls: ({ children }) => <aside data-testid="inspector">{children}</aside>,
 }));
-jest.mock('@wordpress/components', () => ({
+vi.mock('@wordpress/components', () => ({
   PanelBody: ({ title, children }) => <section data-title={title}>{children}</section>,
 }));
-jest.mock('../../src/js/components/IframelyOptions', () => ({
+vi.mock('../../src/js/components/IframelyOptions', () => ({
   IframelyOptions: () => <div id="iframely-options" />,
 }));
 

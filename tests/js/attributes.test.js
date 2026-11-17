@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { createElement, renderToString } from '@wordpress/element';
 import { applyFilters } from '@wordpress/hooks';
 
 // Registers the block filters as a side effect.
 import '../../src/js/attributes';
 
-jest.mock('@wordpress/data', () => ({ select: jest.fn() }));
+vi.mock('@wordpress/data', () => ({ select: vi.fn() }));
 
 const embedBlock = { name: 'core/embed', category: 'embed' };
 
