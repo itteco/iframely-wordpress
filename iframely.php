@@ -4,7 +4,7 @@
  * Plugin Name: Iframely
  * Plugin URI: https://iframely.com/wordpress
  * Description: WP media embeds, cards and blocks.
- * Version: 1.1.6
+ * Version: 1.2.0
  * Requires at least: 6.6
  * Requires PHP: 7.4
  * Author: Iframely.com
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('IFRAMELY_VERSION', '1.1.6');
+define('IFRAMELY_VERSION', '1.2.0');
 define('IFRAMELY_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('IFRAMELY_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('IFRAMELY_PLUGIN_FILE', plugin_basename(__FILE__));
