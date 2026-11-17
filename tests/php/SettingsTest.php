@@ -310,23 +310,38 @@ class SettingsTest extends TestCase
     }
 
     /**
-     * Known issue, kept as a record of current behaviour (see the review report):
-     * only a JSON body with an "error" field counts as a failed verification. The
-     * HTTP status is ignored, so an unrelated error page lets any key through.
+     * @dataProvider notAnAnswerProvider
      */
-    public function test_known_issue_a_server_error_page_is_taken_as_a_successful_verification(): void
+    public function test_an_answer_that_does_not_come_from_the_api_does_not_store_the_api_key(string $body, int $code, string $expected, string $unexpected): void
     {
         Options::delete('iframely_api_key');
         $this->actAsSettingsManager();
         $this->submit(['iframely_api_key' => 'abc123']);
-        $this->respondWith(static function () {
-            return self::httpResponse('<html><body>502 Bad Gateway</body></html>', 502);
+        $this->respondWith(static function () use ($body, $code) {
+            return self::httpResponse($body, $code);
         });
 
         $output = $this->save();
 
-        $this->assertSame('abc123', Options::getApiKey());
-        $this->assertStringContainsString('iframely-onboarding', $output);
+        $this->assertSame('', Options::getApiKey());
+        $this->assertStringNotContainsString('iframely-onboarding', $output);
+        $this->assertStringContainsString($expected, $this->notices());
+        $this->assertStringNotContainsString($unexpected, $this->notices());
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: int, 2: string, 3: string}>
+     */
+    public function notAnAnswerProvider(): array
+    {
+        return [
+            'error page of a proxy' => ['<html><body>502 Bad Gateway</body></html>', 502, 'be verified (error code 502)', 'onboarding'],
+            'sign-in page of a network' => ['<html><body>Please sign in</body></html>', 200, 'be verified.', 'error code'],
+            'empty answer' => ['', 200, 'be verified.', 'error code'],
+            'text that is JSON but not data' => ['"OK"', 200, 'be verified.', 'error code'],
+            'data with a failure status' => ['{"type":"rich"}', 503, 'be verified (error code 503)', 'onboarding'],
+            'error of the API on a failure status' => ['{"status":403,"error":"Invalid API key"}', 403, 'be verified (error code 403)', 'onboarding'],
+        ];
     }
 
     // Replacing the API key.
@@ -405,6 +420,8 @@ class SettingsTest extends TestCase
         Options::setCacheTtl(2 * WEEK_IN_SECONDS);
         Options::setApiParams('theme=dark');
         $this->actAsSettingsManager();
+        // The links on the page need the page to be registered.
+        Settings::register();
 
         ob_start();
         Settings::render();

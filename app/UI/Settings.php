@@ -113,13 +113,17 @@ class Settings
             return;
         }
 
-        $body = wp_remote_retrieve_body($request);
-        $data = json_decode($body, true, 512);
+        # The key is good when the API answers the sample request with data. An error page
+        # of a proxy or a firewall is not an answer of the API, whatever it says
+        $code = (int)wp_remote_retrieve_response_code($request);
+        $data = json_decode(wp_remote_retrieve_body($request), true, 512);
+        $succeeded = $code >= 200 && $code < 300;
 
-        if (!empty($data['error'])) {
+        if (!$succeeded || !is_array($data) || !empty($data['error'])) {
+            $status = is_array($data) && !empty($data['status']) ? $data['status'] : ($succeeded || !$code ? '' : $code);
             $message = __('Sorry, your API key can\'t be verified.', 'iframely');
-            if (!empty($data['status'])) {
-                $message = sprintf(__('Sorry, your API key can\'t be verified (error code %s). <a href="%s" target="_blank">Learn more</a>', 'iframely'), $data['status'], Links::link('/docs/result-codes'));
+            if (!empty($status)) {
+                $message = sprintf(__('Sorry, your API key can\'t be verified (error code %s). <a href="%s" target="_blank">Learn more</a>', 'iframely'), $status, Links::link('/docs/result-codes'));
             }
             self::notify($message, 'error');
             return;
