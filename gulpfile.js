@@ -20,6 +20,7 @@ let config = {
       'views*/**/*',
       'iframely.php',
       'index.php',
+      'uninstall.php',
       'readme.txt',
       'LICENSE',
     ],

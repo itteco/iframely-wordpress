@@ -4,6 +4,7 @@
 
     <file>iframely.php</file>
     <file>index.php</file>
+    <file>uninstall.php</file>
     <file>app</file>
     <file>views</file>
     <file>tests/php</file>
