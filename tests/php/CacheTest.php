@@ -32,6 +32,8 @@ class CacheTest extends TestCase
     {
         wp_reset_postdata();
         $GLOBALS['wp_embed']->post_ID = null;
+        $GLOBALS['wp_embed']->usecache = true;
+        $GLOBALS['wp_embed']->return_false_on_fail = false;
 
         parent::tear_down();
     }
@@ -131,13 +133,17 @@ class CacheTest extends TestCase
         $this->assertNotSame('', get_post_meta($this->postId, self::timeKey(), true));
     }
 
-    public function test_a_stale_cache_entry_is_removed(): void
+    public function test_a_stale_cache_entry_is_kept_and_passed_over_for_one_fetch(): void
     {
         $this->storeCachedEmbed(WEEK_IN_SECONDS + HOUR_IN_SECONDS);
 
         $this->assertSame(WEEK_IN_SECONDS, Cache::updateCacheTtl(DAY_IN_SECONDS, self::URL, self::ATTR, $this->postId));
-        $this->assertSame('', get_post_meta($this->postId, self::cacheKey(), true));
-        $this->assertSame('', get_post_meta($this->postId, self::timeKey(), true));
+        $this->assertSame(self::EMBED_HTML, get_post_meta($this->postId, self::cacheKey(), true));
+        $this->assertFalse($GLOBALS['wp_embed']->usecache, 'WordPress should look past the stale entry.');
+
+        // The next embed is served from the cache again.
+        Cache::updateCacheTtl(DAY_IN_SECONDS, 'https://example.com/another', self::ATTR, $this->postId);
+        $this->assertTrue($GLOBALS['wp_embed']->usecache);
     }
 
     public function test_an_embed_that_was_never_cached_gets_the_configured_lifetime(): void
@@ -201,6 +207,169 @@ class CacheTest extends TestCase
 
         $this->assertSame(self::EMBED_HTML, $html);
         $this->assertCount(1, $this->iframelyRequests());
+    }
+
+    // When the API fails.
+
+    private function view(): string
+    {
+        return $GLOBALS['wp_embed']->run_shortcode('[embed]' . self::URL . '[/embed]');
+    }
+
+    private function link(): string
+    {
+        return '<a href="' . self::URL . '">' . self::URL . '</a>';
+    }
+
+    public function test_an_expired_embed_stays_when_it_cannot_be_refreshed(): void
+    {
+        $this->enterPost($this->postId);
+        $this->respondWithEmbed();
+        $this->view();
+        $this->ageCachedEmbeds(WEEK_IN_SECONDS + HOUR_IN_SECONDS);
+
+        $this->respondWithError();
+        $views = [$this->view(), $this->view(), $this->view()];
+
+        $this->assertSame([self::EMBED_HTML, self::EMBED_HTML, self::EMBED_HTML], $views);
+        $this->assertCount(2, $this->iframelyRequests(), 'One failed attempt, then the old embed without asking again.');
+        $this->assertTrue($GLOBALS['wp_embed']->usecache);
+    }
+
+    public function test_a_failed_refresh_is_tried_again_an_hour_later(): void
+    {
+        $this->enterPost($this->postId);
+        $this->respondWithEmbed();
+        $this->view();
+        $this->ageCachedEmbeds(WEEK_IN_SECONDS + HOUR_IN_SECONDS);
+        $this->respondWithError();
+        $this->view();
+
+        // 59 minutes later nothing is asked, two minutes after that it is.
+        $this->shiftCachedEmbeds(59 * MINUTE_IN_SECONDS);
+        $this->view();
+        $this->assertCount(2, $this->iframelyRequests());
+
+        $this->shiftCachedEmbeds(2 * MINUTE_IN_SECONDS);
+        $this->respondWithEmbed('<div class="iframely-test-embed">refreshed</div>');
+        $html = $this->view();
+
+        $this->assertSame('<div class="iframely-test-embed">refreshed</div>', $html);
+        $this->assertCount(3, $this->iframelyRequests());
+        $this->assertSame('<div class="iframely-test-embed">refreshed</div>', $this->view());
+        $this->assertCount(3, $this->iframelyRequests());
+    }
+
+    public function test_an_expired_embed_survives_a_failed_refresh_that_reports_no_link(): void
+    {
+        // The classic editor asks for embeds this way.
+        $this->enterPost($this->postId);
+        $this->respondWithEmbed();
+        $this->view();
+        $this->ageCachedEmbeds(WEEK_IN_SECONDS + HOUR_IN_SECONDS);
+
+        $this->respondWithError();
+        $GLOBALS['wp_embed']->return_false_on_fail = true;
+        $this->assertSame('', $this->view());
+        $GLOBALS['wp_embed']->return_false_on_fail = false;
+
+        $this->assertSame([self::EMBED_HTML], $this->cachedEmbeds());
+        $this->respondWithError();
+        $this->assertSame(self::EMBED_HTML, $this->view());
+    }
+
+    public function test_a_url_that_cannot_be_embedded_is_asked_for_once(): void
+    {
+        $this->enterPost($this->postId);
+        $this->respondWithError();
+
+        $views = [$this->view(), $this->view(), $this->view(), $this->view(), $this->view()];
+
+        $this->assertSame(array_fill(0, 5, $this->link()), $views);
+        $this->assertCount(1, $this->iframelyRequests());
+    }
+
+    public function test_a_url_that_could_not_be_embedded_is_tried_again_a_day_later(): void
+    {
+        $this->enterPost($this->postId);
+        $this->respondWithError();
+        $this->view();
+
+        $this->shiftCachedEmbeds(DAY_IN_SECONDS - MINUTE_IN_SECONDS);
+        $this->view();
+        $this->assertCount(1, $this->iframelyRequests());
+
+        $this->shiftCachedEmbeds(2 * MINUTE_IN_SECONDS);
+        $this->respondWithEmbed();
+        $this->assertSame(self::EMBED_HTML, $this->view());
+        $this->assertCount(2, $this->iframelyRequests());
+    }
+
+    public function test_a_failure_recorded_without_a_time_is_asked_for_once_more(): void
+    {
+        // What WordPress itself stores, and what earlier versions of the plugin left behind.
+        $this->enterPost($this->postId);
+        $this->respondWithError();
+        $this->view();
+        foreach (array_keys(get_post_meta($this->postId)) as $key) {
+            if (strpos($key, '_oembed_time_') === 0) {
+                delete_post_meta($this->postId, $key);
+            }
+        }
+
+        $this->view();
+        $this->view();
+        $this->view();
+
+        $this->assertCount(2, $this->iframelyRequests());
+    }
+
+    public function test_only_the_expired_embed_of_a_post_is_fetched_again(): void
+    {
+        $other = 'https://example.com/another/article';
+        $this->enterPost($this->postId);
+        $this->respondWithEmbed();
+        $content = self::URL . "\n\n" . $other;
+        $GLOBALS['wp_embed']->autoembed($content);
+        $this->assertCount(2, $this->iframelyRequests());
+
+        // Only the first one expires.
+        $first = '_oembed_time_' . md5(self::URL . serialize(wp_embed_defaults(self::URL)));
+        $this->assertNotSame('', get_post_meta($this->postId, $first, true));
+        update_post_meta($this->postId, $first, time() - WEEK_IN_SECONDS - HOUR_IN_SECONDS);
+        $GLOBALS['wp_embed']->autoembed($content);
+
+        $requests = $this->iframelyRequests();
+        $this->assertCount(3, $requests);
+        $this->assertSame(self::URL, self::queryOf($requests[2])['url']);
+        $this->assertTrue($GLOBALS['wp_embed']->usecache);
+    }
+
+    /**
+     * @return string[] What WordPress keeps for the embeds of the post.
+     */
+    private function cachedEmbeds(): array
+    {
+        $cached = [];
+        foreach (get_post_meta($this->postId) as $key => $values) {
+            if (strpos($key, '_oembed_') === 0 && strpos($key, '_oembed_time_') !== 0) {
+                $cached[] = $values[0];
+            }
+        }
+
+        return $cached;
+    }
+
+    /**
+     * Moves the cached entries of the post into the past, as if time had gone by.
+     */
+    private function shiftCachedEmbeds(int $seconds): void
+    {
+        foreach (get_post_meta($this->postId) as $key => $values) {
+            if (strpos($key, '_oembed_time_') === 0) {
+                update_post_meta($this->postId, $key, (int)$values[0] - $seconds);
+            }
+        }
     }
 
     private function ageCachedEmbeds(int $age): void
