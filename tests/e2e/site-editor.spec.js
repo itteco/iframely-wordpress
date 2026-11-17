@@ -1,7 +1,7 @@
 const { test, expect } = require('@wordpress/e2e-test-utils-playwright');
-const { VALID_KEY, stubIframelyCdn, resetPlugin, apiRequests } = require('./fixtures/iframely');
+const { VALID_KEY, stubIframelyCdn, resetPlugin, apiRequests, changeOption } = require('./fixtures/iframely');
 
-const ARTICLE_URL = 'https://example.com/some/article';
+const CARD_URL = 'https://en.wikipedia.org/wiki/Tiramisu';
 
 test.describe('Iframely embeds in the site editor', () => {
   test.beforeEach(async ({ context, requestUtils }) => {
@@ -33,16 +33,16 @@ test.describe('Iframely embeds in the site editor', () => {
     const contentBlock = await page.evaluate(
       () => window.wp.data.select('core/block-editor').getBlocksByName('core/post-content')[0],
     );
-    await editor.insertBlock({ name: 'core/embed', attributes: { url: ARTICLE_URL } }, { clientId: contentBlock });
+    await editor.insertBlock({ name: 'core/embed', attributes: { url: CARD_URL } }, { clientId: contentBlock });
     const block = editor.canvas.locator('[data-type="core/embed"]');
     const preview = block.locator('iframe').contentFrame();
-    await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-url', ARTICLE_URL);
+    await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-url', CARD_URL);
 
     await editor.selectBlocks(block);
     await editor.openDocumentSettingsSidebar();
     await expect(page.getByRole('button', { name: 'Iframely options' })).toBeVisible();
-    await page.locator('#iframely-options input[name="theme"]').check();
-    await expect(preview.locator('iframe[title="Iframely stub embed"]')).toHaveAttribute('src', /[?&]theme=dark/);
+    await changeOption(page, preview, /[?&]card=small/, () => page.getByLabel('Make it a small card').check());
+    await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-size', 'small');
 
     // With a single changed entity the site editor saves without a confirmation panel.
     await page
@@ -53,9 +53,9 @@ test.describe('Iframely embeds in the site editor', () => {
 
     await page.goto(`/?page_id=${id}`);
     const rendered = page.locator('.iframely-e2e-embed');
-    await expect(rendered).toBeVisible();
+    await expect(rendered).toHaveAttribute('data-size', 'small');
     const query = JSON.parse(await rendered.getAttribute('data-query'));
-    expect(query).toMatchObject({ theme: 'dark', api_key: VALID_KEY });
+    expect(query).toMatchObject({ card: 'small', api_key: VALID_KEY });
 
     const requests = await apiRequests(requestUtils);
     expect(requests.filter((request) => !request.gutenberg)).toHaveLength(1);

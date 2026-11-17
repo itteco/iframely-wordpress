@@ -15,6 +15,58 @@ if (function_exists('tests_add_filter')) {
 const IFRAMELY_E2E_VALID_KEY_PREFIX = 'e2evalid';
 
 /**
+ * What the real API would make of a URL: a player for the media sites the tests
+ * use, a summary card for any other page.
+ */
+function iframely_e2e_kind(string $url): string
+{
+    return preg_match('#^https?://(www\.)?(youtube\.com|youtu\.be|vimeo\.com)/#i', $url) ? 'player' : 'card';
+}
+
+/**
+ * The option parameters of a query that apply to an embed of the given kind.
+ */
+function iframely_e2e_option_params(string $kind, array $query): array
+{
+    $names = $kind === 'card' ? ['card'] : ['_cc_load_policy', '_start'];
+    $params = [];
+    foreach ($names as $name) {
+        if (isset($query[$name]) && is_scalar($query[$name]) && (string)$query[$name] !== '') {
+            $params[$name] = (string)$query[$name];
+        }
+    }
+    return $params;
+}
+
+/**
+ * The per-URL options an embed reports, in the format of the real API. The
+ * samples were taken from a Wikipedia article (card) and a YouTube video (player).
+ */
+function iframely_e2e_options(string $kind, array $params): array
+{
+    if ($kind === 'card') {
+        $options = [
+            'card' => [
+                'value' => ($params['card'] ?? '') === 'small' ? 'small' : '',
+                'values' => ['small' => 'Make it a small card'],
+            ],
+        ];
+    } else {
+        $options = [
+            '_start' => ['label' => 'Start from', 'value' => $params['_start'] ?? '', 'placeholder' => 'ex.: 11, 1m10s'],
+            '_cc_load_policy' => [
+                'label' => 'Closed captions',
+                'value' => in_array($params['_cc_load_policy'] ?? '', ['1', 'true'], true),
+            ],
+        ];
+    }
+    if ($params) {
+        $options['query'] = array_keys($params);
+    }
+    return $options;
+}
+
+/**
  * Stand-in for https://iframe.ly/api/oembed.
  */
 add_filter('pre_http_request', static function ($preempt, $args, $url) {
@@ -43,36 +95,30 @@ add_filter('pre_http_request', static function ($preempt, $args, $url) {
         return $respond(['status' => 403, 'error' => 'Invalid API key (stub)'], 403);
     }
 
-    $target = (string)($query['url'] ?? '');
-    $theme = (string)($query['theme'] ?? '');
-    $frame = add_query_arg(['iframely_e2e_frame' => '1', 'url' => rawurlencode($target)], home_url('/'));
-    if ($theme !== '') {
-        $frame = add_query_arg('theme', rawurlencode($theme), $frame);
-    }
+    // Like the real API, embed the page itself: the options the plugin appends
+    // to the URL arrive as separate parameters.
+    $target = remove_query_arg('iframely', (string)($query['url'] ?? ''));
+    $kind = iframely_e2e_kind($target);
+    $params = iframely_e2e_option_params($kind, $query);
+    $small = ($params['card'] ?? '') === 'small';
 
-    $html = sprintf(
-        '<div class="iframely-e2e-embed" data-url="%s" data-query="%s"><iframe title="Iframely stub embed" src="%s" style="width: 100%%; height: 120px; border: 0;"></iframe></div>',
-        esc_attr($target),
-        esc_attr((string)wp_json_encode($query)),
-        esc_url($frame)
+    $frame = add_query_arg(
+        array_map('rawurlencode', ['iframely_e2e_frame' => '1', 'url' => $target] + $params),
+        home_url('/')
     );
 
-    // In the block editor the real embed reports its options to the page; the
-    // plugin turns them into the "Iframely options" panel.
-    if (!empty($query['gutenberg'])) {
-        $message = [
-            'method' => 'setIframelyEmbedOptions',
-            'context' => $frame,
-            'data' => [
-                'query' => $theme !== '' ? ['theme'] : [],
-                'theme' => ['value' => $theme === 'dark'],
-            ],
-        ];
-        $html .= sprintf(
-            '<script>setTimeout(function () { window.postMessage(%s, "*"); }, 100);</script>',
-            wp_json_encode(wp_json_encode($message))
-        );
-    }
+    // The real embed code is a link that https://iframely.net/embed.js turns into
+    // an iframe. The stub goes straight to the iframe, served by this site.
+    $html = sprintf(
+        '<div class="iframely-e2e-embed" data-kind="%s" data-size="%s" data-url="%s" data-query="%s">'
+        . '<iframe title="Iframely stub embed" src="%s" style="width: 100%%; height: %dpx; border: 0;"></iframe></div>',
+        esc_attr($kind),
+        esc_attr($kind === 'card' ? ($small ? 'small' : 'regular') : ''),
+        esc_attr($target),
+        esc_attr((string)wp_json_encode($query)),
+        esc_url($frame),
+        $kind === 'card' ? ($small ? 140 : 320) : 360
+    );
 
     return $respond([
         'version' => '1.0',
@@ -80,22 +126,43 @@ add_filter('pre_http_request', static function ($preempt, $args, $url) {
         'title' => 'Stub embed',
         'provider_name' => 'Iframely stub',
         'html' => $html,
+        'options' => iframely_e2e_options($kind, $params),
     ], 200);
 }, 10, 3);
 
 /**
- * Stand-in for the page that the real embed iframe would load.
+ * Stand-in for the page that the real embed iframe loads. Like the real one, it
+ * reports the options of the embed to its parent window. In the block editor
+ * the plugin relays that message to the editor and builds the options panel
+ * from it.
  */
 add_action('init', static function () {
     if (!isset($_GET['iframely_e2e_frame'])) {
         return;
     }
+
+    $query = array_map('sanitize_text_field', wp_unslash($_GET));
+    $target = (string)($query['url'] ?? '');
+    $kind = iframely_e2e_kind($target);
+    $params = iframely_e2e_option_params($kind, $query);
+    $message = [
+        'method' => 'setIframelyEmbedOptions',
+        'data' => iframely_e2e_options($kind, $params),
+        'url' => $target,
+    ];
+
     nocache_headers();
     header('Content-Type: text/html; charset=utf-8');
     printf(
-        '<!doctype html><title>Iframely stub embed</title><body style="margin: 0; font: 14px sans-serif;"><p class="iframely-e2e-frame" data-theme="%s">Stub embed for %s</p></body>',
-        esc_attr(sanitize_text_field(wp_unslash($_GET['theme'] ?? ''))),
-        esc_html(sanitize_text_field(wp_unslash($_GET['url'] ?? '')))
+        '<!doctype html><title>Iframely stub embed</title><body style="margin: 0; font: 14px sans-serif;">'
+        . '<p class="iframely-e2e-frame" data-kind="%s" data-params="%s">Stub %s for %s</p>'
+        . '<script>var message = %s; message.context = window.location.href;'
+        . 'window.parent.postMessage(JSON.stringify(message), "*");</script></body>',
+        esc_attr($kind),
+        esc_attr((string)wp_json_encode((object)$params)),
+        esc_html($kind),
+        esc_html($target),
+        wp_json_encode($message)
     );
     exit;
 });

@@ -89,4 +89,8 @@
     <rule ref="WordPress.WP.GlobalVariablesOverride">
         <exclude-pattern>tests/*</exclude-pattern>
     </rule>
+    <!-- Tests hold embed codes as fixtures; nothing there is printed on a page. -->
+    <rule ref="WordPress.WP.EnqueuedResources">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
 </ruleset>

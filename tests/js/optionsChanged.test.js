@@ -104,4 +104,37 @@ describe('optionsChanged', () => {
 
     expect(embed.src).toBe(`${BASE}&title=a&b=c`);
   });
+
+  /*
+   * Summary cards have one option. The addresses are the ones the real card for
+   * https://en.wikipedia.org/wiki/Tiramisu reports (with the key shortened).
+   */
+  describe('for a card', () => {
+    const CARD =
+      'https://iframely.net/api/iframe?maxheight=750&app=1&url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FTiramisu&key=abc';
+    const SMALL_CARD =
+      'https://iframely.net/api/iframe?card=small&maxheight=750&app=1&url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FTiramisu&key=abc';
+
+    it('makes the card small', () => {
+      setStoredOptions(CARD, undefined);
+
+      optionsChanged('abc-123', null, { card: 'small' });
+
+      expect(embed.src).toBe(`${CARD}&card=small`);
+      expect(updateBlockAttributes).toHaveBeenCalledWith('abc-123', { iquery: { card: 'small' } });
+    });
+
+    it('makes a small card regular again', () => {
+      setStoredOptions(SMALL_CARD, ['card']);
+
+      optionsChanged('abc-123', null, {});
+
+      const params = new URL(embed.src).searchParams;
+      expect(params.has('card')).toBe(false);
+      expect(params.get('url')).toBe('https://en.wikipedia.org/wiki/Tiramisu');
+      expect(params.get('maxheight')).toBe('750');
+      expect(params.get('key')).toBe('abc');
+      expect(updateBlockAttributes).toHaveBeenCalledWith('abc-123', { iquery: {} });
+    });
+  });
 });

@@ -93,4 +93,40 @@ class LiveApiTest extends WP_UnitTestCase
         $this->assertIsObject($data, 'The Iframely API returned no oEmbed data.');
         $this->assertStringContainsString('<iframe', $data->html);
     }
+
+    /**
+     * The card tests (CardTest, tests/e2e/cards.spec.js) rest on these two facts.
+     */
+    public function test_the_real_api_returns_a_card_with_the_small_card_option_for_a_page(): void
+    {
+        Options::setApiKey($this->key);
+
+        $data = _wp_oembed_get_object()->fetch(
+            Embed::createApiLink(),
+            'https://en.wikipedia.org/wiki/Tiramisu',
+            ['width' => 600, 'height' => 400]
+        );
+
+        $this->assertIsObject($data, 'The Iframely API returned no oEmbed data.');
+        $this->assertStringContainsString('iframely', $data->html);
+        $this->assertStringNotContainsString('card=small', $data->html);
+        $this->assertSame('', $data->options->card->value);
+        $this->assertObjectHasProperty('small', $data->options->card->values);
+    }
+
+    public function test_the_real_api_returns_a_small_card_for_the_option_saved_in_the_url(): void
+    {
+        Options::setApiKey($this->key);
+
+        // The URL the editor saves when "Make it a small card" is chosen.
+        $data = _wp_oembed_get_object()->fetch(
+            Embed::createApiLink(),
+            'https://en.wikipedia.org/wiki/Tiramisu?iframely=eyJjYXJkIjoic21hbGwifQ%3D%3D',
+            ['width' => 600, 'height' => 400]
+        );
+
+        $this->assertIsObject($data, 'The Iframely API returned no oEmbed data.');
+        $this->assertStringContainsString('card=small', $data->html);
+        $this->assertSame('small', $data->options->card->value);
+    }
 }

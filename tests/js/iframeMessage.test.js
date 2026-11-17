@@ -48,6 +48,22 @@ describe('iframeMessage', () => {
     expect(jQuery(sandbox).data()).toEqual(message);
   });
 
+  it('stores the options a card reports, as the real card sends them', () => {
+    const card = {
+      method: 'setIframelyEmbedOptions',
+      data: { card: { value: '', values: { small: 'Make it a small card' } } },
+      context:
+        'https://iframely.net/api/iframe?maxheight=750&app=1&url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FTiramisu&key=abc',
+      url: 'https://en.wikipedia.org/wiki/Tiramisu',
+    };
+
+    iframeMessage({ data: JSON.stringify(card), source: sandbox.contentWindow });
+
+    expect(jQuery(sandbox).data('data')).toEqual({ card: { value: '', values: { small: 'Make it a small card' } } });
+    expect(jQuery(sandbox).data('context')).toBe(card.context);
+    expect(updateForm).toHaveBeenCalledTimes(1);
+  });
+
   it('rebuilds the options form when the selected block is an embed', () => {
     iframeMessage({ data: message, source: sandbox.contentWindow });
 

@@ -28,18 +28,69 @@ window.iframely = window.iframely || {};
 `;
 
 // The real options.js builds a form from the options an embed reports and fires
-// "options-changed" when the user edits it. One checkbox is enough for the tests.
+// "options-changed" with the chosen values when the user edits it. This stand-in
+// understands the three kinds of option the real embeds report:
+//   { value: '', values: { small: 'Make it a small card' } }   a checkbox that stands for one value
+//   { label: 'Closed captions', value: false }                  a plain checkbox
+//   { label: 'Start from', value: '', placeholder: '...' }      a text field
 const OPTIONS_JS = `
 window.iframely = window.iframely || {};
 window.iframely.buildOptionsForm = function (id, container, options) {
   if (!container) {
     return;
   }
-  container.innerHTML = '<label class="iframely-e2e-option"><input type="checkbox" name="theme"> Dark theme (stub)</label>';
-  var input = container.querySelector('input');
-  input.checked = !!(options && options.theme && options.theme.value);
-  input.addEventListener('change', function () {
-    window.iframely.trigger('options-changed', id, container, input.checked ? { theme: 'dark' } : {});
+  container.innerHTML = '';
+  // Lets a test wait until the form was built again after an embed reloaded.
+  container.dataset.builds = String((Number(container.dataset.builds) || 0) + 1);
+  var inputs = [];
+  Object.keys(options || {}).forEach(function (name) {
+    if (name === 'query') {
+      return;
+    }
+    var option = options[name];
+    var label = document.createElement('label');
+    var input = document.createElement('input');
+    var text;
+    label.className = 'iframely-e2e-option';
+    input.name = name;
+    if (option.values) {
+      var only = Object.keys(option.values)[0];
+      input.type = 'checkbox';
+      input.checked = option.value === only;
+      input.dataset.value = only;
+      text = option.values[only];
+    } else if (typeof option.value === 'boolean') {
+      input.type = 'checkbox';
+      input.checked = option.value;
+      text = option.label;
+    } else {
+      input.type = 'text';
+      input.value = option.value;
+      input.placeholder = option.placeholder || '';
+      text = option.label;
+    }
+    if (input.type === 'checkbox') {
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(' ' + text));
+    } else {
+      label.appendChild(document.createTextNode(text + ' '));
+      label.appendChild(input);
+    }
+    container.appendChild(label);
+    inputs.push(input);
+    input.addEventListener('change', function () {
+      var query = {};
+      inputs.forEach(function (item) {
+        if (item.type === 'text') {
+          if (item.value) {
+            query[item.name] = item.value;
+          }
+        } else if (item.checked) {
+          query[item.name] = item.dataset.value || true;
+        }
+      });
+      window.iframely.trigger('options-changed', id, container, query);
+    });
   });
 };
 `;
@@ -75,4 +126,63 @@ async function apiRequests(requestUtils) {
   return requestUtils.rest({ path: '/iframely-e2e/v1/requests' });
 }
 
-module.exports = { VALID_KEY, OTHER_VALID_KEY, REJECTED_KEY, stubIframelyCdn, resetPlugin, apiRequests };
+/**
+ * Inserts an embed block and returns locators for it and for its preview.
+ *
+ * @param {import('@wordpress/e2e-test-utils-playwright').Editor} editor
+ * @param {string}                                                url
+ */
+async function insertEmbed(editor, url) {
+  await editor.insertBlock({ name: 'core/embed', attributes: { url } });
+  const block = editor.canvas.locator('[data-type="core/embed"]');
+  const preview = block.locator('iframe').contentFrame();
+  return { block, preview };
+}
+
+/**
+ * Changes an option in the "Iframely options" panel and waits for what follows:
+ * the plugin reloads the preview with the option and stores it in the block, the
+ * editor then fetches a new preview for the changed URL, and each time the embed
+ * reports its options again and the form is rebuilt from that report.
+ *
+ * @param {import('@playwright/test').Page}         page
+ * @param {import('@playwright/test').FrameLocator} preview The preview of the embed block.
+ * @param {RegExp}                                  src     What the address of the embed looks like in the new preview.
+ * @param {() => Promise<void>}                     change
+ */
+async function changeOption(page, preview, src, change) {
+  const { expect } = require('@wordpress/e2e-test-utils-playwright');
+  const panel = page.locator('#iframely-options');
+  const builds = async () => Number(await panel.getAttribute('data-builds'));
+
+  await change();
+  await expect(preview.locator('iframe[title="Iframely stub embed"]')).toHaveAttribute('src', src);
+
+  // The form is only safe to use again once it is no longer being rebuilt.
+  await expect(async () => {
+    const before = await builds();
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    expect(await builds()).toBe(before);
+  }).toPass();
+}
+
+/**
+ * The value the plugin appends to an embed URL to carry its options.
+ *
+ * @param {Object} options
+ */
+function iframelyParam(options) {
+  return `iframely=${encodeURIComponent(btoa(JSON.stringify(options)))}`;
+}
+
+module.exports = {
+  VALID_KEY,
+  OTHER_VALID_KEY,
+  REJECTED_KEY,
+  stubIframelyCdn,
+  resetPlugin,
+  apiRequests,
+  insertEmbed,
+  changeOption,
+  iframelyParam,
+};

@@ -68,6 +68,9 @@ None of these tests talks to the real Iframely API:
 - PHPUnit intercepts every HTTP request (`tests/php/TestCase.php`); a request without a declared response fails the test.
 - The tests site loads `tests/e2e/mu-plugins/iframely-api-stub.php`, which answers API calls locally. It accepts any
   API key starting with `e2evalid`. The two scripts the editor loads from `if-cdn.com` are replaced in the browser.
+- The stub answers the way the real API does: a player with player options ("Closed captions", "Start from") for
+  YouTube and Vimeo URLs, and a summary card with the "Make it a small card" option for any other page. The formats
+  were taken from the real API, and the live test below checks that they still hold.
 - PHPUnit uses its own database tables (prefix `wptests_`), so it does not touch the content of the tests site.
 
 Tests named `known_issue` / `known issue:` record current behaviour that is considered a defect. They are expected

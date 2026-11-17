@@ -29,6 +29,14 @@ describe('addIframelyString', () => {
     expect(decodeOptions(url)).toEqual({ theme: 'dark' });
   });
 
+  it('carries the small card option the way the PHP side expects it', () => {
+    // tests/php/CardTest.php renders this exact URL.
+    const url = addIframelyString('https://en.wikipedia.org/wiki/Tiramisu', { card: 'small' });
+
+    expect(url).toBe('https://en.wikipedia.org/wiki/Tiramisu?iframely=eyJjYXJkIjoic21hbGwifQ%3D%3D');
+    expect(addIframelyString(url, {})).toBe('https://en.wikipedia.org/wiki/Tiramisu');
+  });
+
   it('uses "&" when the URL already has a query string', () => {
     const url = addIframelyString('https://example.com/video?v=42', { theme: 'dark' });
 

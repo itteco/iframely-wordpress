@@ -1,10 +1,20 @@
 const { test, expect } = require('@wordpress/e2e-test-utils-playwright');
-const { VALID_KEY, stubIframelyCdn, resetPlugin, apiRequests } = require('./fixtures/iframely');
+const {
+  VALID_KEY,
+  stubIframelyCdn,
+  resetPlugin,
+  apiRequests,
+  insertEmbed,
+  changeOption,
+  iframelyParam,
+} = require('./fixtures/iframely');
 
-const ARTICLE_URL = 'https://example.com/some/article';
-const YOUTUBE_URL = 'https://www.youtube.com/watch?v=jNQXAC9IVRw';
+// The API stub answers with a player for this URL, as the real API does.
+const VIDEO_URL = 'https://www.youtube.com/watch?v=jNQXAC9IVRw';
+// In the order of the options form.
+const VIDEO_OPTIONS = { _start: '1m10s', _cc_load_policy: true };
 
-test.describe('Iframely embeds', () => {
+test.describe('Iframely rich media embeds', () => {
   test.beforeEach(async ({ context, requestUtils }) => {
     await stubIframelyCdn(context);
     await resetPlugin(requestUtils, VALID_KEY);
@@ -15,28 +25,34 @@ test.describe('Iframely embeds', () => {
   });
 
   /**
-   * Inserts an embed block and returns locators for it and for its preview.
+   * Turns on closed captions and sets a start time in the options panel.
    *
-   * @param {import('@wordpress/e2e-test-utils-playwright').Editor} editor
-   * @param {string}                                                url
+   * @param {import('@playwright/test').Page}         page
+   * @param {import('@playwright/test').FrameLocator} preview
    */
-  async function insertEmbed(editor, url) {
-    await editor.insertBlock({ name: 'core/embed', attributes: { url } });
-    const block = editor.canvas.locator('[data-type="core/embed"]');
-    const preview = block.locator('iframe').contentFrame();
-    return { block, preview };
+  async function chooseVideoOptions(page, preview) {
+    await changeOption(page, preview, /[?&]_cc_load_policy=1/, () => page.getByLabel('Closed captions').check());
+    await changeOption(page, preview, /[?&]_start=1m10s/, async () => {
+      await page.getByLabel('Start from').fill('1m10s');
+      await page.getByLabel('Start from').blur();
+    });
   }
 
-  test('the editor previews an embed through Iframely', async ({ admin, editor, requestUtils }) => {
+  test('the editor previews a video through Iframely instead of the built-in provider', async ({
+    admin,
+    editor,
+    requestUtils,
+  }) => {
     await admin.createNewPost();
-    const { preview } = await insertEmbed(editor, ARTICLE_URL);
+    const { preview } = await insertEmbed(editor, VIDEO_URL);
 
-    await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-url', ARTICLE_URL);
+    await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-url', VIDEO_URL);
+    await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-kind', 'player');
 
     const requests = await apiRequests(requestUtils);
     expect(requests).toHaveLength(1);
     expect(requests[0]).toMatchObject({
-      url: ARTICLE_URL,
+      url: VIDEO_URL,
       api_key: VALID_KEY,
       origin: 'localhost:8889',
       // Marks a request made for the editor preview.
@@ -45,70 +61,72 @@ test.describe('Iframely embeds', () => {
     });
   });
 
-  test('Iframely replaces the built-in providers by default', async ({ admin, editor }) => {
+  test('a selected embed shows the options it reports', async ({ admin, editor, page }) => {
     await admin.createNewPost();
-    const { preview } = await insertEmbed(editor, YOUTUBE_URL);
-
-    await expect(preview.locator('.iframely-e2e-embed')).toHaveAttribute('data-url', YOUTUBE_URL);
-  });
-
-  test('a selected embed shows the Iframely options panel', async ({ admin, editor, page }) => {
-    await admin.createNewPost();
-    const { block, preview } = await insertEmbed(editor, ARTICLE_URL);
+    const { block, preview } = await insertEmbed(editor, VIDEO_URL);
     await expect(preview.locator('.iframely-e2e-embed')).toBeVisible();
 
     await editor.selectBlocks(block);
     await editor.openDocumentSettingsSidebar();
 
     await expect(page.getByRole('button', { name: 'Iframely options' })).toBeVisible();
-    await expect(page.locator('#iframely-options')).toContainText('Dark theme (stub)');
+    await expect(page.getByLabel('Closed captions')).not.toBeChecked();
+    await expect(page.getByLabel('Start from')).toHaveValue('');
   });
 
-  test('an option chosen in the panel is applied, saved and used on the front end', async ({
+  test('options chosen in the panel are applied, saved and used on the front end', async ({
     admin,
     editor,
     page,
     requestUtils,
   }) => {
-    await admin.createNewPost({ title: 'Embed with options' });
-    const { block, preview } = await insertEmbed(editor, ARTICLE_URL);
+    await admin.createNewPost({ title: 'Video with options' });
+    const { block, preview } = await insertEmbed(editor, VIDEO_URL);
     await expect(preview.locator('.iframely-e2e-embed')).toBeVisible();
     await editor.selectBlocks(block);
     await editor.openDocumentSettingsSidebar();
 
-    await page.locator('#iframely-options input[name="theme"]').check();
+    await chooseVideoOptions(page, preview);
 
-    // The preview reloads with the option and the block remembers it.
-    await expect(preview.locator('iframe[title="Iframely stub embed"]')).toHaveAttribute('src', /[?&]theme=dark/);
+    // The preview shows the embed with both options, the form shows what the embed
+    // reports back, and the block remembers the choice.
+    const frame = preview.locator('iframe[title="Iframely stub embed"]');
+    await expect(frame).toHaveAttribute('src', /[?&]_cc_load_policy=1/);
+    await expect(frame).toHaveAttribute('src', /[?&]_start=1m10s/);
+    await expect(page.getByLabel('Closed captions')).toBeChecked();
+    await expect(page.getByLabel('Start from')).toHaveValue('1m10s');
     const [embed] = await editor.getBlocks();
-    expect(embed.attributes.iquery).toEqual({ theme: 'dark' });
+    expect(embed.attributes.iquery).toEqual(VIDEO_OPTIONS);
 
-    // The option travels in the saved URL.
+    // The options travel in the saved URL.
     const postId = await editor.publishPost();
     const content = await editor.getEditedPostContent();
-    expect(content).toContain(`${ARTICLE_URL}?iframely=${encodeURIComponent(btoa('{"theme":"dark"}'))}`);
+    expect(content).toContain(`${VIDEO_URL}&${iframelyParam(VIDEO_OPTIONS)}`);
 
-    // And reaches the API when the post is rendered.
+    // And reach the API when the post is rendered.
     await page.goto(`/?p=${postId}`);
     const rendered = page.locator('.iframely-e2e-embed');
     await expect(rendered).toBeVisible();
     const query = JSON.parse(await rendered.getAttribute('data-query'));
-    expect(query).toMatchObject({ theme: 'dark', api_key: VALID_KEY });
-    expect(query.url.startsWith(ARTICLE_URL)).toBe(true);
+    expect(query).toMatchObject({ _cc_load_policy: '1', _start: '1m10s', api_key: VALID_KEY });
+    expect(query.url.startsWith(VIDEO_URL)).toBe(true);
     expect(query).not.toHaveProperty('gutenberg');
 
     const requests = await apiRequests(requestUtils);
     expect(requests.filter((request) => !request.gutenberg)).toHaveLength(1);
   });
 
-  test('a saved embed is still valid when the post is opened again', async ({ admin, editor, page }) => {
-    await admin.createNewPost({ title: 'Embed reopened' });
-    const { block, preview } = await insertEmbed(editor, ARTICLE_URL);
+  test('a saved embed is still valid and keeps its options when the post is opened again', async ({
+    admin,
+    editor,
+    page,
+  }) => {
+    await admin.createNewPost({ title: 'Video reopened' });
+    const { block, preview } = await insertEmbed(editor, VIDEO_URL);
     await expect(preview.locator('.iframely-e2e-embed')).toBeVisible();
     await editor.selectBlocks(block);
     await editor.openDocumentSettingsSidebar();
-    await page.locator('#iframely-options input[name="theme"]').check();
-    await expect(preview.locator('iframe[title="Iframely stub embed"]')).toHaveAttribute('src', /[?&]theme=dark/);
+    await chooseVideoOptions(page, preview);
     const postId = await editor.publishPost();
 
     await admin.editPost(postId);
@@ -116,19 +134,24 @@ test.describe('Iframely embeds', () => {
     const reopened = editor.canvas.locator('[data-type="core/embed"]');
     await expect(reopened.locator('iframe').contentFrame().locator('.iframely-e2e-embed')).toBeVisible();
     await expect(editor.canvas.locator('.block-editor-warning')).toHaveCount(0);
+
+    await editor.selectBlocks(reopened);
+    await editor.openDocumentSettingsSidebar();
+    await expect(page.getByLabel('Closed captions')).toBeChecked();
+    await expect(page.getByLabel('Start from')).toHaveValue('1m10s');
   });
 
-  test('a plain URL on its own line is embedded on the front end', async ({ page, requestUtils }) => {
+  test('a video URL on its own line is embedded on the front end', async ({ page, requestUtils }) => {
     const post = await requestUtils.createPost({
-      title: 'Plain URL',
+      title: 'Plain video URL',
       status: 'publish',
-      content: `Before\n\n${ARTICLE_URL}\n\nAfter`,
+      content: `Before\n\n${VIDEO_URL}\n\nAfter`,
     });
 
     await page.goto(`/?p=${post.id}`);
 
-    await expect(page.locator('.iframely-e2e-embed')).toHaveAttribute('data-url', ARTICLE_URL);
+    await expect(page.locator('.iframely-e2e-embed')).toHaveAttribute('data-url', VIDEO_URL);
     const frame = page.locator('.iframely-e2e-embed iframe').contentFrame();
-    await expect(frame.locator('.iframely-e2e-frame')).toContainText(ARTICLE_URL);
+    await expect(frame.locator('.iframely-e2e-frame')).toContainText(VIDEO_URL);
   });
 });
