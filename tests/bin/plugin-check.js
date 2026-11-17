@@ -6,6 +6,8 @@
  * Only what ships to wordpress.org is checked: everything listed in .distignore
  * is excluded, so that file stays the single list of development-only paths.
  *
+ * Ends with an error when Plugin Check reports errors; warnings are shown only.
+ *
  * Usage: npm run lint:plugin-check [-- <extra "wp plugin check" arguments>]
  * Example: npm run lint:plugin-check -- --format=json
  */
@@ -51,7 +53,19 @@ const script = [
 const wpEnv = path.join(path.dirname(require.resolve('@wordpress/env/package.json')), 'bin', 'wp-env');
 const result = spawnSync(process.execPath, [wpEnv, `--config=${config}`, 'run', 'cli', 'sh', '-c', script], {
   cwd: root,
-  stdio: 'inherit',
+  encoding: 'utf8',
+  stdio: ['inherit', 'pipe', 'inherit'],
 });
+process.stdout.write(result.stdout || '');
 
-process.exit(result.status === null ? 1 : result.status);
+if (result.status !== 0) {
+  process.exit(result.status === null ? 1 : result.status);
+}
+
+// "wp plugin check" reports what it finds and ends without an error. Errors fail this
+// script; warnings, which include advice on the wording of readme.txt, do not.
+const errors = (result.stdout || '').split('\n').filter((line) => /(^|\t)ERROR(\t|$)/.test(line)).length;
+if (errors) {
+  console.error(`\nPlugin Check found ${errors} error${errors === 1 ? '' : 's'}.`);
+  process.exit(1);
+}

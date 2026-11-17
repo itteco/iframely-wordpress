@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Linters, unit tests, package
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+
+      - run: npm ci
+
+      - name: Formatting
+        run: npx prettier --check src tests/js tests/e2e tests/bin
+
+      - name: Scripts and styles
+        run: npm run lint:js && npm run lint:css
+
+      - name: Unit tests
+        run: npm run test:js
+
+      # PHP and its tools run inside the tests site, like on a developer's machine.
+      - name: Start the tests site
+        run: npm run env:start:tests
+
+      - name: Install the PHP tools
+        run: npm run composer install
+
+      - name: PHP coding standard
+        run: npm run lint:php
+
+      - name: PHP static analysis
+        run: npm run lint:phpstan
+
+      - name: Plugin Check
+        run: npm run lint:plugin-check
+
+      # Fails when build/ is not what the sources build to.
+      - name: Package
+        run: npm run release
+
+      # The plugin as it would be released, for a look or a manual test: a folder to
+      # put into wp-content/plugins.
+      - name: Keep the package
+        uses: actions/upload-artifact@v7
+        with:
+          name: iframely
+          path: release/trunk
+          if-no-files-found: error
+          retention-days: 14
+
+  tests:
+    name: Tests (${{ matrix.combination }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # The WordPress and PHP versions behind each name are in tests/bin/matrix.js.
+        combination: [default, floor, latest]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install the browser
+        run: npx playwright install --with-deps chromium
+
+      - name: PHPUnit on a single site and on multisite, end-to-end tests
+        run: npm run test:matrix -- ${{ matrix.combination }} --keep
+
+      # Runs only where the repository has an IFRAMELY_API_KEY secret; without one the
+      # command says so and passes. Pull requests from forks do not get the secret.
+      - name: Check the mocks against the real API
+        if: matrix.combination == 'default'
+        env:
+          IFRAMELY_API_KEY: ${{ secrets.IFRAMELY_API_KEY }}
+        run: npm run test:php:live
+
+      - name: Keep the traces of failed end-to-end tests
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: artifacts-${{ matrix.combination }}
+          path: artifacts
+          if-no-files-found: ignore
+          retention-days: 7

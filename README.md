@@ -59,9 +59,10 @@ supported versions (WordPress 6.6, PHP 7.4) and on the latest WordPress with the
 
     npm run test:matrix             # both combinations
     npm run test:matrix -- floor    # only the minimum versions ("latest" for the other one)
+    npm run test:matrix -- default  # the versions of the tests site itself
 
 This restarts the tests site for each combination, resets its database, and returns it to its default versions at
-the end. The versions are listed at the top of `tests/bin/matrix.js`.
+the end (not with `-- --keep`, which CI uses). The versions are listed at the top of `tests/bin/matrix.js`.
 
 None of these tests talks to the real Iframely API:
 
@@ -104,9 +105,23 @@ it installs a plugin into the tests site on first use:
 
     npm run lint:plugin-check    # checks what ships to wordpress.org (everything not in .distignore)
 
+It fails on errors; warnings are shown only.
+
 ### Update POT file
     wp i18n make-pot . lang/iframely.pot --exclude=tests,vendor,node_modules,svn,artifacts,release --headers="{\"Report-Msgid-Bugs-To\": \"https://wordpress.org/support/plugin/iframely/\", \"Last-Translator\": \"Iframely.com\", \"Language-Team\": \"Iframely.com\"}"
     wp i18n make-json lang --no-purge
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every pull request and on every push to `main`:
+
+- **Linters, unit tests, package**: Prettier, ESLint, stylelint, the unit tests, PHP_CodeSniffer, PHPStan, Plugin
+  Check, and `npm run release`. The package is kept with the run as the `iframely` artifact.
+- **Tests**: PHPUnit on a single site and on multisite and the end-to-end tests, once for each combination of
+  `npm run test:matrix`: `default`, `floor` and `latest`.
+
+It uses the commands of this file, so a failure can be reproduced locally with the command named in the failed step.
+The live test runs only when the repository has an `IFRAMELY_API_KEY` secret.
 
 ## Release
 
