@@ -18,9 +18,11 @@ class Oembed
         # Make the Iframely endpoint to be the first in queue, otherwise default regexp are precedent
         add_filter('oembed_providers', [self::class, 'maybe_reverse_oembed_providers']);
 
-        # Remove short-circuit for self-embeds, that forces it for all the sites and disables our summary cards for own domain
-        add_filter('pre_oembed_result', [self::class, 'maybe_remove_wp_self_embeds'], PHP_INT_MAX, 3);
-        # alternatively: remove_filter( 'pre_oembed_result', 'wp_filter_pre_oembed_result', 10 );
+        # WordPress answers for links to posts of this site itself, before any provider is asked.
+        # That disables our summary cards for own domain. While WordPress looks for its answer
+        # (priority 10), it is told that the link is not a post. Answers of other plugins stay.
+        add_filter('pre_oembed_result', [self::class, 'beforeOwnPostLookup'], 9);
+        add_filter('pre_oembed_result', [self::class, 'afterOwnPostLookup'], 11);
 
         # Always add iframely as oembed provider for any iframe.ly short link
         wp_oembed_add_provider('#https?://iframe\.ly/.+#i', Embed::createApiLink(), true);
@@ -29,15 +31,31 @@ class Oembed
         add_filter('oembed_fetch_url', [self::class, 'maybe_replace_iframe_card'], 10, 3);
     }
 
-    public static function maybe_remove_wp_self_embeds($result, $url, $args)
+    public static function beforeOwnPostLookup($result)
     {
-        return Options::isPreviewsEnhanced() ? null : $result;
-        //return get_site_option('publish_iframely_cards') ? null : $result;
+        if (Options::isPreviewsEnhanced()) {
+            add_filter('oembed_request_post_id', [self::class, 'noOwnPost'], PHP_INT_MAX);
+        }
+
+        return $result;
+    }
+
+    public static function afterOwnPostLookup($result)
+    {
+        remove_filter('oembed_request_post_id', [self::class, 'noOwnPost'], PHP_INT_MAX);
+
+        return $result;
+    }
+
+    public static function noOwnPost()
+    {
+        return false;
     }
 
     public static function maybe_reverse_oembed_providers($providers)
     {
-        // iframely_only_shortcode option is unset in shortcode, so that the filter can work. Then returned back.
+        # WordPress asks for the list once, when it sets up its providers. The [iframely] shortcode
+        # puts Iframely first on its own, see Shortcode::process()
         if (Options::isBuiltinsReplaced()) {
             return array_reverse($providers);
         }

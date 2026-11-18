@@ -123,3 +123,19 @@ assets/js/iframely.js
 # local
 .idea
 release
+
+# PHP dev dependencies (installed through wp-env, see README)
+/vendor/
+
+# Test and lint output
+/artifacts/
+/playwright-report/
+/test-results/
+.phpunit.result.cache
+/phpunit.xml
+/phpcs.xml
+/phpstan.neon
+
+# Local wp-env overrides
+.wp-env.override.json
+.wp-env.tests.override.json

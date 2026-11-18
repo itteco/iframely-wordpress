@@ -26,8 +26,9 @@ class Notice
         if (is_multisite()) {
             $screens = ['dashboard-network', 'plugins-network'];
         }
-        if ($screen !== null && in_array($screen->id, $screens)) {
-            Plugin::notice(sprintf(__('Complete Iframely installation. <a href="%s">Enter your API key</a>.', 'iframely'), Links::activation()));
+        if ($screen !== null && in_array($screen->id, $screens, true)) {
+            /* translators: %s: address of the settings page of the plugin */
+            Plugin::notice(sprintf(__('Complete Iframely installation. <a href="%s">Enter your API key</a>.', 'iframely'), esc_url(Links::settings())));
         }
     }
 }

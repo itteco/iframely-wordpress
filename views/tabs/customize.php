@@ -1,8 +1,10 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 use Iframely\UI\Links;
 
-$cards = [
+$iframely_cards = [
   [
     'title' => __('URL cards', 'iframely'),
     'tagline' => __('Cards are previews for URLs without rich media or when media is attached. Design is also applied when you paste and recirculate a link to your own post.', 'iframely'),
@@ -48,17 +50,20 @@ $cards = [
 ];
 ?>
 
-<p class="iframely-mb-intro"><?php printf(__('The following features are available in your account\'s dashboard at <a href="%s">iframely.com</a>.', 'iframely'), Links::link()); ?></p>
+<p class="iframely-mb-intro"><?php
+  /* translators: %s: address of the Iframely website */
+  echo wp_kses_post(sprintf(__('The following features are available in your account\'s dashboard at <a href="%s">iframely.com</a>.', 'iframely'), esc_url(Links::link())));
+?></p>
 
 <div class="iframely-customize">
-  <?php foreach ($cards as $card): ?>
+  <?php foreach ($iframely_cards as $iframely_card) : ?>
     <div class="card iframely-card">
       <div class="iframely-card__body">
-        <h2><?php esc_html_e($card['title']); ?></h2>
-        <p><?php esc_html_e($card['tagline']); ?></p>
+        <h2><?php echo esc_html($iframely_card['title']); ?></h2>
+        <p><?php echo esc_html($iframely_card['tagline']); ?></p>
       </div>
       <p class="iframely-card__footer">
-        <a href="<?php esc_attr_e($card['url']); ?>" class="button" target="_blank"><?php esc_html_e($card['action']); ?></a>
+        <a href="<?php echo esc_url($iframely_card['url']); ?>" class="button" target="_blank"><?php echo esc_html($iframely_card['action']); ?></a>
       </p>
     </div>
   <?php endforeach; ?>

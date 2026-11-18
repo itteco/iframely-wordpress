@@ -11,13 +11,4 @@ class Utils
         }
         return strpos($haystack, $needle) !== false;
     }
-
-    public static function debug($data, $return = false)
-    {
-        $output = '<pre>' . print_r($data, true) . '</pre>';
-        if ($return) {
-            return $output;
-        }
-        echo $output;
-    }
 }

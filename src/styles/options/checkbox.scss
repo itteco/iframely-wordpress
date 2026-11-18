@@ -6,56 +6,65 @@
     margin-bottom: 10px;
   }
 }
+
 .iframely-option-check__input {
   margin: 0 12px 0 0 !important;
   padding: 0 !important;
   opacity: 0.0001;
 }
+
 .iframely-option-check__input,
-.iframely-option-check__label:before,
-.iframely-option-check__label:after {
+.iframely-option-check__label::before,
+.iframely-option-check__label::after {
   width: 20px !important;
   height: 20px !important;
 }
+
 .iframely-option-check__label {
   display: block;
 
-  &:before,
-  &:after {
+  &::before,
+  &::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     display: block;
   }
-  &:before {
+
+  &::before {
     border: 1px solid #1e1e1e;
     border-radius: 2px;
     background: #fff;
   }
-  &:after {
+
+  &::after {
     background: no-repeat
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath d='M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z' fill='%23fff'%3E%3C/path%3E%3C/svg%3E")
       center;
   }
+
   .iframely-option-check__input:checked + & {
-    &:before {
+    &::before {
       background: var(--wp-admin-theme-color);
       border-color: var(--wp-admin-theme-color);
     }
-    &:after {
+
+    &::after {
       opacity: 1;
     }
   }
 }
+
 .iframely-option-radio {
   .iframely-option-check__label {
-    &:before,
-    &:after {
+    &::before,
+    &::after {
       border-radius: 50%;
     }
   }
-  .iframely-option-check__input:checked + .iframely-option-check__label:after {
+
+  .iframely-option-check__input:checked + .iframely-option-check__label::after {
     top: 6px;
     left: 6px;
     width: 8px !important;
@@ -66,15 +75,17 @@
 
 @media (max-width: 599px) {
   .iframely-option-check__input,
-  .iframely-option-check__label:before,
-  .iframely-option-check__label:after {
+  .iframely-option-check__label::before,
+  .iframely-option-check__label::after {
     width: 24px !important;
     height: 24px !important;
   }
-  .iframely-option-radio .iframely-option-check__input:checked + .iframely-option-check__label:after {
+
+  .iframely-option-radio .iframely-option-check__input:checked + .iframely-option-check__label::after {
     top: 8px;
     left: 8px;
   }
+
   .iframely-option-check__label {
     padding-top: 2px;
   }

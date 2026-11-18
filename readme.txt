@@ -1,12 +1,12 @@
 === Iframely – WP media embeds, cards and blocks ===
 Contributors: yellowby, ivanp, garmoncheg, psergeev
-License: GPLv3
-License URI: http://www.gnu.org/licenses/gpl.html
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: gutenberg, facebook, instagram, twitter, youtube, tiktok, twitch
-Tested up to: 6.8.2
-Stable tag: 1.1.6
-Requires at least: 3.8
-Requires PHP: 7.2
+Tested up to: 7.1
+Stable tag: 1.2.0
+Requires at least: 6.6
+Requires PHP: 7.4
 
 Iframely cloud extends WordPress embeds with customizable embed blocks for over 1900 rich media publishers. For the rest of the Internet, Iframely shows a summary card preview.
 
@@ -122,6 +122,25 @@ You can change every aspect of Iframely embeds via your account settings at [ifr
 
 == Changelog ==
 
+= 1.2.0 =
+
+* Requires WordPress 6.6 and PHP 7.4. Tested with WordPress 7.1.
+* Evergreen cache: when Iframely cannot be reached, posts keep the embeds they have, and a failed lookup is no longer repeated on every page view.
+* Embed options in the editor: a preview that fails no longer leaves the block stuck, changes made while a preview loads are kept, an option that is on by default can be turned off, and values in any script can be saved.
+* Embed options are kept in the URL of the embed only, as before; the unused `iquery` attribute is no longer written to posts. Posts saved by earlier versions keep their options.
+* Security: options stored with a URL can no longer replace the API key or the address sent to Iframely, and the texts of the settings page are escaped.
+* The API key is no longer accepted when the answer of the check cannot be read.
+* The editor's script and style are no longer added to content requested over the REST API, which stopped the Site Editor from scrolling on WordPress 6.6.
+* Works together with plugins that answer embed requests themselves, and with sign-in methods that are registered after plugins are loaded.
+* Feeds: the newest item no longer carries an Iframely embed.
+* The `[iframely]` shortcode uses Iframely for every URL, also when the built-in providers of WordPress are kept.
+* Settings: percent-encoded values in "Query string parameters" are kept, and the cache lifetime has to be one of the offered values.
+* AMP: text after the last embed keeps its paragraphs.
+* Multisite: the "Settings" link on the Plugins screen leads to the network settings.
+* When a URL cannot be embedded, the link shown instead no longer contains the options.
+* Deleting the plugin removes its settings.
+* The options panel of the editor can be translated.
+
 = 1.1.6 =
 
 * Fix aggressive cache invalidation (@kasparsd https://github.com/itteco/iframely-wordpress/issues/57)
@@ -236,3 +255,9 @@ There are 3 main changes: API Key, Shortcode, and Options page.
 = 0.1.0 =
 
 This is our initial release. Please, rate if you like the plugin. And please, help do submit issues if you see any.
+
+
+== Upgrade Notice ==
+
+= 1.2.0 =
+Requires WordPress 6.6 and PHP 7.4. Fixes the evergreen cache and the embed options in the editor. Deleting the plugin now removes its settings.

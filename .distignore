@@ -1,0 +1,65 @@
+# Files and directories that must not be shipped in the plugin package.
+# Used by `npm run release` and understood by `wp dist-archive` and the wordpress.org
+# deploy GitHub Actions. See tools/lib/distignore.js for the forms an entry can take.
+
+# Version control and editors
+/.git
+/.github
+/.gitignore
+/.gitattributes
+/.editorconfig
+/.idea
+/.vscode
+/.devcontainer
+
+# Dependencies
+/node_modules
+/vendor
+
+# Sources that are compiled into build/
+/src
+/webpack.config.js
+
+# Tooling and configuration
+/.distignore
+/eslint.config.cjs
+/.stylelintrc.json
+/.wp-env.json
+/.wp-env.tests.json
+/.wp-env.override.json
+/.wp-env.tests.override.json
+/composer.json
+/composer.lock
+/vitest.config.mjs
+/package.json
+/package-lock.json
+/phpcs.xml
+/phpcs.xml.dist
+/phpstan.neon
+/phpstan.neon.dist
+/phpunit.xml
+/phpunit.xml.dist
+/playwright.config.js
+/tools
+
+# Tests and their output
+/tests
+/artifacts
+/playwright-report
+/test-results
+/.phpunit.result.cache
+
+# Release tooling and wordpress.org assets (deployed separately to SVN /assets)
+/release
+/svn
+
+# Translation sources: wordpress.org serves language packs; only the .pot ships
+/lang/*.po
+/lang/*.mo
+
+# Repository documentation (readme.txt is the one that ships)
+/README.md
+
+# Local secrets
+/.env
+/.env.*

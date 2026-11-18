@@ -110,7 +110,7 @@ msgstr "К сожалению, ваш ключ API не может быть пр
 
 #: app/UI/Settings.php:116
 msgid ""
-"Sorry, your API key can't be verified (error code %s). <a href=\"%s\" target="
+"Sorry, your API key can't be verified (error code %1$s). <a href=\"%2$s\" target="
 "\"_blank\">Learn more</a>"
 msgstr ""
 
@@ -196,8 +196,8 @@ msgstr ""
 
 #: views/partials/promo.php:15
 msgid ""
-"<a href=\"%s\" target=\"_blank\">Iframely</a> extends WordPress default "
-"embeds and adds customizable rich media blocks from over <a href=\"%s\" "
+"<a href=\"%1$s\" target=\"_blank\">Iframely</a> extends WordPress default "
+"embeds and adds customizable rich media blocks from over <a href=\"%2$s\" "
 "target=\"_blank\">1900 rich media publishers</a>. For the rest of the Web, "
 "Iframely cloud serves a summary card preview."
 msgstr ""
@@ -379,7 +379,7 @@ msgstr "Поддержка"
 
 #: views/tabs/help.php:23
 msgid ""
-"Email or website chat, we are just one message away and arehere to help "
+"Email or website chat, we are just one message away and are here to help "
 "along the way."
 msgstr ""
 
@@ -396,8 +396,8 @@ msgstr ""
 
 #: views/tabs/reactivate.php:7
 msgid ""
-"When you change your API key, the media cache in your posts is cleared. You "
-"will need a new valid key to reinstate the embedded content. Are you sure?"
+"Your current API key stays in use until a new one is verified. Embeds in "
+"your posts switch to the new key the next time they are refreshed."
 msgstr ""
 
 #: views/tabs/reactivate.php:9 views/tabs/settings.php:18
@@ -511,8 +511,8 @@ msgstr "Пример"
 
 #: build/index.js:1 src/js/components/IframelyOptions.js:21
 msgid ""
-"If your <a href=\"%s\" target=\"_blank\">plan</a> supports it and config "
-"allows, Iframely will show <a href=\"%s\" target=\"_blank\">edit options</a> "
+"If your <a href=\"%1$s\" target=\"_blank\">plan</a> supports it and config "
+"allows, Iframely will show <a href=\"%2$s\" target=\"_blank\">edit options</a> "
 "for selected URL here, whenever available."
 msgstr ""
 

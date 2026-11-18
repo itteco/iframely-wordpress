@@ -1,6 +1,6 @@
 import { select } from '@wordpress/data';
 import { updateForm } from '../components/IframelyOptions';
-import { getEditorDocument, getBlockId, isObject } from '../utils';
+import { getEditorDocument, getBlockId, isEmbedBlock, isObject } from '../utils';
 
 const methodName = 'setIframelyEmbedOptions';
 
@@ -16,12 +16,28 @@ function getCurrentIframe(source) {
   return iframe;
 }
 
+function parse(message) {
+  if (isObject(message)) {
+    return message;
+  }
+  // Other scripts post messages to the editor as well, in formats of their own
+  try {
+    return JSON.parse(message);
+  } catch {
+    return null;
+  }
+}
+
 export function iframeMessage(e) {
-  const data = isObject(e?.data) ? e.data : JSON.parse(e?.data) || {};
-  if (data?.method !== methodName) {
+  // The frame an embed is shown in belongs to the editor: its messages come from the editor's own origin
+  if (e?.origin !== window.location.origin) {
     return;
   }
-  let iframe = getCurrentIframe(e.source);
+  const data = parse(e.data);
+  if (!isObject(data) || data.method !== methodName || !isObject(data.data)) {
+    return;
+  }
+  const iframe = getCurrentIframe(e.source);
   if (!iframe) {
     return;
   }
@@ -32,7 +48,7 @@ export function iframeMessage(e) {
   // update only if the form is open. If not, it will be built on render
   const block = select('core/block-editor').getBlock(getBlockId());
 
-  if (block && /^core-?\/?embed/i.test(block.name)) {
+  if (block && isEmbedBlock(block.name)) {
     updateForm();
   }
 }

@@ -19,8 +19,8 @@ class Upgrade
             if ($ttl > 0) {
                 Options::setCacheRefresh(true);
                 $value = $ttl * DAY_IN_SECONDS;
-                $presets = Cache::getTtlPresets();
-                if (!isset($presets[$value])) {
+                # This runs while the plugin is loaded, before translations can be used
+                if (!in_array($value, Cache::getTtlValues(), true)) {
                     $value = Cache::getDefaultTtlValue();
                 }
                 Options::setCacheTtl($value);
@@ -39,7 +39,7 @@ class Upgrade
         // Site previews
         $previews = Options::get('publish_iframely_cards');
         if ($previews !== false) {
-            Options::setPreviewsEnhance((int)$previews);
+            Options::setPreviewsEnhance((bool)(int)$previews);
             Options::delete('publish_iframely_cards');
         }
 

@@ -1,7 +1,7 @@
 import { select } from '@wordpress/data';
 import { Component } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
-import { getBlockIframe, getBlockId } from '../utils';
+import { getBlockIframe, getBlockId, getIframely } from '../utils';
 
 class IframelyOptions extends Component {
   constructor(props) {
@@ -12,14 +12,15 @@ class IframelyOptions extends Component {
   }
 
   updateEmptyPlaceholder() {
-    let placeholder = document.getElementById('iframely-options');
+    const placeholder = document.getElementById('iframely-options');
     if (!placeholder || placeholder.innerHTML) {
       return;
     }
     placeholder.innerHTML = this.state.isAdmin
       ? sprintf(
+          /* translators: 1: address of the Iframely plans, 2: address of the documentation on embed options */
           __(
-            'If your <a href="%s" target="_blank">plan</a> supports it and config allows, Iframely will show <a href="%s" target="_blank">edit options</a> for selected URL here, whenever available.',
+            'If your <a href="%1$s" target="_blank">plan</a> supports it and config allows, Iframely will show <a href="%2$s" target="_blank">edit options</a> for selected URL here, whenever available.',
             'iframely',
           ),
           'https://iframely.com/plans?utm_source=wordpress-plugin',
@@ -50,9 +51,10 @@ function updateForm() {
   const blockId = getBlockId();
   const iframe = getBlockIframe(blockId);
   const data = jQuery(iframe).data();
-  let $options = jQuery('#iframely-options');
-  let options = $options.length === 2 ? $options.get(1) : $options.get(0);
-  if (iframe && data) {
+  const $options = jQuery('#iframely-options');
+  const options = $options.length === 2 ? $options.get(1) : $options.get(0);
+  const iframely = getIframely();
+  if (iframe && data && iframely && typeof iframely.buildOptionsForm === 'function') {
     iframely.buildOptionsForm(blockId, options, data.data);
   }
 }

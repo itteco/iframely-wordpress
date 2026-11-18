@@ -31,6 +31,9 @@ class Options
         ];
     }
 
+    /**
+     * Removes every setting of the plugin. Used when the plugin is deleted, see uninstall.php.
+     */
     public static function reset(): void
     {
         self::delete('iframely_api_key');
@@ -42,6 +45,10 @@ class Options
         self::delete('iframely_version');
         self::delete('iframely_all_set');
         self::delete('iframely_reactivation');
+
+        # Settings of the versions before 1.0, for a site where they were never converted
+        self::delete('iframely_only_shortcode');
+        self::delete('publish_iframely_cards');
     }
 
     //<editor-fold desc="Version">

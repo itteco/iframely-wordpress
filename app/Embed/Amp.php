@@ -12,7 +12,7 @@ class Amp
         # Make compatible with Automatic AMP-WP plugin: https://github.com/Automattic/amp-wp
         add_filter('oembed_fetch_url', [self::class, 'maybe_add_iframe_amp'], 10, 3);
         add_filter('embed_oembed_html', [self::class, 'iframely_filter_oembed_result'], 10, 3);
-        add_filter('amp_content_embed_handlers', [self::class, 'maybe_disable_default_embed_handlers'], 10, 2);
+        add_filter('amp_content_embed_handlers', [self::class, 'maybe_disable_default_embed_handlers']);
     }
 
     public static function is_iframely_amp($args): bool
@@ -52,9 +52,9 @@ class Amp
 
             foreach ($chunks as $chunk) {
                 $start = strpos($chunk, '<amp-iframe');
-                // Malformed html?
+                // What follows the last amp-iframe
                 if ($start === false) {
-                    $content .= $chunk;
+                    $content .= wpautop($chunk);
                     continue;
                 }
 
@@ -79,16 +79,3 @@ class Amp
         return $embed_handler_classes;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

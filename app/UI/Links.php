@@ -18,12 +18,8 @@ class Links
 
     public static function settings(): string
     {
-        return is_network_admin() ? network_admin_url('settings.php?page=iframely') : menu_page_url('iframely', false);
-    }
-
-    public static function activation(): string
-    {
-        return is_network_admin() ? network_admin_url('settings.php?page=iframely') : menu_page_url('iframely', false);
+        # On a network the settings are in the network admin, and nowhere else
+        return is_multisite() ? network_admin_url('settings.php?page=iframely') : menu_page_url('iframely', false);
     }
 
     public static function tab(string $name = '', string $action = ''): string

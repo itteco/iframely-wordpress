@@ -17,7 +17,6 @@ class Plugin
 
     public function init(): void
     {
-        load_plugin_textdomain('iframely', false, plugin_basename(IFRAMELY_PLUGIN_DIR) . '/lang/');
         add_filter('network_admin_plugin_action_links_' . IFRAMELY_PLUGIN_FILE, [self::class, 'addSettingsLink']);
         add_filter('plugin_action_links_' . IFRAMELY_PLUGIN_FILE, [self::class, 'addSettingsLink']);
     }
@@ -44,7 +43,12 @@ class Plugin
 
     public static function addSettingsLink(array $actions): array
     {
-        $settings = sprintf('<a href="%s">%s</a>', Links::settings(), __('Settings', 'iframely'));
+        # On a network only its administrators can open the settings
+        if (is_multisite() && !current_user_can('manage_network_options')) {
+            return $actions;
+        }
+
+        $settings = sprintf('<a href="%s">%s</a>', esc_url(Links::settings()), esc_html__('Settings', 'iframely'));
         $actions[] = $settings;
         return $actions;
     }

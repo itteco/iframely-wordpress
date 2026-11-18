@@ -11,7 +11,7 @@ use Iframely\Embed\Shortcode;
 
 class Embed
 {
-    public const IFRAMELY_ENDPOINT_URL = 'https://iframe.ly/api/oembed';
+    public const IFRAMELY_ENDPOINT_URL = IFRAMELY_API_ENDPOINT;
 
     public static function run(): void
     {
@@ -36,7 +36,8 @@ class Embed
 
         if (!empty($query)) {
             parse_str($query, $params);
-            $link = add_query_arg($params, $link);
+            # parse_str() decodes the values, and add_query_arg() does not encode what it adds
+            $link = add_query_arg(array_map('rawurlencode', array_filter($params, 'is_string')), $link);
         }
 
         return $link;
